@@ -1,0 +1,93 @@
+From 5646d693fd4889cf40dd568f548d6678d9f851cd Mon Sep 17 00:00:00 2001
+From: Song Zhao <song.zhao@amlogic.com>
+Date: Mon, 1 Jun 2020 17:08:42 -0700
+Subject: [PATCH 3/3] v4l2: add VIDTYPE_COMPRESS in vf for dw mode 1/2/4 [1/1]
+
+PD#SWPL-27197
+
+Problem:
+When double write mode is set to 1/2/4,  DRM will show the content
+inside vframe.  This is because VIDTYPE_COMPRESS is not set. When dw
+mode is set to 3, both linear and compressed buffer will be passed to
+display, and display will decide which to show according to current
+downscaled ratio.
+
+Solution:
+On linux v4l2, the requirement is compressed buffer is preferred on
+video plane. And downscale is done on linear buffer.
+
+Verify:
+U212 + RDK4
+
+Change-Id: Iea93ad9cbb9f5caa397b943acbd2f390378ed08c
+Signed-off-by: Song Zhao <song.zhao@amlogic.com>
+---
+ drivers/frame_provider/decoder/h265/vh265.c | 10 ++++++++++
+ drivers/frame_provider/decoder/vp9/vvp9.c   |  2 ++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/drivers/frame_provider/decoder/h265/vh265.c b/drivers/frame_provider/decoder/h265/vh265.c
+index 4f4495d..d594003 100644
+--- a/drivers/frame_provider/decoder/h265/vh265.c
++++ b/drivers/frame_provider/decoder/h265/vh265.c
+@@ -8496,6 +8496,8 @@ static int process_pending_vframe(struct hevc_state_s *hevc,
+ 					if (hevc->mmu_enable)
+ 						vf->type |= VIDTYPE_SCATTER;
+ 		}
++		if (hevc->is_used_v4l && hevc->double_write_mode != 16)
++			vf->type |= VIDTYPE_COMPRESS | VIDTYPE_SCATTER;
+ 		hevc->vf_pre_count++;
+ 		kfifo_put(&hevc->newframe_q, (const struct vframe_s *)vf);
+ 		spin_lock_irqsave(&lock, flags);
+@@ -8532,6 +8534,8 @@ static int process_pending_vframe(struct hevc_state_s *hevc,
+ 					if (hevc->mmu_enable)
+ 						vf->type |= VIDTYPE_SCATTER;
+ 				}
++				if (hevc->is_used_v4l && hevc->double_write_mode != 16)
++					vf->type |= VIDTYPE_COMPRESS | VIDTYPE_SCATTER;
+ 				hevc->vf_pre_count++;
+ 				kfifo_put(&hevc->display_q,
+ 				(const struct vframe_s *)vf);
+@@ -8551,6 +8555,8 @@ static int process_pending_vframe(struct hevc_state_s *hevc,
+ 					if (hevc->mmu_enable)
+ 						vf->type |= VIDTYPE_SCATTER;
+ 				}
++				if (hevc->is_used_v4l && hevc->double_write_mode != 16)
++					vf->type |= VIDTYPE_COMPRESS | VIDTYPE_SCATTER;
+ 				vf->index &= 0xff;
+ 				vf->index |= (pair_pic->index << 8);
+ 				vf->canvas1Addr = spec2canvas(pair_pic);
+@@ -8578,6 +8584,8 @@ static int process_pending_vframe(struct hevc_state_s *hevc,
+ 					if (hevc->mmu_enable)
+ 						vf->type |= VIDTYPE_SCATTER;
+ 				}
++				if (hevc->is_used_v4l && hevc->double_write_mode != 16)
++					vf->type |= VIDTYPE_COMPRESS | VIDTYPE_SCATTER;
+ 				vf->index &= 0xff00;
+ 				vf->index |= pair_pic->index;
+ 				vf->canvas0Addr = spec2canvas(pair_pic);
+@@ -8912,6 +8920,8 @@ static int prepare_display_buf(struct hevc_state_s *hevc, struct PIC_s *pic)
+ 				if (hevc->mmu_enable)
+ 					vf->type |= VIDTYPE_SCATTER;
+ 			}
++			if (hevc->is_used_v4l && pic->double_write_mode != 16)
++				vf->type |= VIDTYPE_COMPRESS | VIDTYPE_SCATTER;
+ #ifdef MULTI_INSTANCE_SUPPORT
+ 			if (hevc->m_ins_flag &&
+ 				(get_dbg_flag(hevc)
+diff --git a/drivers/frame_provider/decoder/vp9/vvp9.c b/drivers/frame_provider/decoder/vp9/vvp9.c
+index 0b849a9..f50fade 100644
+--- a/drivers/frame_provider/decoder/vp9/vvp9.c
++++ b/drivers/frame_provider/decoder/vp9/vvp9.c
+@@ -7317,6 +7317,8 @@ static int prepare_display_buf(struct VP9Decoder_s *pbi,
+ 				if (pbi->mmu_enable)
+ 					vf->type |= VIDTYPE_SCATTER;
+ 			}
++			if (pbi->is_used_v4l && pic_config->double_write_mode != 16)
++				vf->type |= VIDTYPE_COMPRESS | VIDTYPE_SCATTER;
+ #ifdef MULTI_INSTANCE_SUPPORT
+ 			if (pbi->m_ins_flag) {
+ 				vf->canvas0Addr = vf->canvas1Addr = -1;
+-- 
+2.17.1
+

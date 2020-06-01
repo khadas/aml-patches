@@ -1,0 +1,36 @@
+From e4b190699752641e67f87446858630844cc50e97 Mon Sep 17 00:00:00 2001
+From: Blance Tang <guofeng.tang@amlogic.com>
+Date: Wed, 27 May 2020 17:31:59 +0800
+Subject: [PATCH 2/3] RDK: Disable ld flag for RDK only [1/1]
+
+PD#SWPL-
+
+Problem:
+
+Solution:
+
+Verify:
+  Local
+
+Signed-off-by: Blance Tang <guofeng.tang@amlogic.com>
+Change-Id: I43961aef667fad1fa521e04078b81da6b2564320
+---
+ ta_export/mk/link.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ta_export/mk/link.mk b/ta_export/mk/link.mk
+index 04e94db..0d80d81 100644
+--- a/ta_export/mk/link.mk
++++ b/ta_export/mk/link.mk
+@@ -17,7 +17,7 @@ cleanfiles += $(link-script-pp) $(link-script-dep)
+ link-ldflags  = $(LDFLAGS)
+ link-ldflags += -pie
+ link-ldflags += -T $(link-script-pp) -Map=$(link-out-dir)/$(binary).map
+-link-ldflags += --sort-section=alignment
++#link-ldflags += --sort-section=alignment
+ 
+ # Macro to reverse a list
+ reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
+-- 
+2.17.1
+

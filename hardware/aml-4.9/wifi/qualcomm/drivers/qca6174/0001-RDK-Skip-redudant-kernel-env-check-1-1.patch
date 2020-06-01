@@ -1,0 +1,50 @@
+From 2e47b81509ad40c3e1a4d7a05b9d66659c5053a1 Mon Sep 17 00:00:00 2001
+From: Blance Tang <guofeng.tang@amlogic.com>
+Date: Wed, 27 May 2020 22:26:48 +0800
+Subject: [PATCH] RDK: Skip redudant kernel env check [1/1]
+
+PD#SWPL-
+
+Problem:
+
+Solution:
+
+Verify:
+  Local
+
+Signed-off-by: Blance Tang <guofeng.tang@amlogic.com>
+Change-Id: I2222f372321f10dba3aca40651b7c77f6a4fdefd
+---
+ AIO/build/Makefile | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/AIO/build/Makefile b/AIO/build/Makefile
+index 7c04b5e..8fcb2d5 100755
+--- a/AIO/build/Makefile
++++ b/AIO/build/Makefile
+@@ -31,15 +31,15 @@ export INSTALL_ROOT=$(TOP)/rootfs-x86-android.build
+ 
+ export IF_TYPE ?= SDIO
+ 
+-ifneq ($(KERNELPATH)/.config, $(wildcard $(KERNELPATH)/.config))
+-$(error Please set environment variable KERNELPATH, e.g export KERNELPATH="path/to/kernel/dir" or make KERNELPATH="path/to/kernel/dir")
+-endif
++#ifneq ($(KERNELPATH)/.config, $(wildcard $(KERNELPATH)/.config))
++#$(error Please set environment variable KERNELPATH, e.g export KERNELPATH="path/to/kernel/dir" or make KERNELPATH="path/to/kernel/dir")
++#endif
+ 
+-CROSS_COMPILE ?= $(subst -ld,-,$(shell cat $(KERNELPATH)/.vmlinux.cmd | awk '{print $$5}'))
++#CROSS_COMPILE ?= $(subst -ld,-,$(shell cat $(KERNELPATH)/.vmlinux.cmd | awk '{print $$5}'))
+ 
+-ifneq ($(CROSS_COMPILE)gcc, $(wildcard $(CROSS_COMPILE)gcc))
+-$(error Please set environment variable CROSS_COMPILE, e.g export CROSS_COMPILE=$(CROSS_COMPILE) or make CROSS_COMPILE=$(CROSS_COMPILE))
+-endif
++#ifneq ($(CROSS_COMPILE)gcc, $(wildcard $(CROSS_COMPILE)gcc))
++#$(error Please set environment variable CROSS_COMPILE, e.g export CROSS_COMPILE=$(CROSS_COMPILE) or make CROSS_COMPILE=$(CROSS_COMPILE))
++#endif
+ 
+ ARCH ?= $(shell ls $(KERNELPATH)/arch)
+ 
+-- 
+2.17.1
+
