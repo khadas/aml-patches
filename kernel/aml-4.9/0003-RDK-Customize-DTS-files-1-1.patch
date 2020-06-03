@@ -1,4 +1,4 @@
-From 98a5756c6c20432a2e9f957a8c7209448ba315ca Mon Sep 17 00:00:00 2001
+From 6d078ae916e8d7eb2dfc2580cadd55636e64c66f Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Wed, 6 May 2020 21:50:31 -0700
 Subject: [PATCH 3/3] RDK: Customize DTS files [1/1]

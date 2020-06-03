@@ -1,4 +1,4 @@
-From 99801e8b3c04227e68b822623dcaaf78cbb4dcd5 Mon Sep 17 00:00:00 2001
+From 77dcc2766d85d4ec38fd97b6728b7bf7eae0cafd Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 23 Jan 2020 18:35:45 -0800
 Subject: [PATCH 2/3] fix uapi struct

@@ -1,4 +1,4 @@
-From 5646d693fd4889cf40dd568f548d6678d9f851cd Mon Sep 17 00:00:00 2001
+From 59c8e1495fff318ee532a5c808d7a683e909cc9b Mon Sep 17 00:00:00 2001
 From: Song Zhao <song.zhao@amlogic.com>
 Date: Mon, 1 Jun 2020 17:08:42 -0700
 Subject: [PATCH 3/3] v4l2: add VIDTYPE_COMPRESS in vf for dw mode 1/2/4 [1/1]
@@ -27,7 +27,7 @@ Signed-off-by: Song Zhao <song.zhao@amlogic.com>
  2 files changed, 12 insertions(+)
 
 diff --git a/drivers/frame_provider/decoder/h265/vh265.c b/drivers/frame_provider/decoder/h265/vh265.c
-index 4f4495d..d594003 100644
+index 72088a6..a36124d 100644
 --- a/drivers/frame_provider/decoder/h265/vh265.c
 +++ b/drivers/frame_provider/decoder/h265/vh265.c
 @@ -8496,6 +8496,8 @@ static int process_pending_vframe(struct hevc_state_s *hevc,

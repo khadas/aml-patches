@@ -1,4 +1,4 @@
-From 8e2e639fc897efc3c323aa3463b1b582f6a5f97a Mon Sep 17 00:00:00 2001
+From c277450ae388fd4aeba828e188034a9b71c5093f Mon Sep 17 00:00:00 2001
 From: Song Zhao <song.zhao@amlogic.com>
 Date: Sat, 2 May 2020 00:06:53 -0700
 Subject: [PATCH 2/3] v4l2: update size parameter with double write mode [1/1]
@@ -389,7 +389,7 @@ index 9392543..7741bf2 100644
  		} else {
  			vf->type = VIDTYPE_PROGRESSIVE | VIDTYPE_VIU_FIELD |
 diff --git a/drivers/frame_provider/decoder/h265/vh265.c b/drivers/frame_provider/decoder/h265/vh265.c
-index eab5362..4f4495d 100644
+index 67bf965..72088a6 100644
 --- a/drivers/frame_provider/decoder/h265/vh265.c
 +++ b/drivers/frame_provider/decoder/h265/vh265.c
 @@ -1948,30 +1948,15 @@ static int get_double_write_mode(struct hevc_state_s *hevc)

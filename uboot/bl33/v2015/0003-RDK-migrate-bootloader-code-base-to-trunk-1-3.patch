@@ -1,4 +1,4 @@
-From a4c8e527d27235f1e0658719bc8d826c321a4a68 Mon Sep 17 00:00:00 2001
+From 2fa611cb34b890c88ebc60733fc13b7554a1233a Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Tue, 5 Nov 2019 22:20:46 -0800
 Subject: [PATCH 3/3] RDK: migrate bootloader code base to trunk [1/3]
