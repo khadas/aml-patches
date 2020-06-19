@@ -1,7 +1,7 @@
-From 6d078ae916e8d7eb2dfc2580cadd55636e64c66f Mon Sep 17 00:00:00 2001
+From 1d9ef219ac6f6d302ea49751ea0ebb071e23b266 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Wed, 6 May 2020 21:50:31 -0700
-Subject: [PATCH 3/3] RDK: Customize DTS files [1/1]
+Subject: [PATCH 1/2] RDK: Customize DTS files [1/1]
 
 PD#SWPL-25661
 
@@ -20,19 +20,33 @@ Verify:
 Change-Id: I7b18402ba2a55ee80cb704fb791e5b03791e74ca
 Signed-off-by: Pradeep Sriram <pradeep.sriram@amlogic.com>
 ---
- .../g12a_s905x2_u212_drm_buildroot.dts        | 100 +-------------
- .../amlogic/partition_mbox_normal_P_rdk.dtsi  | 122 ++++++++++++++++++
- .../boot/dts/amlogic/partition_tv_ab_rdk.dtsi | 106 +++++++++++++++
- .../tm2_revb_t962e2_ab311_drm_buildroot.dts   |   8 +-
- .../tm2_revb_t962x3_ab301_drm_buildroot.dts   |   8 +-
- .../tm2_t962e2_ab311_drm_buildroot.dts        |   8 +-
- .../tm2_t962x3_ab301_drm_buildroot.dts        |   8 +-
- 7 files changed, 251 insertions(+), 109 deletions(-)
+ .../dts/amlogic/g12a_s905x2_u212_buildroot.dts     |   2 +-
+ .../dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts |  96 +---------------
+ .../dts/amlogic/partition_mbox_normal_P_rdk.dtsi   | 122 +++++++++++++++++++++
+ arch/arm/boot/dts/amlogic/partition_tv_ab_rdk.dtsi | 106 ++++++++++++++++++
+ .../tm2_revb_t962e2_ab311_drm_buildroot.dts        |   8 +-
+ .../tm2_revb_t962x3_ab301_drm_buildroot.dts        |   8 +-
+ .../dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts |   8 +-
+ .../dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts |   8 +-
+ 8 files changed, 250 insertions(+), 108 deletions(-)
  create mode 100644 arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi
  create mode 100644 arch/arm/boot/dts/amlogic/partition_tv_ab_rdk.dtsi
 
+diff --git a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_buildroot.dts b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_buildroot.dts
+index 1fbb34d..9a5fece 100644
+--- a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_buildroot.dts
++++ b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_buildroot.dts
+@@ -899,7 +899,7 @@
+ 		compatible = "amlogic, g12a-snd-tdmb";
+ 		#sound-dai-cells = <0>;
+ 		dai-tdm-lane-slot-mask-in = <0 1 0 0>;
+-		dai-tdm-lane-slot-mask-out = <1 0 0 0>;
++		dai-tdm-lane-slot-mask-out = <1 1 1 1>;
+ 		dai-tdm-clk-sel = <1>;
+ 		clocks = <&clkaudio CLKID_AUDIO_MCLK_B
+ 				&clkc CLKID_MPLL1
 diff --git a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
-index 06cc532c15d2..5a4aaec5f031 100644
+index 06cc532..6e62d62 100644
 --- a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 @@ -19,6 +19,7 @@
@@ -158,22 +172,18 @@ index 06cc532c15d2..5a4aaec5f031 100644
  	unifykey{
  		compatible = "amlogic, unifykey";
  		status = "ok";
-@@ -626,9 +540,9 @@
- 			suffix-name = "alsaPORT-i2s";
- 			cpu {
- 				sound-dai = <&aml_tdmb>;
--				dai-tdm-slot-tx-mask = <1 1>;
--				dai-tdm-slot-rx-mask = <1 1>;
--				dai-tdm-slot-num = <2>;
-+                dai-tdm-slot-tx-mask = <1 1 1 1 1 1 1 1>;
-+                dai-tdm-slot-rx-mask = <1 1 1 1 1 1 1 1>;
-+                dai-tdm-slot-num = <8>;
- 				/*
- 				 * dai-tdm-slot-tx-mask =
- 				 *	<1 1 1 1 1 1 1 1>;
+@@ -885,7 +799,7 @@
+ 		compatible = "amlogic, g12a-snd-tdmb";
+ 		#sound-dai-cells = <0>;
+ 		dai-tdm-lane-slot-mask-in = <0 1 0 0>;
+-		dai-tdm-lane-slot-mask-out = <1 0 0 0>;
++		dai-tdm-lane-slot-mask-out = <1 1 1 1 >;
+ 		dai-tdm-clk-sel = <1>;
+ 		clocks = <&clkaudio CLKID_AUDIO_MCLK_B
+ 				&clkc CLKID_MPLL1
 diff --git a/arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi b/arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi
 new file mode 100644
-index 000000000000..0a2daae77346
+index 00000000..0a2daae
 --- /dev/null
 +++ b/arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi
 @@ -0,0 +1,122 @@
@@ -301,7 +311,7 @@ index 000000000000..0a2daae77346
 +};/* end of / */
 diff --git a/arch/arm/boot/dts/amlogic/partition_tv_ab_rdk.dtsi b/arch/arm/boot/dts/amlogic/partition_tv_ab_rdk.dtsi
 new file mode 100644
-index 000000000000..b6f0b8efad73
+index 00000000..b6f0b8e
 --- /dev/null
 +++ b/arch/arm/boot/dts/amlogic/partition_tv_ab_rdk.dtsi
 @@ -0,0 +1,106 @@
@@ -412,7 +422,7 @@ index 000000000000..b6f0b8efad73
 +			};
 +};/* end of / */
 diff --git a/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
-index 6405bdd96269..b647493dfa09 100644
+index 6405bdd..b647493 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -447,7 +457,7 @@ index 6405bdd96269..b647493dfa09 100644
  		};
  
 diff --git a/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts
-index f2f29366eda0..2efe996510af 100644
+index f2f2936..2efe996 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -482,7 +492,7 @@ index f2f29366eda0..2efe996510af 100644
  		};
  
 diff --git a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
-index 51ed30344f77..ddb5ad446c4c 100644
+index 51ed303..ddb5ad4 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -517,7 +527,7 @@ index 51ed30344f77..ddb5ad446c4c 100644
  		};
  
 diff --git a/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts
-index c7d121b0e288..a785c7e0234f 100644
+index c7d121b..a785c7e 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -552,5 +562,5 @@ index c7d121b0e288..a785c7e0234f 100644
  		};
  
 -- 
-2.17.1
+2.7.4
 

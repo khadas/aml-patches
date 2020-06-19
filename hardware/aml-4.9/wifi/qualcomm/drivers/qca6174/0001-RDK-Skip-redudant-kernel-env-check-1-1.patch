@@ -1,4 +1,4 @@
-From 8bb7b07d8e590f51270330c44ae95265ecf43f3e Mon Sep 17 00:00:00 2001
+From b89a0458cc957be6795830ad823cd4c614025129 Mon Sep 17 00:00:00 2001
 From: Blance Tang <guofeng.tang@amlogic.com>
 Date: Wed, 27 May 2020 22:26:48 +0800
 Subject: [PATCH] RDK: Skip redudant kernel env check [1/1]
@@ -6,8 +6,11 @@ Subject: [PATCH] RDK: Skip redudant kernel env check [1/1]
 PD#SWPL-
 
 Problem:
+  qulcom qca6174 wifi module's firmware path is
+a relative path corresponding to /lib/firmware
 
 Solution:
+  change the firmware loading path in code
 
 Verify:
   Local
@@ -15,8 +18,9 @@ Verify:
 Signed-off-by: Blance Tang <guofeng.tang@amlogic.com>
 Change-Id: I2222f372321f10dba3aca40651b7c77f6a4fdefd
 ---
- AIO/build/Makefile | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ AIO/build/Makefile                             | 14 +++++++-------
+ AIO/drivers/qcacld-new/CORE/VOSS/src/vos_api.c |  2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/AIO/build/Makefile b/AIO/build/Makefile
 index 7c04b5e..8fcb2d5 100755
@@ -45,6 +49,19 @@ index 7c04b5e..8fcb2d5 100755
  
  ARCH ?= $(shell ls $(KERNELPATH)/arch)
  
+diff --git a/AIO/drivers/qcacld-new/CORE/VOSS/src/vos_api.c b/AIO/drivers/qcacld-new/CORE/VOSS/src/vos_api.c
+index 4de6f93..4f96ce6 100644
+--- a/AIO/drivers/qcacld-new/CORE/VOSS/src/vos_api.c
++++ b/AIO/drivers/qcacld-new/CORE/VOSS/src/vos_api.c
+@@ -3598,7 +3598,7 @@ int qca_request_firmware(const struct firmware **firmware_p,
+ #ifdef CONFIG_BUILDROOT
+ 	sprintf(final_name,"qca6174/%s",name);
+ #else
+-	sprintf(final_name,"../../../vendor/etc/wifi/qca6174/%s",name);
++	sprintf(final_name,"../../etc/wifi/qca6174/%s",name);
+ #endif
+ 	return request_firmware(firmware_p, final_name, device);
+ #endif
 -- 
-2.17.1
+2.7.4
 

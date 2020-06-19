@@ -1,7 +1,7 @@
-From 2fa611cb34b890c88ebc60733fc13b7554a1233a Mon Sep 17 00:00:00 2001
+From f9ccdf57cdb19a8244f81bc44afdfd38db38917c Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Tue, 5 Nov 2019 22:20:46 -0800
-Subject: [PATCH 3/3] RDK: migrate bootloader code base to trunk [1/3]
+Subject: [PATCH 7/7] RDK: migrate bootloader code base to trunk [1/3]
 
 PD#SWPL-24384
 
@@ -21,7 +21,7 @@ Change-Id: Idfe7c3052ad5d4c46f82b233f95ae9062f684c06
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index e9202ec846..415b0bf6e1 100644
+index 392a767..fc38f75 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -246,8 +246,8 @@ ifeq ($(HOSTARCH),$(ARCH))
@@ -36,5 +36,5 @@ index e9202ec846..415b0bf6e1 100644
  export CROSS_COMPILE_T32
  
 -- 
-2.17.1
+2.7.4
 

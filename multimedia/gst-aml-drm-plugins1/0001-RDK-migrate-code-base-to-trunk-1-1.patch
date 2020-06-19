@@ -1,4 +1,4 @@
-From ad1cc4044cbe216188a417089f2114df75a705e4 Mon Sep 17 00:00:00 2001
+From ba66ccfac2fb2bd5a4f34296d24ed33bb628cfbe Mon Sep 17 00:00:00 2001
 From: Xueling Li <xueling.li@amlogic.com>
 Date: Wed, 27 May 2020 16:10:39 +0800
 Subject: [PATCH] RDK: migrate code base to trunk [1/1]
@@ -42,5 +42,5 @@ index bfda5e6..562cf53 100644
 -SUBDIRS = secmem secure_parse dummy
 +SUBDIRS = secmem dummy
 -- 
-2.17.1
+2.7.4
 

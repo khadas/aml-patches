@@ -1,7 +1,7 @@
-From db37199e6a4d4673ef508c7385d8c218b2e69852 Mon Sep 17 00:00:00 2001
+From 596c669db5bce11ac673598ba2f9d6f6a06ab361 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 30 Apr 2020 13:00:49 -0700
-Subject: [PATCH 2/3] RDK: migrate uboot code base to trunk [3/3]
+Subject: [PATCH 6/7] RDK: migrate uboot code base to trunk [3/3]
 
 PD#SWPL-24384
 
@@ -21,7 +21,7 @@ Change-Id: Ib6f7ab8db107240e9263411d97dd38ac9c53d2f1
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/cpu/armv8/g12a/firmware/scp_task/Makefile b/arch/arm/cpu/armv8/g12a/firmware/scp_task/Makefile
-index 7917e2042e..873b8e6600 100644
+index 7917e20..873b8e6 100644
 --- a/arch/arm/cpu/armv8/g12a/firmware/scp_task/Makefile
 +++ b/arch/arm/cpu/armv8/g12a/firmware/scp_task/Makefile
 @@ -16,7 +16,7 @@ OBJDUMP=$(CROSS_COMPILE)objdump
@@ -34,5 +34,5 @@ index 7917e2042e..873b8e6600 100644
              -Werror-implicit-function-declaration -Wno-format-security    \
              -fno-delete-null-pointer-checks -Wdeclaration-after-statement \
 -- 
-2.17.1
+2.7.4
 

@@ -1,7 +1,7 @@
-From 77dcc2766d85d4ec38fd97b6728b7bf7eae0cafd Mon Sep 17 00:00:00 2001
+From 3a1245e3eedb9c7913cecaed79327fd7fce7204f Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 23 Jan 2020 18:35:45 -0800
-Subject: [PATCH 2/3] fix uapi struct
+Subject: [PATCH 2/2] fix uapi struct
 
 Change-Id: Ifa3fa32faa429a3f411c117b0579beedd1f0f33f
 Signed-off-by: Mingyen Hung <mingyen.hung@amlogic.com>
@@ -10,7 +10,7 @@ Signed-off-by: Mingyen Hung <mingyen.hung@amlogic.com>
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/include/uapi/drm/drm_mode.h b/include/uapi/drm/drm_mode.h
-index 809259ab4795..350acdc0b256 100644
+index 809259a..350acdc 100644
 --- a/include/uapi/drm/drm_mode.h
 +++ b/include/uapi/drm/drm_mode.h
 @@ -659,22 +659,22 @@ struct drm_mode_atomic {
@@ -43,5 +43,5 @@ index 809259ab4795..350acdc0b256 100644
  	/* u32 formats[] */
  	/* struct drm_format_modifier modifiers[] */
 -- 
-2.17.1
+2.7.4
 
