@@ -1,0 +1,38 @@
+From 50c26787fc0addd306d8827fe43b379802691756 Mon Sep 17 00:00:00 2001
+From: Terrence Pu <terrence.pu@amlogic.com>
+Date: Mon, 22 Jun 2020 18:40:40 -0700
+Subject: [PATCH] RDK: Fixed the undefined symbol issues with latest RDK update
+
+PD#SWPL-27481
+
+Problem:
+After GCC 4.6 the -Wl,--as-need is by default but not all libraries
+are ready in rootfs during multi-core compiling without gold-linker
+
+Solution:
+Add new option --Wl,--no-as-need in front of dynamic linked libraries
+
+Verify:
+u212
+
+Change-Id: I0600ae887c13593590829dddb57e4d9dd175e927
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 4a66454..58aab07 100644
+--- a/Makefile
++++ b/Makefile
+@@ -6,7 +6,7 @@
+ DBUS_LIB_DIR = $(STAGING_DIR)/usr/lib
+ DBUS_HEADER_DIR = $(STAGING_DIR)/usr/include/dbus-1.0
+ LOCAL_PATH = $(shell pwd)
+-LDFLAGS += -lstdc++ -lpthread -lz -ldl -lrt -L$(DBUS_LIB_DIR) -ldbus-1
++LDFLAGS += -Wl,--no-as-needed -lstdc++ -lpthread -lz -ldl -lrt -L$(DBUS_LIB_DIR) -ldbus-1
+ CFLAGS += -Wall -Wno-unknown-pragmas -Wno-format \
+           -O3 -fexceptions -fnon-call-exceptions -D_GNU_SOURCE -DHAVE_AUDIO -I$(DBUS_HEADER_DIR) \
+ 		  -I$(DBUS_LIB_DIR)/dbus-1.0/include -I$(STAGING_DIR)/usr/include
+-- 
+2.7.4
+

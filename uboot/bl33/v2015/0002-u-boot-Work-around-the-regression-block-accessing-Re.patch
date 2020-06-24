@@ -1,4 +1,4 @@
-From 73cf91b1a8dc4598da92e18701f8ecf6b3c4edaa Mon Sep 17 00:00:00 2001
+From 16bd2b9b0b97b15d102fbe6c3b7cd75f85166a73 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 8 Jun 2020 12:13:38 -0700
 Subject: [PATCH 2/7] u-boot: Work around the regression block accessing

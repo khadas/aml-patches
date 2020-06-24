@@ -1,4 +1,4 @@
-From c783b29cbed5275f22b15a02e4fd6faac675eeb1 Mon Sep 17 00:00:00 2001
+From ad28d1d66a29dd93ee501b8169487ad07568bfaf Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 4 Jun 2020 17:00:24 -0700
 Subject: [PATCH] RDK: only compile amavutils. Others not needed for RDK
