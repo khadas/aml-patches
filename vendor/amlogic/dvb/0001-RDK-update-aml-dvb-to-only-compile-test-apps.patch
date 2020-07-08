@@ -1,4 +1,4 @@
-From ac548b6167e220e62a6781979daca41d85e0dac1 Mon Sep 17 00:00:00 2001
+From 4d98372423b7f0e16b7e09b6c7df3ebf91049bc9 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Fri, 18 Oct 2019 14:55:57 -0700
 Subject: [PATCH] RDK: update aml-dvb to only compile test apps
@@ -39,7 +39,7 @@ Change-Id: Ie70e765fe2a7cba644b397a093af130b008e8a4e
  mode change 100755 => 100644 test/am_db_test/Makefile
 
 diff --git a/Makefile b/Makefile
-index 72a97fd..db37852 100644
+index 72a97fde..db37852a 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -4,16 +4,16 @@ export ROOT_DIR
@@ -67,7 +67,7 @@ index 72a97fd..db37852 100644
 +	#make -C am_mw clean
  	make -C test clean
 diff --git a/am_adp/Makefile b/am_adp/Makefile
-index aa36b6e..f1d94a8 100644
+index aa36b6e4..f1d94a8f 100644
 --- a/am_adp/Makefile
 +++ b/am_adp/Makefile
 @@ -13,15 +13,13 @@ LOCAL_C_INCLUDES := -I $(LOCAL_PATH)/../include/am_adp\
@@ -101,7 +101,7 @@ index aa36b6e..f1d94a8 100644
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/am_adp/am_dmx/linux_dvb/linux_dvb.c b/am_adp/am_dmx/linux_dvb/linux_dvb.c
-index 5c29a3f..4a66fdc 100644
+index 5c29a3fa..4a66fdce 100644
 --- a/am_adp/am_dmx/linux_dvb/linux_dvb.c
 +++ b/am_adp/am_dmx/linux_dvb/linux_dvb.c
 @@ -107,7 +107,8 @@ static AM_ErrorCode_t dvb_open(AM_DMX_Device_t *dev, const AM_DMX_OpenPara_t *pa
@@ -115,7 +115,7 @@ index 5c29a3f..4a66fdc 100644
  	for(i=0; i<DMX_FILTER_COUNT; i++)
  		dmx->fd[i] = -1;
 diff --git a/am_adp/am_dvr/linux_dvb/linux_dvb.c b/am_adp/am_dvr/linux_dvb/linux_dvb.c
-index 468269c..c46d8a4 100644
+index 468269cd..c46d8a40 100644
 --- a/am_adp/am_dvr/linux_dvb/linux_dvb.c
 +++ b/am_adp/am_dvr/linux_dvb/linux_dvb.c
 @@ -72,7 +72,9 @@ static AM_ErrorCode_t dvb_open(AM_DVR_Device_t *dev, const AM_DVR_OpenPara_t *pa
@@ -130,7 +130,7 @@ index 468269c..c46d8a4 100644
  	if (fd == -1)
  	{
 diff --git a/am_adp/am_fend/linux_dvb/linux_dvb.c b/am_adp/am_fend/linux_dvb/linux_dvb.c
-index bc5f3ca..9377e1b 100644
+index bc5f3caa..9377e1b0 100644
 --- a/am_adp/am_fend/linux_dvb/linux_dvb.c
 +++ b/am_adp/am_fend/linux_dvb/linux_dvb.c
 @@ -117,7 +117,8 @@ static AM_ErrorCode_t dvb_open (AM_FEND_Device_t *dev, const AM_FEND_OpenPara_t
@@ -144,7 +144,7 @@ index bc5f3ca..9377e1b 100644
  	fd = open(name, O_RDWR);
  	if(fd==-1)
 diff --git a/test/Makefile b/test/Makefile
-index 9313d13..5558be0 100755
+index 9313d13b..5558be00 100755
 --- a/test/Makefile
 +++ b/test/Makefile
 @@ -1,6 +1,6 @@
@@ -156,7 +156,7 @@ index 9313d13..5558be0 100755
  all :
  	@for dir in $(SUB_DIRS); do \
 diff --git a/test/am_av_test/Makefile b/test/am_av_test/Makefile
-index f2c6fcc..a8d4559 100755
+index f2c6fcc3..a8d4559e 100755
 --- a/test/am_av_test/Makefile
 +++ b/test/am_av_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_av_test.c
@@ -169,7 +169,7 @@ index f2c6fcc..a8d4559 100755
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_ci_test/Makefile b/test/am_ci_test/Makefile
-index db0f013..4aad478 100644
+index db0f013a..4aad4785 100644
 --- a/test/am_ci_test/Makefile
 +++ b/test/am_ci_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_ci_test.c
@@ -185,7 +185,7 @@ diff --git a/test/am_db_test/Makefile b/test/am_db_test/Makefile
 old mode 100755
 new mode 100644
 diff --git a/test/am_dmx_test/Makefile b/test/am_dmx_test/Makefile
-index 8a1b8c6..309535c 100755
+index 8a1b8c63..309535cd 100755
 --- a/test/am_dmx_test/Makefile
 +++ b/test/am_dmx_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_dmx_test.c
@@ -198,7 +198,7 @@ index 8a1b8c6..309535c 100755
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_dsc_test/Makefile b/test/am_dsc_test/Makefile
-index 303b992..fd3f625 100755
+index 303b992d..fd3f6250 100755
 --- a/test/am_dsc_test/Makefile
 +++ b/test/am_dsc_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_dsc_test.c
@@ -211,7 +211,7 @@ index 303b992..fd3f625 100755
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_dvr_test/Makefile b/test/am_dvr_test/Makefile
-index a073833..eb376a6 100644
+index a073833e..eb376a6d 100644
 --- a/test/am_dvr_test/Makefile
 +++ b/test/am_dvr_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_dvr_test.c
@@ -224,7 +224,7 @@ index a073833..eb376a6 100644
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_dvr_test/am_dvr_test.c b/test/am_dvr_test/am_dvr_test.c
-index 9414733..cb5f870 100644
+index 9414733e..cb5f8700 100644
 --- a/test/am_dvr_test/am_dvr_test.c
 +++ b/test/am_dvr_test/am_dvr_test.c
 @@ -27,7 +27,7 @@
@@ -237,7 +237,7 @@ index 9414733..cb5f870 100644
  #include <am_dvr.h>
  #include <errno.h>
 diff --git a/test/am_epg_test/Makefile b/test/am_epg_test/Makefile
-index ca20f45..f13a7bc 100755
+index ca20f453..f13a7bc5 100755
 --- a/test/am_epg_test/Makefile
 +++ b/test/am_epg_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_epg_test.c
@@ -250,7 +250,7 @@ index ca20f45..f13a7bc 100755
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_fend_test/Makefile b/test/am_fend_test/Makefile
-index 95cd79c..b06ee24 100755
+index 95cd79c3..b06ee24c 100755
 --- a/test/am_fend_test/Makefile
 +++ b/test/am_fend_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_fend_test.c
@@ -263,7 +263,7 @@ index 95cd79c..b06ee24 100755
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_scan_test/Makefile b/test/am_scan_test/Makefile
-index 97257b6..db8673f 100755
+index 97257b6c..db8673f1 100755
 --- a/test/am_scan_test/Makefile
 +++ b/test/am_scan_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_scan_test.c
@@ -276,7 +276,7 @@ index 97257b6..db8673f 100755
  all : $(OBJS) $(OUTPUT)
  
 diff --git a/test/am_smc_test/Makefile b/test/am_smc_test/Makefile
-index 5426c33..733cfa3 100755
+index 5426c333..733cfa36 100755
 --- a/test/am_smc_test/Makefile
 +++ b/test/am_smc_test/Makefile
 @@ -20,8 +20,7 @@ SRC_FILES = am_smc_test.c
@@ -290,7 +290,7 @@ index 5426c33..733cfa3 100755
  
  $(OBJS) : %.o : %.c
 diff --git a/test/am_userdata_test/Makefile b/test/am_userdata_test/Makefile
-index 81d60c0..85f9df1 100755
+index 81d60c0e..85f9df1d 100755
 --- a/test/am_userdata_test/Makefile
 +++ b/test/am_userdata_test/Makefile
 @@ -20,7 +20,7 @@ SRC_FILES = am_userdata_test.c
@@ -303,5 +303,5 @@ index 81d60c0..85f9df1 100755
  all : $(OBJS) $(OUTPUT)
  
 -- 
-2.7.4
+2.17.1
 

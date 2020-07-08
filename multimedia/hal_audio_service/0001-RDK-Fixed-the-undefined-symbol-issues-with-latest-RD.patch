@@ -1,4 +1,4 @@
-From 6f100bf6096a41c8e7d9ef3d6af65a3c31956afa Mon Sep 17 00:00:00 2001
+From 67415b36f94a33d4bcf71cd8e48025617faa13fe Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 21 Jun 2020 12:30:54 -0700
 Subject: [PATCH] RDK: Fixed the undefined symbol issues with latest RDK update
@@ -34,5 +34,5 @@ index 7851c34..7b3f27b 100644
  %.grpc.pb.cc: %.proto
  	$(PROTOC) -I=. -I=$(PROTOC_INC) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 -- 
-2.7.4
+2.17.1
 
