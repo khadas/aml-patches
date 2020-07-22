@@ -1,4 +1,4 @@
-From 54ecdde1bb3be83e6e142adacf2a6a63d9e4630a Mon Sep 17 00:00:00 2001
+From cf621486d050c69d07af75f0c794290ea04ff325 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 22 Jun 2020 18:40:40 -0700
 Subject: [PATCH] RDK: Fixed the undefined symbol issues with latest RDK update
@@ -34,5 +34,5 @@ index 4a66454..58aab07 100644
            -O3 -fexceptions -fnon-call-exceptions -D_GNU_SOURCE -DHAVE_AUDIO -I$(DBUS_HEADER_DIR) \
  		  -I$(DBUS_LIB_DIR)/dbus-1.0/include -I$(STAGING_DIR)/usr/include
 -- 
-2.17.1
+2.7.4
 

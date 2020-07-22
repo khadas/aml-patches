@@ -1,7 +1,7 @@
-From 01cb531f5ec5cb50d676c1a7e091d12f059bb1e9 Mon Sep 17 00:00:00 2001
+From fc3d9ea9e9b03acde5aa9fd2d913cdc430e7d531 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 8 Jun 2020 10:31:30 -0700
-Subject: [PATCH 6/7] u-boot: Fix A/B update from Firmware Control is not
+Subject: [PATCH 7/8] u-boot: Fix A/B update from Firmware Control is not
  alternating
 
 PD#SWPL-27570
@@ -22,7 +22,7 @@ Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 44bd1b6bf3..aef7e0d560 100644
+index 7c9fe8f..0b4e062 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -59,7 +59,7 @@
@@ -35,5 +35,5 @@ index 44bd1b6bf3..aef7e0d560 100644
  /* support ext4*/
  #define CONFIG_CMD_EXT4 1
 -- 
-2.17.1
+2.7.4
 
