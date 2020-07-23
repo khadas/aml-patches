@@ -1,4 +1,4 @@
-From 07d93069bcd8efc236bc7c4e00191a26cd7d47a4 Mon Sep 17 00:00:00 2001
+From 5bdee1ecfb56fd0557cdb3bbfcef82712497c13e Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 21 Jun 2020 12:30:54 -0700
 Subject: [PATCH] RDK: Fixed the undefined symbol issues with latest RDK update
@@ -21,10 +21,10 @@ Change-Id: I382e34bf8b014228b3ab38d615a65a38141b1480
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 7851c34..7b3f27b 100644
+index e3bc5eb..7018bc5 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -24,7 +24,7 @@ GRPC_CPP_PLUGIN_PATH=$(HOST_DIR)/bin/grpc_cpp_plugin
+@@ -25,7 +25,7 @@ GRPC_CPP_PLUGIN_PATH=$(HOST_DIR)/bin/grpc_cpp_plugin
  
  CFLAGS+=-fPIC -O2 -I$(PROTOC_INC) -I./include -I. -I./src
  CXXFLAGS+=-std=c++14
@@ -34,5 +34,5 @@ index 7851c34..7b3f27b 100644
  %.grpc.pb.cc: %.proto
  	$(PROTOC) -I=. -I=$(PROTOC_INC) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 -- 
-2.7.4
+2.17.1
 

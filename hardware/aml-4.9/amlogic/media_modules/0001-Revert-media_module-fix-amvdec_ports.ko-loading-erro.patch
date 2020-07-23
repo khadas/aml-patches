@@ -1,0 +1,34 @@
+From 5c7536a56781b0dcc8fb111240460029dea886e4 Mon Sep 17 00:00:00 2001
+From: Terrence Pu <terrence.pu@amlogic.com>
+Date: Wed, 22 Jul 2020 20:10:33 -0700
+Subject: [PATCH 1/2] Revert "media_module: fix amvdec_ports.ko loading error
+ [1/1]"
+
+This reverts commit e67b87374b4ec48ec86bae8d6c3ce4a20fe80a05.
+
+Change-Id: I92f0d0f97a7c7f3b1e5b53be184f034fac4d4336
+---
+ drivers/amvdec_ports/decoder/aml_vp9_parser.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/amvdec_ports/decoder/aml_vp9_parser.h b/drivers/amvdec_ports/decoder/aml_vp9_parser.h
+index 9f7dfd9..4a90557 100644
+--- a/drivers/amvdec_ports/decoder/aml_vp9_parser.h
++++ b/drivers/amvdec_ports/decoder/aml_vp9_parser.h
+@@ -174,12 +174,11 @@ struct vp9_param_sets {
+ 	struct VP9Context ctx;
+ };
+ 
++int vp9_superframe_split_filter(struct vp9_superframe_split *s);
+ 
+ #ifdef CONFIG_AMLOGIC_MEDIA_V4L_SOFTWARE_PARSER
+-int vp9_superframe_split_filter(struct vp9_superframe_split *s);
+ int vp9_decode_extradata_ps(u8 *data, int size, struct vp9_param_sets *ps);
+ #else
+-inline int vp9_superframe_split_filter(struct vp9_superframe_split *s) { return -1;}
+ inline int vp9_decode_extradata_ps(u8 *data, int size, struct vp9_param_sets *ps) { return -1; }
+ #endif
+ 
+-- 
+2.17.1
+

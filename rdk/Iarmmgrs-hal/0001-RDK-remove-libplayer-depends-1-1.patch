@@ -1,4 +1,4 @@
-From e5e98d873ccc993a549e216c08c4553547536ff0 Mon Sep 17 00:00:00 2001
+From 8b8b17fc5b2ccfc40a545cd4c39d9da0183d22b7 Mon Sep 17 00:00:00 2001
 From: Blance Tang <guofeng.tang@amlogic.com>
 Date: Wed, 27 May 2020 15:13:33 +0800
 Subject: [PATCH] RDK: remove libplayer depends [1/1]
@@ -77,5 +77,5 @@ index b8e8c7f..a1c40bf 100644
  
  /**
 -- 
-2.7.4
+2.17.1
 

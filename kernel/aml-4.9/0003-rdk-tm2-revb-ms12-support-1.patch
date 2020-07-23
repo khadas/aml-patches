@@ -1,4 +1,4 @@
-From 9bc4d1f90903bbe7020bf7bed54337dbfe59f0c3 Mon Sep 17 00:00:00 2001
+From b94d5444e01656d014eaa2333cefa30160bde48a Mon Sep 17 00:00:00 2001
 From: rex wang <rex.wang1@amlogic.com>
 Date: Tue, 23 Jun 2020 14:42:57 +0800
 Subject: [PATCH 3/3] rdk: tm2 revb ms12 support [1/]
@@ -21,7 +21,7 @@ Signed-off-by: rex wang <rex.wang1@amlogic.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi b/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi
-index a6fdb51..d706ca6 100644
+index 537f34d9dbf7..c7b1da0b92dd 100644
 --- a/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi
 @@ -551,7 +551,7 @@
@@ -34,5 +34,5 @@ index a6fdb51..d706ca6 100644
  
  	wdt: watchdog@0xffd0f0d0 {
 -- 
-2.7.4
+2.17.1
 
