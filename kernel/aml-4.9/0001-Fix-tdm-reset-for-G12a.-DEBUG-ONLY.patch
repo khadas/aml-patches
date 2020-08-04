@@ -1,0 +1,47 @@
+From 4b877519cbf2f4214f2bf3f5563c094efa49a5b2 Mon Sep 17 00:00:00 2001
+From: Tim Yao <tim.yao@amlogic.com>
+Date: Thu, 30 Jul 2020 21:47:06 -0700
+Subject: [PATCH 1/4] Fix tdm reset for G12a. DEBUG ONLY.
+
+PD#NONE
+
+Change-Id: Ieeae70bbfb2611c0cd7d4882be2e239e7d58c015
+Signed-off-by: Tim Yao <tim.yao@amlogic.com>
+---
+ sound/soc/amlogic/auge/tdm_match_table.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/sound/soc/amlogic/auge/tdm_match_table.c b/sound/soc/amlogic/auge/tdm_match_table.c
+index 5ddd7fa65069..ab8e7df1d2c3 100644
+--- a/sound/soc/amlogic/auge/tdm_match_table.c
++++ b/sound/soc/amlogic/auge/tdm_match_table.c
+@@ -96,6 +96,8 @@ struct tdm_chipinfo g12a_tdma_chipinfo = {
+ 	.oe_fn       = true,
+ 	.same_src_fn = true,
+ 	.mclkpad_no_offset = true,
++	.reset_reg_offset = 0x9,
++	.async_fifo = true,
+ };
+ 
+ struct tdm_chipinfo g12a_tdmb_chipinfo = {
+@@ -104,6 +106,8 @@ struct tdm_chipinfo g12a_tdmb_chipinfo = {
+ 	.oe_fn       = OE_FUNCTION_V1,
+ 	.same_src_fn = true,
+ 	.mclkpad_no_offset = true,
++	.reset_reg_offset = 0x9,
++	.async_fifo = true,
+ };
+ 
+ struct tdm_chipinfo g12a_tdmc_chipinfo = {
+@@ -112,6 +116,8 @@ struct tdm_chipinfo g12a_tdmc_chipinfo = {
+ 	.oe_fn       = OE_FUNCTION_V1,
+ 	.same_src_fn = true,
+ 	.mclkpad_no_offset = true,
++	.reset_reg_offset = 0x9,
++	.async_fifo = true,
+ };
+ 
+ struct tdm_chipinfo g12a_tdminlb_chipinfo = {
+-- 
+2.17.1
+

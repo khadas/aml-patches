@@ -1,4 +1,4 @@
-From 130d79bf05f47f85cc9c06ebafacf2e53d0d5cb2 Mon Sep 17 00:00:00 2001
+From b11f7b0c43d13b783c0beeb7fc19db68fb0f45bb Mon Sep 17 00:00:00 2001
 From: Xueling Li <xueling.li@amlogic.com>
 Date: Thu, 28 May 2020 10:52:19 +0800
 Subject: [PATCH] RDK: migrate code base to trunk [1/1]

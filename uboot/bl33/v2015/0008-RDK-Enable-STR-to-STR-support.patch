@@ -1,4 +1,4 @@
-From b1c24d0b495d4eccba56a7fdb7b1dae602a1d241 Mon Sep 17 00:00:00 2001
+From 928bee2259830d6dbb0620697cb7ccf445dda399 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Tue, 14 Jul 2020 05:25:37 -0700
 Subject: [PATCH 8/8] RDK: Enable STR to STR support

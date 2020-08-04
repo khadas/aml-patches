@@ -1,4 +1,4 @@
-From 5bdee1ecfb56fd0557cdb3bbfcef82712497c13e Mon Sep 17 00:00:00 2001
+From ebd5f7374ee8296c0ab265dbb2c25e4627c98f09 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 21 Jun 2020 12:30:54 -0700
 Subject: [PATCH] RDK: Fixed the undefined symbol issues with latest RDK update

@@ -1,4 +1,4 @@
-From 0992c051717b60d55acc12e09e01661f0f36c3ee Mon Sep 17 00:00:00 2001
+From 516ef9062d012ad3bd59a501811fe45acaf3f196 Mon Sep 17 00:00:00 2001
 From: Blance Tang <guofeng.tang@amlogic.com>
 Date: Wed, 27 May 2020 22:26:48 +0800
 Subject: [PATCH] RDK: Skip redudant kernel env check [1/1]

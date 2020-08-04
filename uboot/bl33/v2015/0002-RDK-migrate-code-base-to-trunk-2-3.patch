@@ -1,4 +1,4 @@
-From 429553f09479253260ee29e174f996879e56d6b6 Mon Sep 17 00:00:00 2001
+From 8a2a48b60a1caa686ca1ea86fa7150021591fc9c Mon Sep 17 00:00:00 2001
 From: Johnny Lee - TW <johnny.lee@noodle.amlogic.com>
 Date: Tue, 10 Mar 2020 11:08:30 -0700
 Subject: [PATCH 2/8] RDK: migrate code base to trunk [2/3]

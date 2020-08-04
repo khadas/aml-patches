@@ -1,4 +1,4 @@
-From 4beaf7ce416d78f11652e7011608e379a7f38f3a Mon Sep 17 00:00:00 2001
+From c4eba1820409fdd677ae5f834c43024922b395e1 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 30 Apr 2020 13:00:49 -0700
 Subject: [PATCH 3/8] RDK: migrate uboot code base to trunk [3/3]

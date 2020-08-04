@@ -1,4 +1,4 @@
-From b3c8abf8e7a7b1157ae4a0e44dcd140d7cc9d15a Mon Sep 17 00:00:00 2001
+From 69384c752eea41f06633eff09f751cb42bfe5586 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 8 Jun 2020 10:31:30 -0700
 Subject: [PATCH 6/8] u-boot: Fix A/B update from Firmware Control is not

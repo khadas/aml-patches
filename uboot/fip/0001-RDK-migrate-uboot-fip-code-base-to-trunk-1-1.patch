@@ -1,4 +1,4 @@
-From ecd065387f5296ef5b9762d082b83d05a8700203 Mon Sep 17 00:00:00 2001
+From 8995f50768f45c098bff62dd9981325b3de87dc2 Mon Sep 17 00:00:00 2001
 From: Matthew Shyu <matthew.shyu@amlogic.com>
 Date: Fri, 20 Mar 2020 03:00:39 -0700
 Subject: [PATCH] RDK: migrate uboot fip code base to trunk [1/1]
@@ -21,10 +21,10 @@ Change-Id: I948b867fc662e8e64716791b151d40386e0e4d8d
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lib.sh b/lib.sh
-index e273913..f44cf1e 100755
+index dcc81e8..3986906 100755
 --- a/lib.sh
 +++ b/lib.sh
-@@ -263,7 +263,7 @@ function prepare_tools() {
+@@ -269,7 +269,7 @@ function prepare_tools() {
  	if [ "${CONFIG_DDR_PARSE}" == "1" ]; then
  		if [ -d ${FIP_DDR_PARSE} ]; then
  			cd ${FIP_DDR_PARSE}
