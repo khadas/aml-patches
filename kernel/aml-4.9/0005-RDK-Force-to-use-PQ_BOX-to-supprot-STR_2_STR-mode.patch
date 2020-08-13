@@ -1,7 +1,7 @@
-From cc49fa4ed78fa5eea2c313902f6f1da5b29cb1f7 Mon Sep 17 00:00:00 2001
+From 607599bb1c8f08d445f19c9259536dabe61369c2 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 27 Jul 2020 12:22:06 -0700
-Subject: [PATCH 4/4] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
+Subject: [PATCH 5/5] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
 
 PD#SWPL-26565
 
@@ -22,10 +22,10 @@ Signed-off-by: Terrence Pu <terrence.pu@amlogic.com>
  2 files changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amve.c b/drivers/amlogic/media/enhancement/amvecm/amve.c
-index e1b85da32555..85b3db682e29 100644
+index 623afa9..0dcd7fc 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amve.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amve.c
-@@ -1912,6 +1912,7 @@ void set_gamma_regs(int en, int sel)
+@@ -1897,6 +1897,7 @@ void set_gamma_regs(int en, int sel)
  
  void amvecm_wb_enable(int enable)
  {
@@ -33,7 +33,7 @@ index e1b85da32555..85b3db682e29 100644
  	if (enable) {
  		wb_en = 1;
  		if (video_rgb_ogo_xvy_mtx)
-@@ -1925,6 +1926,13 @@ void amvecm_wb_enable(int enable)
+@@ -1910,6 +1911,13 @@ void amvecm_wb_enable(int enable)
  		else
  			WRITE_VPP_REG_BITS(VPP_GAINOFF_CTRL0, 0, 31, 1);
  	}
@@ -48,10 +48,10 @@ index e1b85da32555..85b3db682e29 100644
  
  int vpp_pq_ctrl_config(struct pq_ctrl_s pq_cfg)
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amvecm.c b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-index 60ea9fb6cc7d..355f5499c371 100644
+index 7a1673d..356b444 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amvecm.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-@@ -7307,15 +7307,18 @@ void init_pq_control(unsigned int enable)
+@@ -7376,15 +7376,18 @@ void init_pq_control(unsigned int enable)
  /* #if (MESON_CPU_TYPE == MESON_CPU_TYPE_MESONG9TV) */
  void init_pq_setting(void)
  {
@@ -74,5 +74,5 @@ index 60ea9fb6cc7d..355f5499c371 100644
  	ai_detect_scene_init();
  	adaptive_param_init();
 -- 
-2.17.1
+2.7.4
 

@@ -1,4 +1,4 @@
-From 69384c752eea41f06633eff09f751cb42bfe5586 Mon Sep 17 00:00:00 2001
+From 5b99f4b9a13831bb33c30f928b11d0d981941d05 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 8 Jun 2020 10:31:30 -0700
 Subject: [PATCH 6/8] u-boot: Fix A/B update from Firmware Control is not
@@ -22,7 +22,7 @@ Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 4f36c6cb16..baa06a9827 100644
+index 4f36c6c..baa06a9 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -59,7 +59,7 @@
@@ -35,5 +35,5 @@ index 4f36c6cb16..baa06a9827 100644
  /* support ext4*/
  #define CONFIG_CMD_EXT4 1
 -- 
-2.17.1
+2.7.4
 

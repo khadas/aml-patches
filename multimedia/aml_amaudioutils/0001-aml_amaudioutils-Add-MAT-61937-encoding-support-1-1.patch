@@ -1,4 +1,4 @@
-From d21eed4abe6b908882d237cfeae485e9db9e69c4 Mon Sep 17 00:00:00 2001
+From 8ac904d016e2a7ee3a8a774589be94e630401ede Mon Sep 17 00:00:00 2001
 From: Tim Yao <tim.yao@amlogic.com>
 Date: Fri, 24 Jul 2020 01:47:28 -0700
 Subject: [PATCH] aml_amaudioutils: Add MAT 61937 encoding support [1/1]
@@ -20,9 +20,9 @@ Change-Id: I3865a80ed495189b5205cff9ad5ee2e8f7c8259a
 ---
  Makefile                      |   3 +-
  src/cutils/strlcpy.c          |   4 +-
- src/spdif/MatFrameScanner.cpp | 148 ++++++++++++++++++++++++++++++++++
- src/spdif/MatFrameScanner.h   |  60 ++++++++++++++
- src/spdif/SPDIFEncoder.cpp    |   4 +
+ src/spdif/MatFrameScanner.cpp | 148 ++++++++++++++++++++++++++++++++++++++++++
+ src/spdif/MatFrameScanner.h   |  60 +++++++++++++++++
+ src/spdif/SPDIFEncoder.cpp    |   4 ++
  5 files changed, 216 insertions(+), 3 deletions(-)
  create mode 100644 src/spdif/MatFrameScanner.cpp
  create mode 100644 src/spdif/MatFrameScanner.h
@@ -310,5 +310,5 @@ index 221a072..62f547d 100644
              break;
      }
 -- 
-2.17.1
+2.7.4
 

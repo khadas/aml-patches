@@ -1,4 +1,4 @@
-From 928bee2259830d6dbb0620697cb7ccf445dda399 Mon Sep 17 00:00:00 2001
+From e1962b84b886882e2985752b1f5bc69bb62d281c Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Tue, 14 Jul 2020 05:25:37 -0700
 Subject: [PATCH 8/8] RDK: Enable STR to STR support
@@ -21,7 +21,7 @@ Change-Id: I0f28061827399b1aafffbd66ed34617546eb0942
  2 files changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index baa06a9827..0b4e062af4 100644
+index baa06a9..0b4e062 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -141,18 +141,19 @@
@@ -47,7 +47,7 @@ index baa06a9827..0b4e062af4 100644
              "run cmdline_keys;"\
              "\0"\
 diff --git a/common/cmd_hdmitx.c b/common/cmd_hdmitx.c
-index 282443f9a1..d847ab4412 100644
+index 282443f..d847ab4 100644
 --- a/common/cmd_hdmitx.c
 +++ b/common/cmd_hdmitx.c
 @@ -100,6 +100,7 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
@@ -97,5 +97,5 @@ index 282443f9a1..d847ab4412 100644
  	} else {
  		cvbsmode = getenv("cvbsmode");
 -- 
-2.17.1
+2.7.4
 

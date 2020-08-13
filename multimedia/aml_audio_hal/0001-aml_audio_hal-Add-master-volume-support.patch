@@ -1,0 +1,114 @@
+From 7478316a9dcbc701aa8f661bd1aaf6a8d2c2e9b9 Mon Sep 17 00:00:00 2001
+From: Tim Yao <tim.yao@amlogic.com>
+Date: Fri, 7 Aug 2020 16:10:13 -0700
+Subject: [PATCH] aml_audio_hal: Add master volume support.
+
+Problem:
+Customer is using set_master_volume audio HAL API
+to change global volume, which is not implemented
+on Android since Android will use per-stream volume
+control.
+
+Solution:
+When master volume is set, the streams for each active
+stream will be set with an additional master volume
+gain applied.
+
+Verify:
+Verified with customer test command.
+
+Change-Id: Ia99cc015f2fe0bb4369d98ba86608d1c15eb8d37
+---
+ audio_hal/audio_hw.c | 30 ++++++++++++++++++++++++++----
+ audio_hal/audio_hw.h |  5 +++++
+ 2 files changed, 31 insertions(+), 4 deletions(-)
+
+diff --git a/audio_hal/audio_hw.c b/audio_hal/audio_hw.c
+index a6c1981..970514a 100644
+--- a/audio_hal/audio_hw.c
++++ b/audio_hal/audio_hw.c
+@@ -1799,8 +1799,10 @@ static int out_set_volume (struct audio_stream_out *stream, float left, float ri
+             out->offload_mute = true;
+         }
+     }
+-    out->volume_l = left;
+-    out->volume_r = right;
++    out->volume_l_org = left;
++    out->volume_r_org = right;
++    out->volume_l = left * adev->master_volume;
++    out->volume_r = right * adev->master_volume;
+ 
+     /*
+      *The Dolby format(dd/ddp/ac4/true-hd/mat) and direct&UI-PCM(stereo or multi PCM)
+@@ -4905,6 +4907,8 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
+ 
+     out->out_device = devices;
+     out->flags = flags;
++    out->volume_l_org = 1.0;
++    out->volume_r_org = 1.0;
+     out->volume_l = 1.0;
+     out->volume_r = 1.0;
+     out->dev = adev;
+@@ -6736,9 +6740,26 @@ static int adev_set_voice_volume (struct audio_hw_device *dev __unused, float vo
+     return 0;
+ }
+ 
+-static int adev_set_master_volume (struct audio_hw_device *dev __unused, float volume __unused)
++static int adev_set_master_volume (struct audio_hw_device *dev, float volume)
+ {
+-    return -ENOSYS;
++    struct aml_audio_device *adev = (struct aml_audio_device *)dev;
++    int i;
++
++    pthread_mutex_lock(&adev->lock);
++
++    adev->master_volume = volume;
++
++    for (i = 0; i < STREAM_USECASE_MAX; i++) {
++        struct aml_stream_out *aml_out = adev->active_outputs[i];
++        struct audio_stream_out *out = (struct audio_stream_out *)aml_out;
++        if (aml_out) {
++            out_set_volume(out, aml_out->volume_l_org, aml_out->volume_r_org); 
++        }
++    }
++
++    pthread_mutex_unlock(&adev->lock);
++
++    return 0;
+ }
+ 
+ static int adev_get_master_volume (struct audio_hw_device *dev __unused,
+@@ -12871,6 +12892,7 @@ static int adev_open(const hw_module_t* module, const char* name, hw_device_t**
+     adev->sink_gain[OUTPORT_SPEAKER] = 1.0;
+     adev->sink_gain[OUTPORT_HDMI] = 1.0;
+     adev->sink_gain[OUTPORT_A2DP] = 1.0;
++    adev->master_volume = 1.0;
+ 
+     adev->useSubMix = false;
+ #ifdef SUBMIXER_V1_1
+diff --git a/audio_hal/audio_hw.h b/audio_hal/audio_hw.h
+index 91c215f..4b839b4 100644
+--- a/audio_hal/audio_hw.h
++++ b/audio_hal/audio_hw.h
+@@ -591,6 +591,9 @@ struct aml_audio_device {
+     uint32_t       spdif_out_rate;
+     int   dap_bypass_enable;
+     float dap_bypassgain;
++
++    /* master volume */
++    float master_volume;
+ };
+ 
+ struct meta_data {
+@@ -647,6 +650,8 @@ struct aml_stream_out {
+     bool pause_status;
+     bool hw_sync_mode;
+     int  tsync_status;
++    float volume_l_org;
++    float volume_r_org;
+     float volume_l;
+     float volume_r;
+     int last_codec_type;
+-- 
+2.7.4
+
