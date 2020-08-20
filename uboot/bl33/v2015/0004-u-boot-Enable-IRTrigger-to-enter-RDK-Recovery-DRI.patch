@@ -1,4 +1,4 @@
-From 199d68ec4d1d7c9a8d9afdcc15f99387d30e2fab Mon Sep 17 00:00:00 2001
+From 9ea041269c4de2a76b285546ce9e4b074bca3e18 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:06:45 -0700
 Subject: [PATCH 4/8] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
@@ -17,12 +17,12 @@ u212/HP40A
 Change-Id: I600e23aec5a9b602cd5c98c378be70b21bd5a29d
 Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
 ---
- board/amlogic/configs/g12a_u212_v1.h | 40 +++++++++++-------------------------
- common/cmd_irkey.c                   | 14 +++----------
+ board/amlogic/configs/g12a_u212_v1.h | 40 +++++++++-------------------
+ common/cmd_irkey.c                   | 14 +++-------
  2 files changed, 15 insertions(+), 39 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 5d03fe0..4f36c6c 100644
+index 9c6caa1a41..4f36c6cb16 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -73,6 +73,8 @@
@@ -56,7 +56,7 @@ index 5d03fe0..4f36c6c 100644
 -                        "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
 -                        "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
 -                    "else "\
--                        "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset};"\
+-                        "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset} androidboot.slot_suffix=${active_slot};"\
 -                        "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
 -                    "fi;"\
 -                "fi;"\
@@ -95,7 +95,7 @@ index 5d03fe0..4f36c6c 100644
              "run switch_bootmode;"
  
 diff --git a/common/cmd_irkey.c b/common/cmd_irkey.c
-index 6540199..5616b29 100644
+index 654019948c..5616b29fc5 100644
 --- a/common/cmd_irkey.c
 +++ b/common/cmd_irkey.c
 @@ -31,22 +31,14 @@ extern uint32_t get_time(void);
@@ -125,5 +125,5 @@ index 6540199..5616b29 100644
  
  uint32_t read_key(void)
 -- 
-2.7.4
+2.17.1
 

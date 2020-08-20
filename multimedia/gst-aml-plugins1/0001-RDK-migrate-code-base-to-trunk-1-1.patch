@@ -1,4 +1,4 @@
-From c09dd2daf1b86a2986b64a6b7507bec7fa45300c Mon Sep 17 00:00:00 2001
+From 61ad46fe0af53c834b44ddd62f56c51f5e51a987 Mon Sep 17 00:00:00 2001
 From: Xueling Li <xueling.li@amlogic.com>
 Date: Wed, 27 May 2020 15:35:49 +0800
 Subject: [PATCH] RDK: migrate code base to trunk [1/1]
@@ -38,18 +38,18 @@ index 284b311..e80e9a4 100644
  
  EXTRA_DIST = autogen.sh
 diff --git a/gst-aml-plugins-1.0/configure.ac b/gst-aml-plugins-1.0/configure.ac
-index 431a9cb..1994fe1 100755
+index c70814c..f98516b 100755
 --- a/gst-aml-plugins-1.0/configure.ac
 +++ b/gst-aml-plugins-1.0/configure.ac
-@@ -8,7 +8,6 @@ dnl required versions of gstreamer and plugins-base
- GST_REQUIRED=1.0.0
+@@ -9,7 +9,6 @@ GST_REQUIRED=1.0.0
  GSTPB_REQUIRED=1.0.0
+ SPEEX_REQUIRED=1.2
  
 -AC_CONFIG_SRCDIR([video/amlvdec/gstamlvdec.c])
  AC_CONFIG_HEADERS([config.h])
  
  dnl required version of automake
-@@ -93,11 +92,6 @@ GST_PLUGIN_LDFLAGS='-module -avoid-version -export-symbols-regex [_]*\(gst_\|Gst
+@@ -95,11 +94,6 @@ GST_PLUGIN_LDFLAGS='-module -avoid-version -export-symbols-regex [_]*\(gst_\|Gst
  AC_SUBST(GST_PLUGIN_LDFLAGS)
  
  AC_CONFIG_FILES([Makefile
@@ -62,5 +62,5 @@ index 431a9cb..1994fe1 100755
  AC_OUTPUT
  
 -- 
-2.7.4
+2.17.1
 

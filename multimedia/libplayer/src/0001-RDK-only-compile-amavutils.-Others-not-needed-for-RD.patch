@@ -1,4 +1,4 @@
-From ae5e29c4b7d9d9a657a47aa0c67fe93dcad2c134 Mon Sep 17 00:00:00 2001
+From 12d7d0a62014b0d64578276cd1ee8fd1570c1cfa Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 4 Jun 2020 17:00:24 -0700
 Subject: [PATCH] RDK: only compile amavutils. Others not needed for RDK
@@ -22,7 +22,7 @@ Signed-off-by: Pradeep Sriram <pradeep.sriram@amlogic.com>
  2 files changed, 24 insertions(+), 24 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 506ba48..7fae264 100755
+index 506ba483933..7fae264d338 100755
 --- a/Makefile
 +++ b/Makefile
 @@ -2,31 +2,31 @@
@@ -81,7 +81,7 @@ index 506ba48..7fae264 100755
  install:
  	-$(MAKE) -C examples install
 diff --git a/amavutils/Makefile b/amavutils/Makefile
-index 5254dcf..e1451a2 100755
+index 5254dcfe114..e1451a28bc0 100755
 --- a/amavutils/Makefile
 +++ b/amavutils/Makefile
 @@ -8,7 +8,7 @@ TARGET=libamavutils.so
@@ -94,5 +94,5 @@ index 5254dcf..e1451a2 100755
  TOPDIR=$(shell pwd)
  SRC?=$(TOPDIR)
 -- 
-2.7.4
+2.17.1
 

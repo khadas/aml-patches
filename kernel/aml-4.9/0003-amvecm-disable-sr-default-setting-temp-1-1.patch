@@ -1,0 +1,48 @@
+From bf062aea60038161b3f0421161a715b8e31e7a8d Mon Sep 17 00:00:00 2001
+From: Xihai Zhu <xihai.zhu@amlogic.com>
+Date: Tue, 18 Aug 2020 03:42:39 -0400
+Subject: [PATCH 3/6] amvecm: disable sr default setting temp [1/1]
+
+PD#SWPL-31458
+
+Problem:
+sr default setting issue
+
+Solution:
+disable sr default for now, need to fine
+tune it when needed
+
+Verify:
+verify on TM2
+
+Change-Id: I3a1dc7cda4a3575e9a75782a8f5aa3ecaebbff24
+Signed-off-by: Xihai Zhu <xihai.zhu@amlogic.com>
+---
+ .../amlogic/media/enhancement/amvecm/reg_default_setting.h    | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/amlogic/media/enhancement/amvecm/reg_default_setting.h b/drivers/amlogic/media/enhancement/amvecm/reg_default_setting.h
+index 752f091249c1..e82a3973a2b1 100644
+--- a/drivers/amlogic/media/enhancement/amvecm/reg_default_setting.h
++++ b/drivers/amlogic/media/enhancement/amvecm/reg_default_setting.h
+@@ -117,7 +117,7 @@ static struct am_regs_s cm_default = {
+ 
+ /*sr0 sharpness reg*/
+ struct am_regs_s sr0_default = {
+-	95,
++	0,
+ 	{
+ 	{REG_TYPE_OFFSET_VCBUS, SRSHARP0_SHARP_HVSIZE, 0xffffffff, 0x02d00240},
+ 	{REG_TYPE_OFFSET_VCBUS, SRSHARP0_SHARP_HVBLANK_NUM, 0xffffffff, 0x00001e58},
+@@ -259,7 +259,7 @@ struct am_regs_s sr0_default = {
+ 
+ /*sr1 sharpness reg*/
+ struct am_regs_s sr1_default = {
+-	95,
++	0,
+ 	{
+ 	{REG_TYPE_OFFSET_VCBUS, SRSHARP1_SHARP_HVSIZE, 0xffffffff, 0x02d00240},
+ 	{REG_TYPE_OFFSET_VCBUS, SRSHARP1_SHARP_HVBLANK_NUM, 0xffffffff, 0x00001e58},
+-- 
+2.17.1
+

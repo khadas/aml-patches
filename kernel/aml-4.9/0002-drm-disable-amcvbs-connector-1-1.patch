@@ -1,7 +1,7 @@
-From e7fa3c626b46f11952f889007538277fd46b26cc Mon Sep 17 00:00:00 2001
+From af9f5411b02bebb52ba8827825b7f8e93a66b281 Mon Sep 17 00:00:00 2001
 From: Ao Xu <ao.xu@amlogic.com>
 Date: Fri, 7 Aug 2020 20:12:13 +0800
-Subject: [PATCH 2/5] drm: disable amcvbs connector [1/1]
+Subject: [PATCH 2/6] drm: disable amcvbs connector [1/1]
 
 PD#SWPL-30680
 
@@ -17,38 +17,38 @@ u212
 Change-Id: Ie9ddaa5b24b32a177f2c590289326c2c6b48e4c0
 Signed-off-by: Ao Xu <ao.xu@amlogic.com>
 ---
- .../dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/g12b_a311d_w400_drm_buildroot.dts   |  2 +-
- .../dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts |  2 +-
- .../amlogic/g12b_revb_a311d_w400_drm_buildroot.dts  |  2 +-
- arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi        | 21 ---------------------
- arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi        | 21 ---------------------
- arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi         | 21 ---------------------
- arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi         | 21 ---------------------
- arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi         | 21 ---------------------
- .../dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts  |  2 +-
- .../amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts |  2 +-
- arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts  |  2 +-
- .../dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/g12b_a311d_w400_drm_buildroot.dts   |  2 +-
- .../dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts |  2 +-
- arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi      | 21 ---------------------
- arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi      | 21 ---------------------
- arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi       | 21 ---------------------
- arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi       | 21 ---------------------
- arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi       | 21 ---------------------
- .../dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts  |  2 +-
- .../dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts  |  2 +-
- .../arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts |  2 +-
- .../dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts  |  2 +-
+ .../g12a_s905d2_u200_drm_buildroot.dts        |  2 +-
+ .../g12a_s905x2_u212_drm_buildroot.dts        |  2 +-
+ .../amlogic/g12b_a311d_w400_drm_buildroot.dts |  2 +-
+ .../g12b_a311d_w400_drm_buildroot_a.dts       |  2 +-
+ .../g12b_revb_a311d_w400_drm_buildroot.dts    |  2 +-
+ arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi  | 21 -------------------
+ arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi  | 21 -------------------
+ arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi   | 21 -------------------
+ arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi   | 21 -------------------
+ arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi   | 21 -------------------
+ .../sm1_s905d3_ac200_drm_buildroot.dts        |  2 +-
+ .../sm1_s905x3_ac214_drm_buildroot.dts        |  2 +-
+ .../tm2_revb_t962e2_ab311_drm_buildroot.dts   |  2 +-
+ .../boot/dts/amlogic/tm2_t962e2_ab311_drm.dts |  2 +-
+ .../tm2_t962e2_ab311_drm_buildroot.dts        |  2 +-
+ .../g12a_s905d2_u200_drm_buildroot.dts        |  2 +-
+ .../g12a_s905x2_u212_drm_buildroot.dts        |  2 +-
+ .../amlogic/g12b_a311d_w400_drm_buildroot.dts |  2 +-
+ .../g12b_a311d_w400_drm_buildroot_a.dts       |  2 +-
+ .../arm64/boot/dts/amlogic/mesong12a_drm.dtsi | 21 -------------------
+ .../arm64/boot/dts/amlogic/mesong12b_drm.dtsi | 21 -------------------
+ arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi | 21 -------------------
+ arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi | 21 -------------------
+ arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi | 21 -------------------
+ .../sm1_s905d3_ac200_drm_buildroot.dts        |  2 +-
+ .../sm1_s905x3_ac214_drm_buildroot.dts        |  2 +-
+ .../boot/dts/amlogic/tm2_t962e2_ab311_drm.dts |  2 +-
+ .../tm2_t962e2_ab311_drm_buildroot.dts        |  2 +-
  28 files changed, 18 insertions(+), 228 deletions(-)
 
 diff --git a/arch/arm/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts
-index 337aff3..2647933 100644
+index 337aff3957ee..2647933aafc9 100644
 --- a/arch/arm/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts
 @@ -821,7 +821,7 @@
@@ -61,7 +61,7 @@ index 337aff3..2647933 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
-index 06cc532..11e6507 100644
+index 06cc532c15d2..11e65071b4c3 100644
 --- a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 @@ -1451,7 +1451,7 @@
@@ -74,7 +74,7 @@ index 06cc532..11e6507 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts
-index 9abe7ff..eac4059 100644
+index 9abe7ff4c5e5..eac405989e3c 100644
 --- a/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts
 @@ -1525,7 +1525,7 @@
@@ -87,7 +87,7 @@ index 9abe7ff..eac4059 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts b/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts
-index 5cb634d..5315bb1 100644
+index 5cb634d585a1..5315bb172952 100644
 --- a/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts
 +++ b/arch/arm/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts
 @@ -1490,7 +1490,7 @@
@@ -100,7 +100,7 @@ index 5cb634d..5315bb1 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/g12b_revb_a311d_w400_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/g12b_revb_a311d_w400_drm_buildroot.dts
-index e4a18da..ffab95b 100644
+index e4a18dacdef4..ffab95b6b71e 100644
 --- a/arch/arm/boot/dts/amlogic/g12b_revb_a311d_w400_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/g12b_revb_a311d_w400_drm_buildroot.dts
 @@ -1463,7 +1463,7 @@
@@ -113,7 +113,7 @@ index e4a18da..ffab95b 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi b/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi
-index 99436ac..314e1ba 100644
+index 99436ac9e030..314e1ba8c968 100644
 --- a/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -145,7 +145,7 @@ index 99436ac..314e1ba 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi b/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi
-index 0e19ac1..40283bd 100644
+index 0e19ac10ed7a..40283bd1a777 100644
 --- a/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -177,7 +177,7 @@ index 0e19ac1..40283bd 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi b/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi
-index 9c19b88..af43826 100644
+index 9c19b8878c7d..af438268ce18 100644
 --- a/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -209,7 +209,7 @@ index 9c19b88..af43826 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi b/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi
-index 0974b21..4179beb 100644
+index 0974b21b52f3..4179bebff470 100644
 --- a/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -241,7 +241,7 @@ index 0974b21..4179beb 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi b/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi
-index d8337e2..f49a71c 100644
+index d8337e28801e..f49a71ce9b14 100644
 --- a/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -273,7 +273,7 @@ index d8337e2..f49a71c 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts
-index e466140..5e5ed4b 100644
+index e466140e0564..5e5ed4bf38da 100644
 --- a/arch/arm/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts
 @@ -1162,7 +1162,7 @@
@@ -286,7 +286,7 @@ index e466140..5e5ed4b 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts
-index 44e280d..57d29f7 100644
+index 44e280d27a09..57d29f7e1464 100644
 --- a/arch/arm/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts
 @@ -948,7 +948,7 @@
@@ -299,7 +299,7 @@ index 44e280d..57d29f7 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
-index bc079e4..7df1aaa 100644
+index d16a44099b11..67e22c9096f3 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
 @@ -1894,7 +1894,7 @@
@@ -312,7 +312,7 @@ index bc079e4..7df1aaa 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts
-index 9dee1c1..4a3a4cf 100644
+index 9dee1c1167a0..4a3a4cf7d6b1 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts
 @@ -1870,7 +1870,7 @@
@@ -325,7 +325,7 @@ index 9dee1c1..4a3a4cf 100644
  
  &drm_lcd {
 diff --git a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
-index 1942275..52b176a 100644
+index 7857bf64ff50..606584c64de3 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 @@ -1871,7 +1871,7 @@
@@ -338,7 +338,7 @@ index 1942275..52b176a 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts b/arch/arm64/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts
-index 17087c0..8a69163 100644
+index 17087c0d0209..8a69163759b3 100644
 --- a/arch/arm64/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts
 +++ b/arch/arm64/boot/dts/amlogic/g12a_s905d2_u200_drm_buildroot.dts
 @@ -1477,7 +1477,7 @@
@@ -351,7 +351,7 @@ index 17087c0..8a69163 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts b/arch/arm64/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
-index d1bd45c..804cd24 100644
+index d1bd45cb6f2a..804cd24e95af 100644
 --- a/arch/arm64/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 +++ b/arch/arm64/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 @@ -819,7 +819,7 @@
@@ -364,7 +364,7 @@ index d1bd45c..804cd24 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts
-index 966d0c5..44a7808 100644
+index 966d0c5058d6..44a78087a9af 100644
 --- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts
 +++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot.dts
 @@ -908,7 +908,7 @@
@@ -377,7 +377,7 @@ index 966d0c5..44a7808 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts
-index f92ab2b..05486cc 100644
+index f92ab2b193ba..05486cca52ef 100644
 --- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts
 +++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_drm_buildroot_a.dts
 @@ -875,7 +875,7 @@
@@ -390,7 +390,7 @@ index f92ab2b..05486cc 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi
-index 37e04fa..8d97c3a 100644
+index 37e04fa1f5ef..8d97c3a7938e 100644
 --- a/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -422,7 +422,7 @@ index 37e04fa..8d97c3a 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi
-index 41ce4a7..2a8f5b6 100644
+index 41ce4a7764aa..2a8f5b6a92ee 100644
 --- a/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -454,7 +454,7 @@ index 41ce4a7..2a8f5b6 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi
-index 43de163..79039d2 100644
+index 43de163ea1fd..79039d23028e 100644
 --- a/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -486,7 +486,7 @@ index 43de163..79039d2 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi
-index 2ca57a4..1b6f03a 100644
+index 2ca57a463c56..1b6f03a44843 100644
 --- a/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -518,7 +518,7 @@ index 2ca57a4..1b6f03a 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi
-index 5e5a8de..303c953 100644
+index 5e5a8de9df3d..303c953575b3 100644
 --- a/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi
 @@ -17,27 +17,6 @@
@@ -550,7 +550,7 @@ index 5e5a8de..303c953 100644
  		status = "disabled";
  		hdcp = "disabled";
 diff --git a/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts b/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts
-index b7bccf3..0f7d48c 100644
+index b7bccf3bcf9b..0f7d48c95a8f 100644
 --- a/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts
 +++ b/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_drm_buildroot.dts
 @@ -1160,7 +1160,7 @@
@@ -563,7 +563,7 @@ index b7bccf3..0f7d48c 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts b/arch/arm64/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts
-index 18dd81c..1d7cef0 100644
+index 18dd81cf4cb2..1d7cef026cbe 100644
 --- a/arch/arm64/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts
 +++ b/arch/arm64/boot/dts/amlogic/sm1_s905x3_ac214_drm_buildroot.dts
 @@ -1026,7 +1026,7 @@
@@ -576,7 +576,7 @@ index 18dd81c..1d7cef0 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts b/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts
-index 384b76d..ae59421 100644
+index 384b76d60487..ae59421c77a0 100644
 --- a/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts
 +++ b/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm.dts
 @@ -1866,7 +1866,7 @@
@@ -589,7 +589,7 @@ index 384b76d..ae59421 100644
  
  &drm_lcd {
 diff --git a/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts b/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
-index f1a3f54..cce7731 100644
+index 6a9e042c68eb..36d8407e06be 100644
 --- a/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 @@ -1867,7 +1867,7 @@
@@ -602,5 +602,5 @@ index f1a3f54..cce7731 100644
  
  &drm_lcd {
 -- 
-2.7.4
+2.17.1
 

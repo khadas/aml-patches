@@ -1,0 +1,65 @@
+From db04c55559dca0c9f23d51ac23322eff4a8fa6d9 Mon Sep 17 00:00:00 2001
+From: Tim Yao <tim.yao@amlogic.com>
+Date: Wed, 19 Aug 2020 10:50:57 -0700
+Subject: [PATCH 7/7] aml_audio_hal: Fix legacy_ddplus_out on Linux
+
+PD#SWPL-27948
+
+Problem:
+When sink side does not support DDP Atmos, MS12
+should be configured with "-legacy_ddplus_out 1"
+to make decoder only output legacy 5.1.
+On Android customer project, this logic was added
+but the checking for DDP Atmos capbility was only
+applied for ARC output case.
+
+Solution:
+On Linux, we should check sink side Atmos capability
+for HDMI output also.
+
+Verify:
+Verified on u212 with MS12 cert test 1650.
+
+Change-Id: Ic87a1a5580defd1da0d6052a6dbf4cc53744f683
+---
+ audio_hal/audio_hw_ms12.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/audio_hal/audio_hw_ms12.c b/audio_hal/audio_hw_ms12.c
+index 2846169..5b9e99f 100644
+--- a/audio_hal/audio_hw_ms12.c
++++ b/audio_hal/audio_hw_ms12.c
+@@ -324,8 +324,14 @@ int get_the_dolby_ms12_prepared(
+      *In case of AC-4 or Dolby Digital Plus input,
+      *set output DDP bitstream format DDP Atmos(5.1.2) or DDP(5.1)
+      */
++    // LINUX change
++#if 1
+     bool is_atmos_supported = is_platform_supported_ddp_atmos(adev->hdmi_descs.ddp_fmt.atmos_supported, adev->active_outport);
+     set_ms12_out_ddp_5_1(input_format, is_atmos_supported);
++#else
++    // set -legacy_ddplus_out option based on Atmos capbility on sink side
++    set_ms12_out_ddp_5_1(input_format, adev->hdmi_descs.ddp_fmt.atmos_supported);
++#endif
+ 
+     /* create  the ms12 output stream here */
+     /*************************************/
+@@ -1236,15 +1242,6 @@ int ms12_output(void *buffer, void *priv_data, size_t size, aml_dec_info_t *ms12
+         }
+     } else if (!adev->dap_bypass_enable) {
+         if (ms12_info->pcm_type == NORMAL_LPCM) {
+-#if 0
+-{
+-FILE *fp = fopen("/data/vendor/audiohal/ms12_out.pcm", "a+");
+-if (fp) {
+-    fwrite(buffer, 1, size, fp);
+-    fclose(fp);
+-}
+-}
+-#endif
+            /*will process spdif_ring_buf in audio_hal_data_prossing */
+             if (get_buffer_write_space (&ms12->spdif_ring_buffer) >= (int) size) {
+                 ring_buffer_write(&ms12->spdif_ring_buffer, buffer, size, UNCOVER_WRITE);
+-- 
+2.17.1
+
