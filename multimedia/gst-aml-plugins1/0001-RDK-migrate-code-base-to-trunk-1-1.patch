@@ -1,4 +1,4 @@
-From 61ad46fe0af53c834b44ddd62f56c51f5e51a987 Mon Sep 17 00:00:00 2001
+From f0573a168c190ecc33fa3a621be9d6c6114ca28d Mon Sep 17 00:00:00 2001
 From: Xueling Li <xueling.li@amlogic.com>
 Date: Wed, 27 May 2020 15:35:49 +0800
 Subject: [PATCH] RDK: migrate code base to trunk [1/1]
@@ -62,5 +62,5 @@ index c70814c..f98516b 100755
  AC_OUTPUT
  
 -- 
-2.17.1
+2.7.4
 

@@ -1,7 +1,7 @@
-From 83c12068b8cbd02341c72a354e62564f523a8aea Mon Sep 17 00:00:00 2001
+From 6686acc589e7bd35b56340407ac8316c406faf0b Mon Sep 17 00:00:00 2001
 From: Dezhi Kong <dezhi.kong@amlogic.com>
 Date: Mon, 3 Aug 2020 16:10:50 +0800
-Subject: [PATCH 1/6] gpu: optimize gpu dvfs tbl [1/1]
+Subject: [PATCH 1/5] gpu: optimize gpu dvfs tbl [1/1]
 
 PD#SWPL-30505
 
@@ -17,20 +17,20 @@ Local
 Change-Id: I8fdc13ea505dac211e9ffac35d38630ae139ce42
 Signed-off-by: Dezhi Kong <dezhi.kong@amlogic.com>
 ---
- arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi  | 26 ++++++++++-----
- arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi  | 32 +++++++++++++++++++
- arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi   | 32 +++++++++++++++++++
- arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi   | 32 +++++++++++++++++++
- arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi   | 32 +++++++++++++++++++
- .../arm64/boot/dts/amlogic/mesong12a_drm.dtsi | 26 ++++++++++-----
- .../arm64/boot/dts/amlogic/mesong12b_drm.dtsi | 32 +++++++++++++++++++
- arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi | 32 +++++++++++++++++++
- arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi | 32 +++++++++++++++++++
- arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi | 32 +++++++++++++++++++
+ arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi   | 26 ++++++++++++++-------
+ arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi   | 32 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi    | 32 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi    | 32 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi    | 32 ++++++++++++++++++++++++++
+ arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi | 26 ++++++++++++++-------
+ arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi | 32 ++++++++++++++++++++++++++
+ arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi  | 32 ++++++++++++++++++++++++++
+ arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi  | 32 ++++++++++++++++++++++++++
+ arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi  | 32 ++++++++++++++++++++++++++
  10 files changed, 292 insertions(+), 16 deletions(-)
 
 diff --git a/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi b/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi
-index 9d1e3f689a22..99436ac9e030 100644
+index 9d1e3f6..99436ac 100644
 --- a/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesong12a_drm.dtsi
 @@ -283,23 +283,33 @@
@@ -76,7 +76,7 @@ index 9d1e3f689a22..99436ac9e030 100644
  };
 +
 diff --git a/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi b/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi
-index 7a011062cffd..0e19ac10ed7a 100644
+index 7a01106..0e19ac1 100644
 --- a/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesong12b_drm.dtsi
 @@ -280,3 +280,35 @@
@@ -116,7 +116,7 @@ index 7a011062cffd..0e19ac10ed7a 100644
 +};
 +
 diff --git a/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi b/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi
-index 3ae18ba54048..9c19b8878c7d 100644
+index 3ae18ba..9c19b88 100644
 --- a/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesonsm1_drm.dtsi
 @@ -281,3 +281,35 @@
@@ -156,7 +156,7 @@ index 3ae18ba54048..9c19b8878c7d 100644
 +};
 +
 diff --git a/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi b/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi
-index 1060aad3cf29..0974b21b52f3 100644
+index 1060aad..0974b21 100644
 --- a/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesontl1_drm.dtsi
 @@ -251,3 +251,35 @@
@@ -196,7 +196,7 @@ index 1060aad3cf29..0974b21b52f3 100644
 +};
 +
 diff --git a/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi b/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi
-index a08af5d2e7dc..d8337e28801e 100644
+index a08af5d..d8337e2 100644
 --- a/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesontm2_drm.dtsi
 @@ -276,3 +276,35 @@
@@ -236,7 +236,7 @@ index a08af5d2e7dc..d8337e28801e 100644
 +};
 +
 diff --git a/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi
-index 06e1ad3cbfc2..37e04fa1f5ef 100644
+index 06e1ad3..37e04fa 100644
 --- a/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesong12a_drm.dtsi
 @@ -283,23 +283,33 @@
@@ -282,7 +282,7 @@ index 06e1ad3cbfc2..37e04fa1f5ef 100644
  };
 +
 diff --git a/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi
-index fbdcb01b9384..41ce4a7764aa 100644
+index fbdcb01..41ce4a7 100644
 --- a/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesong12b_drm.dtsi
 @@ -280,3 +280,35 @@
@@ -322,7 +322,7 @@ index fbdcb01b9384..41ce4a7764aa 100644
 +};
 +
 diff --git a/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi
-index 0da03785c866..43de163ea1fd 100644
+index 0da0378..43de163 100644
 --- a/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesonsm1_drm.dtsi
 @@ -281,3 +281,35 @@
@@ -362,7 +362,7 @@ index 0da03785c866..43de163ea1fd 100644
 +};
 +
 diff --git a/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi
-index 338f6c2c4e1c..2ca57a463c56 100644
+index 338f6c2..2ca57a4 100644
 --- a/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesontl1_drm.dtsi
 @@ -251,3 +251,35 @@
@@ -402,7 +402,7 @@ index 338f6c2c4e1c..2ca57a463c56 100644
 +};
 +
 diff --git a/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi b/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi
-index 36ab12ac1ef1..5e5a8de9df3d 100644
+index 36ab12a..5e5a8de 100644
 --- a/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi
 +++ b/arch/arm64/boot/dts/amlogic/mesontm2_drm.dtsi
 @@ -281,3 +281,35 @@
@@ -442,5 +442,5 @@ index 36ab12ac1ef1..5e5a8de9df3d 100644
 +};
 +
 -- 
-2.17.1
+2.7.4
 
