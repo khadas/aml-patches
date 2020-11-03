@@ -1,7 +1,7 @@
-From 8e740f3eccfb416f7bef771d49e1bae08c10ada1 Mon Sep 17 00:00:00 2001
+From 9ccd4465482e36819b741ea096281886da798436 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Tue, 14 Jul 2020 05:25:37 -0700
-Subject: [PATCH 8/8] RDK: Enable STR to STR support
+Subject: [PATCH 8/9] RDK: Enable STR to STR support
 
 PD#SWPL-26565
 
@@ -21,10 +21,10 @@ Change-Id: I0f28061827399b1aafffbd66ed34617546eb0942
  2 files changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 0030bed..1c82550 100644
+index 5031edf..f13e920 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
-@@ -141,18 +141,19 @@
+@@ -147,18 +147,19 @@
          "reboot_mode_android=""normal""\0"\
          "Irq_check_en=0\0"\
          "fs_type=""rootfstype=ramfs""\0"\

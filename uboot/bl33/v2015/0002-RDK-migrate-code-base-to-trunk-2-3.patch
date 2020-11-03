@@ -1,7 +1,7 @@
-From b3a461f52abd966c616b492debb9e87be3958281 Mon Sep 17 00:00:00 2001
+From 1e14f6e8f135b2ebcbabcab0ff21775e91c5ccb0 Mon Sep 17 00:00:00 2001
 From: Johnny Lee - TW <johnny.lee@noodle.amlogic.com>
 Date: Tue, 10 Mar 2020 11:08:30 -0700
-Subject: [PATCH 2/8] RDK: migrate code base to trunk [2/3]
+Subject: [PATCH 2/9] RDK: migrate code base to trunk [2/3]
 
 PD#SWPL-24384
 
@@ -22,10 +22,10 @@ Change-Id: I17222f221b13e13d450eed08fa1722344d9d3784
  4 files changed, 20 insertions(+), 10 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 8787569..02e185e 100644
+index 3d13356..757b9c8 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
-@@ -204,10 +204,12 @@
+@@ -214,10 +214,12 @@
              "fi;"\
              "if test ${avb2} = 0; then "\
                  "if test ${active_slot} = _a; then "\
@@ -42,10 +42,10 @@ index 8787569..02e185e 100644
              "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
              "run storeargs; run update;"\
 diff --git a/board/amlogic/configs/tm2_t962e2_ab311_v1.h b/board/amlogic/configs/tm2_t962e2_ab311_v1.h
-index e170735..1ba899e 100644
+index 4c36711..ab22f8a 100644
 --- a/board/amlogic/configs/tm2_t962e2_ab311_v1.h
 +++ b/board/amlogic/configs/tm2_t962e2_ab311_v1.h
-@@ -255,10 +255,12 @@
+@@ -260,10 +260,12 @@
              "fi;"\
              "if test ${avb2} = 0; then "\
                  "if test ${active_slot} = _a; then "\
@@ -62,10 +62,10 @@ index e170735..1ba899e 100644
              "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
              "run update;"\
 diff --git a/board/amlogic/configs/tm2_t962x3_ab301_v1.h b/board/amlogic/configs/tm2_t962x3_ab301_v1.h
-index 8c51652..b31afb3 100644
+index b58b9d9..bda1263 100644
 --- a/board/amlogic/configs/tm2_t962x3_ab301_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_ab301_v1.h
-@@ -246,10 +246,12 @@
+@@ -251,10 +251,12 @@
              "fi;"\
              "if test ${avb2} = 0; then "\
                  "if test ${active_slot} = _a; then "\

@@ -1,7 +1,7 @@
-From 7156a5c7e41c737344047145da787a60aff2e898 Mon Sep 17 00:00:00 2001
+From b78a3c75803dc2a38e37e8417bc3fcbb49ceac81 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 8 Jun 2020 12:13:38 -0700
-Subject: [PATCH 7/8] u-boot: Work around the regression block accessing
+Subject: [PATCH 7/9] u-boot: Work around the regression block accessing
  Recovery
 
 PD#SWPL-26780

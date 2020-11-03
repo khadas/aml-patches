@@ -1,4 +1,4 @@
-From 438c1a59fe9c2b485397e3d6dc865b181b0c002a Mon Sep 17 00:00:00 2001
+From e68a30e0c3bb30af588f8c9e478cde63bd6b8847 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 4 Jun 2020 17:00:24 -0700
 Subject: [PATCH] RDK: only compile amavutils. Others not needed for RDK
@@ -15,71 +15,113 @@ Verify:
  Local
 
 Change-Id: If7987b94de1bc3a780007a62886038947fa91770
-Signed-off-by: Pradeep Sriram <pradeep.sriram@amlogic.com>
 ---
- Makefile           | 46 +++++++++++++++++++++++-----------------------
+ Makefile           | 88 +++++++++++++++++++++++++++---------------------------
  amavutils/Makefile |  2 +-
- 2 files changed, 24 insertions(+), 24 deletions(-)
+ 2 files changed, 45 insertions(+), 45 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 506ba48..7fae264 100755
+index 5e9b102..debb2ad 100755
 --- a/Makefile
 +++ b/Makefile
-@@ -2,31 +2,31 @@
- 
- #export CC BUILD_DIR STAGING_DIR TARGET_DIR
+@@ -1,53 +1,53 @@
  all:
--	mkdir -p $(shell pwd)/../../staging/usr/lib/libplayer
--	-$(MAKE) -C amadec all
--	-$(MAKE) -C amadec install
-+	#mkdir -p $(shell pwd)/../../staging/usr/lib/libplayer
-+	#-$(MAKE) -C amadec all
-+	#-$(MAKE) -C amadec install
- 	-$(MAKE) -C amavutils all		
- 	-$(MAKE) -C amavutils install
--	-$(MAKE) -C amffmpeg all		
--	-$(MAKE) -C amffmpeg install
--	-$(MAKE) -C amcodec all
--	-$(MAKE) -C amcodec install
--	-$(MAKE) -C amvdec all
--	-$(MAKE) -C amvdec install
--	-$(MAKE) -C audio_codec all
--	-$(MAKE) -C audio_codec install
--	-$(MAKE) -C amplayer all
--	-$(MAKE) -C amplayer install
--	-$(MAKE) -C streamsource all
--	-$(MAKE) -C streamsource install
--	-$(MAKE) -C examples all
--	-$(MAKE) -C third_parts/libcurl-ffmpeg all
--	-$(MAKE) -C third_parts/libdash all
--	-$(MAKE) -C third_parts/libvhls all
--	-$(MAKE) -C bootplayer all
--	-$(MAKE) -C bootplayer install
--	-$(MAKE) -C audioplayer all
--	-$(MAKE) -C audioplayer install
-+	#-$(MAKE) -C amffmpeg all		
-+	#-$(MAKE) -C amffmpeg install
-+	#-$(MAKE) -C amcodec all
-+	#-$(MAKE) -C amcodec install
-+	#-$(MAKE) -C amvdec all
-+	#-$(MAKE) -C amvdec install
-+	#-$(MAKE) -C audio_codec all
-+	#-$(MAKE) -C audio_codec install
-+	#-$(MAKE) -C amplayer all
-+	#-$(MAKE) -C amplayer install
-+	#-$(MAKE) -C streamsource all
-+	#-$(MAKE) -C streamsource install
-+	#-$(MAKE) -C examples all
-+	#-$(MAKE) -C third_parts/libcurl-ffmpeg all
-+	#-$(MAKE) -C third_parts/libdash all
-+	#-$(MAKE) -C third_parts/libvhls all
-+	#-$(MAKE) -C bootplayer all
-+	#-$(MAKE) -C bootplayer install
-+	#-$(MAKE) -C audioplayer all
-+	#-$(MAKE) -C audioplayer install
+-	$(MAKE) -C amadec all
+-	$(MAKE) -C amadec install
++	#$(MAKE) -C amadec all
++	#$(MAKE) -C amadec install
+ 	$(MAKE) -C amavutils all
+ 	$(MAKE) -C amavutils install
+-	if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
+-		$(MAKE) -C amffmpeg all; \
+-		$(MAKE) -C amffmpeg install; \
+-	fi
+-	$(MAKE) -C amcodec all
+-	$(MAKE) -C amcodec install
+-	$(MAKE) -C amvdec all
+-	$(MAKE) -C amvdec install
+-	$(MAKE) -C audio_codec all
+-	$(MAKE) -C audio_codec install
+-	if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
+-		$(MAKE) -C amplayer all; \
+-		$(MAKE) -C amplayer install; \
+-		$(MAKE) -C streamsource all; \
+-		$(MAKE) -C streamsource install; \
+-		$(MAKE) -C examples all; \
+-		$(MAKE) -C third_parts/libcurl-ffmpeg all; \
+-		$(MAKE) -C third_parts/libdash all; \
+-		$(MAKE) -C third_parts/libvhls all; \
+-		$(MAKE) -C bootplayer all; \
+-		$(MAKE) -C bootplayer install; \
+-		$(MAKE) -C audioplayer all; \
+-		$(MAKE) -C audioplayer install; \
+-	fi
++	#if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
++	#	$(MAKE) -C amffmpeg all; \
++	#	$(MAKE) -C amffmpeg install; \
++	#fi
++	#$(MAKE) -C amcodec all
++	#$(MAKE) -C amcodec install
++	#$(MAKE) -C amvdec all
++	#$(MAKE) -C amvdec install
++	#$(MAKE) -C audio_codec all
++	#$(MAKE) -C audio_codec install
++	#if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
++	#	$(MAKE) -C amplayer all; \
++	#	$(MAKE) -C amplayer install; \
++	#	$(MAKE) -C streamsource all; \
++	#	$(MAKE) -C streamsource install; \
++	#	$(MAKE) -C examples all; \
++	#	$(MAKE) -C third_parts/libcurl-ffmpeg all; \
++	#	$(MAKE) -C third_parts/libdash all; \
++	#	$(MAKE) -C third_parts/libvhls all; \
++	#	$(MAKE) -C bootplayer all; \
++	#	$(MAKE) -C bootplayer install; \
++	#	$(MAKE) -C audioplayer all; \
++	#	$(MAKE) -C audioplayer install; \
++	#fi
  
  install:
- 	-$(MAKE) -C examples install
+-	$(MAKE) -C amadec install
++	#$(MAKE) -C amadec install
+ 	$(MAKE) -C amavutils install
+-	if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
+-		$(MAKE) -C amffmpeg install; \
+-	fi
+-	$(MAKE) -C amcodec install
+-	$(MAKE) -C amvdec install
+-	$(MAKE) -C audio_codec install
+-	if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
+-		$(MAKE) -C amplayer install; \
+-		$(MAKE) -C streamsource install; \
+-		$(MAKE) -C examples install; \
+-		$(MAKE) -C third_parts/libcurl-ffmpeg install; \
+-		$(MAKE) -C third_parts/libdash install; \
+-		$(MAKE) -C third_parts/libvhls install; \
+-		$(MAKE) -C bootplayer install; \
+-		$(MAKE) -C audioplayer install; \
+-	fi
+-	cp -rf $(LIBPLAYER_STAGING_DIR)/usr/lib/libplayer/*.so* $(LIBPLAYER_TARGET_DIR)/usr/lib
++	$(MAKE) -C examples install
++	#if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
++	#	$(MAKE) -C amffmpeg install; \
++	#fi
++	#$(MAKE) -C amcodec install
++	#$(MAKE) -C amvdec install
++	#$(MAKE) -C audio_codec install
++	#if [ ! "$(BR2_PACKAGE_LIBPLAYER_BASE_LIBS)" = "y" ] ; then \
++	#	$(MAKE) -C amplayer install; \
++	#	$(MAKE) -C streamsource install; \
++	#	$(MAKE) -C third_parts/libcurl-ffmpeg install; \
++	#	$(MAKE) -C third_parts/libdash install; \
++	#	$(MAKE) -C third_parts/libvhls install; \
++	#	$(MAKE) -C bootplayer install; \
++	#	$(MAKE) -C audioplayer install; \
++	#fi
++	#cp -rf $(LIBPLAYER_STAGING_DIR)/usr/lib/libplayer/*.so* $(LIBPLAYER_TARGET_DIR)/usr/lib
+ 
+ export CC BUILD_DIR STAGING_DIR TARGET_DIR BR2_PACKAGE_LIBPLAYER_BASE_LIBS
+ 
 diff --git a/amavutils/Makefile b/amavutils/Makefile
 index 5254dcf..e1451a2 100755
 --- a/amavutils/Makefile

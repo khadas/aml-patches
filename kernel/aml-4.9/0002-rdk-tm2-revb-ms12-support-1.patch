@@ -1,7 +1,7 @@
-From 2d9dca659e604c6aa79b3e486c7d52e54a4aeeeb Mon Sep 17 00:00:00 2001
+From c8be7b4c002ebe00d243cb881780b25ba24b7592 Mon Sep 17 00:00:00 2001
 From: rex wang <rex.wang1@amlogic.com>
 Date: Tue, 23 Jun 2020 14:42:57 +0800
-Subject: [PATCH 4/5] rdk: tm2 revb ms12 support [1/]
+Subject: [PATCH 2/4] rdk: tm2 revb ms12 support [1/]
 
 PD#TV-20821
 
@@ -21,10 +21,10 @@ Signed-off-by: rex wang <rex.wang1@amlogic.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi b/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi
-index 5266259..6914668 100644
+index 6ee5c6f..32c72256 100644
 --- a/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi
 +++ b/arch/arm/boot/dts/amlogic/mesontm2_revb.dtsi
-@@ -551,7 +551,7 @@
+@@ -562,7 +562,7 @@
  	dolby_fw: dolby_fw {
  		compatible = "amlogic, dolby_fw";
  		mem_size = <0x100000>;

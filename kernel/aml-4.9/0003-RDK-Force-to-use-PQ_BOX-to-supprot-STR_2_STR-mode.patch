@@ -1,7 +1,7 @@
-From 935a16ee910d880d91fdaad269e95ea65359e879 Mon Sep 17 00:00:00 2001
+From 3f523bb453fc35aa4e8e500a903c035544cf13d2 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 27 Jul 2020 12:22:06 -0700
-Subject: [PATCH 5/5] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
+Subject: [PATCH 3/4] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
 
 PD#SWPL-26565
 
@@ -18,14 +18,14 @@ Change-Id: Iace678d7fdf1f154da07923e938206c2faad1b95
 Signed-off-by: Terrence Pu <terrence.pu@amlogic.com>
 ---
  drivers/amlogic/media/enhancement/amvecm/amve.c   | 8 ++++++++
- drivers/amlogic/media/enhancement/amvecm/amvecm.c | 9 ++++++---
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/amlogic/media/enhancement/amvecm/amvecm.c | 8 ++++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amve.c b/drivers/amlogic/media/enhancement/amvecm/amve.c
-index c7040c4..23aaa69 100644
+index 4b710d5..10949a4 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amve.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amve.c
-@@ -2120,6 +2120,7 @@ void set_gamma_regs(int en, int sel)
+@@ -2163,6 +2163,7 @@ void set_pre_gamma_reg(struct pre_gamma_table_s *pre_gma_tb)
  
  void amvecm_wb_enable(int enable)
  {
@@ -33,7 +33,7 @@ index c7040c4..23aaa69 100644
  	if (enable) {
  		wb_en = 1;
  		if (video_rgb_ogo_xvy_mtx)
-@@ -2133,6 +2134,13 @@ void amvecm_wb_enable(int enable)
+@@ -2176,6 +2177,13 @@ void amvecm_wb_enable(int enable)
  		else
  			WRITE_VPP_REG_BITS(VPP_GAINOFF_CTRL0, 0, 31, 1);
  	}
@@ -48,10 +48,10 @@ index c7040c4..23aaa69 100644
  
  int vpp_pq_ctrl_config(struct pq_ctrl_s pq_cfg)
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amvecm.c b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-index c6a127a..55d011e 100644
+index da966b0..8097d20 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amvecm.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-@@ -7731,15 +7731,18 @@ void init_pq_control(unsigned int enable)
+@@ -8120,15 +8120,19 @@ void init_pq_control(unsigned int enable)
  /* #if (MESON_CPU_TYPE == MESON_CPU_TYPE_MESONG9TV) */
  void init_pq_setting(void)
  {
@@ -60,9 +60,9 @@ index c6a127a..55d011e 100644
 -
 +#endif
  	int bitdepth;
--
+ 
 +#if 0
- 	if (vinfo->viu_color_fmt == COLOR_FMT_RGB444)
+ 	if (vinfo->mode == VMODE_LCD)
  		init_pq_control(PQ_TV);
  	else
  		init_pq_control(PQ_BOX);

@@ -1,7 +1,7 @@
-From 6085d46b735de0db8064d47d6297ce3ef2395c90 Mon Sep 17 00:00:00 2001
+From f035c2a92b7b72ec00a60bc96b6479fa1af629b5 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Wed, 6 May 2020 21:50:31 -0700
-Subject: [PATCH 3/5] RDK: Customize DTS files [1/1]
+Subject: [PATCH 1/4] RDK: Customize DTS files [1/1]
 
 PD#SWPL-25661
 
@@ -34,7 +34,7 @@ Signed-off-by: Pradeep Sriram <pradeep.sriram@amlogic.com>
  create mode 100644 arch/arm/boot/dts/amlogic/partition_tv_ab_rdk.dtsi
 
 diff --git a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212.dts b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212.dts
-index 674df18..4b239b4 100644
+index 434e9a8..7fd2584 100644
 --- a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212.dts
 +++ b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212.dts
 @@ -109,7 +109,8 @@
@@ -103,7 +103,7 @@ index 1fbb34d..9a5fece 100644
  		clocks = <&clkaudio CLKID_AUDIO_MCLK_B
  				&clkc CLKID_MPLL1
 diff --git a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
-index 11e6507..9ee3b5f 100644
+index 06cc532..e9cd3fa 100644
 --- a/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/g12a_s905x2_u212_drm_buildroot.dts
 @@ -19,6 +19,7 @@
@@ -536,7 +536,7 @@ index 00000000..b6f0b8e
 +			};
 +};/* end of / */
 diff --git a/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
-index 67e22c9..ec32869 100644
+index d53ff44..6d6fa3b 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_revb_t962e2_ab311_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -633,7 +633,7 @@ index 67e22c9..ec32869 100644
  	internal_phy=<1>;
  };
 diff --git a/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts
-index 9f3f124..e250af0 100644
+index 0a1bf6a..50bc1ec 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_revb_t962x3_ab301_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -723,14 +723,14 @@ index 9f3f124..e250af0 100644
  	internal_phy=<1>;
  };
 diff --git a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
-index 606584c..728fb47 100644
+index 95195ab..3580c45 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_drm_buildroot.dts
 @@ -19,7 +19,7 @@
  
  #include "mesontm2.dtsi"
  #include "mesontm2_drm.dtsi"
--#include "partition_mbox_normal.dtsi"
+-#include "partition_mbox_normal_P_32.dtsi"
 +#include "partition_tv_ab_rdk.dtsi"
  
  / {
@@ -813,14 +813,14 @@ index 606584c..728fb47 100644
  	internal_phy=<1>;
  };
 diff --git a/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts
-index 672ece4..d32a320 100644
+index 2da6b56..d32a320 100644
 --- a/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/tm2_t962x3_ab301_drm_buildroot.dts
 @@ -19,7 +19,7 @@
  
  #include "mesontm2.dtsi"
  #include "mesontm2_drm.dtsi"
--#include "partition_mbox_normal.dtsi"
+-#include "partition_mbox_normal_P_32.dtsi"
 +#include "partition_tv_ab_rdk.dtsi"
  #include "mesontm2_t962x3_ab301-panel.dtsi"
  

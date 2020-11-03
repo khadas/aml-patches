@@ -1,0 +1,43 @@
+From e898b895632ecff813b05fa0356a127959e90ae9 Mon Sep 17 00:00:00 2001
+From: Brian Zhu <brian.zhu@amlogic.com>
+Date: Fri, 18 Sep 2020 00:51:37 +0800
+Subject: [PATCH 4/4] di: change the instance mode in v3 [1/1]
+
+PD#SWPL-33325
+
+Problem:
+Need support two instances for di interlace.
+
+Solution:
+Disable the vfm mode, enable two di interlace mode
+
+Verify:
+Verified on u212
+
+Change-Id: I656366b7840589dd0c7a786199a3ba282a8f09c0
+Signed-off-by: Brian Zhu <brian.zhu@amlogic.com>
+---
+ drivers/amlogic/media/di_multi_v3/di_prc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/amlogic/media/di_multi_v3/di_prc.c b/drivers/amlogic/media/di_multi_v3/di_prc.c
+index deb2cbb..fe6046a 100644
+--- a/drivers/amlogic/media/di_multi_v3/di_prc.c
++++ b/drivers/amlogic/media/di_multi_v3/di_prc.c
+@@ -74,11 +74,11 @@ const struct di_cfg_ctr_s div3_cfg_top_ctr[K_DI_CFG_NUB] = {
+ 
+ 	[EDI_CFG_TMODE_1]  = {"tmode1",
+ 			EDI_CFG_TMODE_1,
+-			1,
++			0,
+ 			K_DI_CFG_T_FLG_DTS},
+ 	[EDI_CFG_TMODE_2]  = {"tmode2",
+ 			EDI_CFG_TMODE_2,
+-			1,
++			2,
+ 			K_DI_CFG_T_FLG_DTS},
+ 	[EDI_CFG_TMODE_3]  = {"tmode3",
+ 			EDI_CFG_TMODE_3,
+-- 
+2.7.4
+

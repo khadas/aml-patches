@@ -1,4 +1,4 @@
-From 794a27b3064736f331702d3e1a1fd57f762e713d Mon Sep 17 00:00:00 2001
+From 4f009d9fc0a23bc6dbdbe894fb25a02be6d35f55 Mon Sep 17 00:00:00 2001
 From: Matthew Shyu <matthew.shyu@amlogic.com>
 Date: Fri, 20 Mar 2020 03:00:39 -0700
 Subject: [PATCH] RDK: migrate uboot fip code base to trunk [1/1]
