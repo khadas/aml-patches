@@ -1,7 +1,7 @@
-From d5b09c6498f9d93ce5c450cd69ea714bf134e9de Mon Sep 17 00:00:00 2001
+From 004727240e57f1137ae7facf34facfd7481eb020 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:06:45 -0700
-Subject: [PATCH 4/9] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
+Subject: [PATCH 04/10] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
 
 PD#SWPL-26832
 
@@ -17,15 +17,15 @@ u212/HP40A
 Change-Id: I600e23aec5a9b602cd5c98c378be70b21bd5a29d
 Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
 ---
- board/amlogic/configs/g12a_u212_v1.h | 40 +++++++++++-------------------------
- common/cmd_irkey.c                   | 14 +++----------
+ board/amlogic/configs/g12a_u212_v1.h | 40 +++++++++-------------------
+ common/cmd_irkey.c                   | 14 +++-------
  2 files changed, 15 insertions(+), 39 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 757b9c8..13163f7 100644
+index ec74c0d414..512bb0eb36 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
-@@ -79,6 +79,8 @@
+@@ -94,6 +94,8 @@
  #define CONFIG_AML_MESON_SERIAL   1
  #define CONFIG_SERIAL_MULTI		1
  
@@ -34,7 +34,7 @@ index 757b9c8..13163f7 100644
  //Enable ir remote wake up for bl30
  #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL1 0xef10fe01 //amlogic tv ir --- power
  #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL2 0xFFFFFFFF
-@@ -275,29 +277,10 @@
+@@ -290,29 +292,10 @@
                  "bootm ${loadaddr};fi;"\
              "\0"\
          "recovery_from_flash="\
@@ -68,7 +68,7 @@ index 757b9c8..13163f7 100644
              "\0"\
          "init_display="\
              "get_rebootmode;"\
-@@ -357,12 +340,12 @@
+@@ -372,12 +355,12 @@
              "fi;"\
              "\0"\
  	"irremote_update="\
@@ -86,7 +86,7 @@ index 757b9c8..13163f7 100644
  			"fi;fi;" \
  		"fi;\0" \
  
-@@ -374,6 +357,7 @@
+@@ -389,6 +372,7 @@
              "run init_display;"\
              "run storeargs;"\
              "run upgrade_key;" \
@@ -95,7 +95,7 @@ index 757b9c8..13163f7 100644
              "run switch_bootmode;"
  
 diff --git a/common/cmd_irkey.c b/common/cmd_irkey.c
-index 6540199..5616b29 100644
+index 654019948c..5616b29fc5 100644
 --- a/common/cmd_irkey.c
 +++ b/common/cmd_irkey.c
 @@ -31,22 +31,14 @@ extern uint32_t get_time(void);
@@ -125,5 +125,5 @@ index 6540199..5616b29 100644
  
  uint32_t read_key(void)
 -- 
-2.7.4
+2.17.1
 

@@ -1,7 +1,7 @@
-From 9ccd4465482e36819b741ea096281886da798436 Mon Sep 17 00:00:00 2001
+From 9d05cc68f837ffc43b09e319d2c94ca825dbd6bd Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Tue, 14 Jul 2020 05:25:37 -0700
-Subject: [PATCH 8/9] RDK: Enable STR to STR support
+Subject: [PATCH 08/10] RDK: Enable STR to STR support
 
 PD#SWPL-26565
 
@@ -21,16 +21,16 @@ Change-Id: I0f28061827399b1aafffbd66ed34617546eb0942
  2 files changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 5031edf..f13e920 100644
+index 999d990513..0774573a81 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
-@@ -147,18 +147,19 @@
+@@ -162,18 +162,19 @@
          "reboot_mode_android=""normal""\0"\
          "Irq_check_en=0\0"\
          "fs_type=""rootfstype=ramfs""\0"\
 +        "lastpwrmode=1\0" \
          "initargs="\
-             "init=/init console=ttyS0,115200 no_console_suspend earlyprintk=aml-uart,0xff803000 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
+             "init=/init " CONFIG_KNL_LOG_LEVEL " console=ttyS0,115200 no_console_suspend earlyprintk=aml-uart,0xff803000 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
              "\0"\
          "upgrade_check="\
              "echo upgrade_step=${upgrade_step}; "\
@@ -47,7 +47,7 @@ index 5031edf..f13e920 100644
              "run cmdline_keys;"\
              "\0"\
 diff --git a/common/cmd_hdmitx.c b/common/cmd_hdmitx.c
-index 282443f..d847ab4 100644
+index 282443f9a1..d847ab4412 100644
 --- a/common/cmd_hdmitx.c
 +++ b/common/cmd_hdmitx.c
 @@ -100,6 +100,7 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
@@ -97,5 +97,5 @@ index 282443f..d847ab4 100644
  	} else {
  		cvbsmode = getenv("cvbsmode");
 -- 
-2.7.4
+2.17.1
 

@@ -1,7 +1,7 @@
-From 3f523bb453fc35aa4e8e500a903c035544cf13d2 Mon Sep 17 00:00:00 2001
+From a17ba3035f22edb368aa88b71df1b86cf5db386f Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 27 Jul 2020 12:22:06 -0700
-Subject: [PATCH 3/4] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
+Subject: [PATCH 3/3] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
 
 PD#SWPL-26565
 
@@ -22,10 +22,10 @@ Signed-off-by: Terrence Pu <terrence.pu@amlogic.com>
  2 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amve.c b/drivers/amlogic/media/enhancement/amvecm/amve.c
-index 4b710d5..10949a4 100644
+index bf66dd340cd6..cb793e35f752 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amve.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amve.c
-@@ -2163,6 +2163,7 @@ void set_pre_gamma_reg(struct pre_gamma_table_s *pre_gma_tb)
+@@ -2168,6 +2168,7 @@ void set_pre_gamma_reg(struct pre_gamma_table_s *pre_gma_tb)
  
  void amvecm_wb_enable(int enable)
  {
@@ -33,7 +33,7 @@ index 4b710d5..10949a4 100644
  	if (enable) {
  		wb_en = 1;
  		if (video_rgb_ogo_xvy_mtx)
-@@ -2176,6 +2177,13 @@ void amvecm_wb_enable(int enable)
+@@ -2181,6 +2182,13 @@ void amvecm_wb_enable(int enable)
  		else
  			WRITE_VPP_REG_BITS(VPP_GAINOFF_CTRL0, 0, 31, 1);
  	}
@@ -48,10 +48,10 @@ index 4b710d5..10949a4 100644
  
  int vpp_pq_ctrl_config(struct pq_ctrl_s pq_cfg)
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amvecm.c b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-index da966b0..8097d20 100644
+index fa69fa21fc63..e9535947bd1b 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amvecm.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-@@ -8120,15 +8120,19 @@ void init_pq_control(unsigned int enable)
+@@ -8237,15 +8237,19 @@ void init_pq_control(unsigned int enable)
  /* #if (MESON_CPU_TYPE == MESON_CPU_TYPE_MESONG9TV) */
  void init_pq_setting(void)
  {
@@ -74,5 +74,5 @@ index da966b0..8097d20 100644
  	ai_detect_scene_init();
  	adaptive_param_init();
 -- 
-2.7.4
+2.17.1
 

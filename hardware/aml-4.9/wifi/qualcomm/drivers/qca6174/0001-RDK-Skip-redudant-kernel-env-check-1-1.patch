@@ -1,4 +1,4 @@
-From 29fd1a5e424be040cca64ba2721c52fc15c13be5 Mon Sep 17 00:00:00 2001
+From 66992a0a0813c689b4bad6d9686e538b06199806 Mon Sep 17 00:00:00 2001
 From: Blance Tang <guofeng.tang@amlogic.com>
 Date: Wed, 27 May 2020 22:26:48 +0800
 Subject: [PATCH] RDK: Skip redudant kernel env check [1/1]
@@ -63,5 +63,5 @@ index 4de6f93..4f96ce6 100644
  	return request_firmware(firmware_p, final_name, device);
  #endif
 -- 
-2.7.4
+2.17.1
 
