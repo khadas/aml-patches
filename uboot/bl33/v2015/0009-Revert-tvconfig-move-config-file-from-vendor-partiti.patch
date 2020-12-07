@@ -1,4 +1,4 @@
-From 0ceb97e6871b5175b3044e1b483d6d1c21226274 Mon Sep 17 00:00:00 2001
+From b227ad7373d719f5c3de22311783e09f855a76d0 Mon Sep 17 00:00:00 2001
 From: johnny lee <johnny.lee@amlogic.com>
 Date: Tue, 8 Sep 2020 13:15:24 +0800
 Subject: [PATCH 09/10] Revert "tvconfig: move config file from vendor
@@ -22,7 +22,7 @@ Signed-off-by: johnny lee <johnny.lee@amlogic.com>
  10 files changed, 19 insertions(+), 19 deletions(-)
 
 diff --git a/board/amlogic/configs/tl1_skt_v1.h b/board/amlogic/configs/tl1_skt_v1.h
-index 17e3013e79..a46097c790 100644
+index 17e3013..a46097c 100644
 --- a/board/amlogic/configs/tl1_skt_v1.h
 +++ b/board/amlogic/configs/tl1_skt_v1.h
 @@ -122,8 +122,8 @@
@@ -37,7 +37,7 @@ index 17e3013e79..a46097c790 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tl1_t309_v1.h b/board/amlogic/configs/tl1_t309_v1.h
-index f48dfc6355..9cbaa1bcad 100644
+index f48dfc6..9cbaa1b 100644
 --- a/board/amlogic/configs/tl1_t309_v1.h
 +++ b/board/amlogic/configs/tl1_t309_v1.h
 @@ -124,8 +124,8 @@
@@ -52,7 +52,7 @@ index f48dfc6355..9cbaa1bcad 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tl1_x301_v1.h b/board/amlogic/configs/tl1_x301_v1.h
-index a1b45ac723..4c645dcdcc 100644
+index a1b45ac..4c645dc 100644
 --- a/board/amlogic/configs/tl1_x301_v1.h
 +++ b/board/amlogic/configs/tl1_x301_v1.h
 @@ -127,8 +127,8 @@
@@ -67,10 +67,10 @@ index a1b45ac723..4c645dcdcc 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962e2_ab311_v1.h b/board/amlogic/configs/tm2_t962e2_ab311_v1.h
-index ab22f8aec2..b89b6a6912 100644
+index fae764c..b02da8a 100644
 --- a/board/amlogic/configs/tm2_t962e2_ab311_v1.h
 +++ b/board/amlogic/configs/tm2_t962e2_ab311_v1.h
-@@ -136,8 +136,8 @@
+@@ -137,8 +137,8 @@
          "powermode=on\0"\
          "ffv_wake=off\0"\
          "ffv_freeze=off\0"\
@@ -82,7 +82,7 @@ index ab22f8aec2..b89b6a6912 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962e2_ab319_v1.h b/board/amlogic/configs/tm2_t962e2_ab319_v1.h
-index 14bce4f53d..3073bf1993 100644
+index 14bce4f..3073bf1 100644
 --- a/board/amlogic/configs/tm2_t962e2_ab319_v1.h
 +++ b/board/amlogic/configs/tm2_t962e2_ab319_v1.h
 @@ -132,8 +132,8 @@
@@ -97,7 +97,7 @@ index 14bce4f53d..3073bf1993 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962x3_ab301_v1.h b/board/amlogic/configs/tm2_t962x3_ab301_v1.h
-index bda1263270..bae6cda22c 100644
+index bda1263..bae6cda 100644
 --- a/board/amlogic/configs/tm2_t962x3_ab301_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_ab301_v1.h
 @@ -128,8 +128,8 @@
@@ -112,7 +112,7 @@ index bda1263270..bae6cda22c 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962x3_ab309_v1.h b/board/amlogic/configs/tm2_t962x3_ab309_v1.h
-index 06e4877ff9..3f287a8091 100644
+index 06e4877..3f287a8 100644
 --- a/board/amlogic/configs/tm2_t962x3_ab309_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_ab309_v1.h
 @@ -126,8 +126,8 @@
@@ -127,7 +127,7 @@ index 06e4877ff9..3f287a8091 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962x3_t312_v1.h b/board/amlogic/configs/tm2_t962x3_t312_v1.h
-index 6ad7a98fc4..d52af4ce5c 100644
+index 6ad7a98..d52af4c 100644
 --- a/board/amlogic/configs/tm2_t962x3_t312_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_t312_v1.h
 @@ -128,8 +128,8 @@
@@ -142,7 +142,7 @@ index 6ad7a98fc4..d52af4ce5c 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_v901d_t501_v1.h b/board/amlogic/configs/tm2_v901d_t501_v1.h
-index 5fbfe22dac..9b477af089 100644
+index 5fbfe22..9b477af 100644
 --- a/board/amlogic/configs/tm2_v901d_t501_v1.h
 +++ b/board/amlogic/configs/tm2_v901d_t501_v1.h
 @@ -127,8 +127,8 @@
@@ -157,7 +157,7 @@ index 5fbfe22dac..9b477af089 100644
          "port_map=0x4321\0" \
          "cec_fun=0x2F\0" \
 diff --git a/common/ini/model.c b/common/ini/model.c
-index 496a7a565c..e714799969 100644
+index eac1440..28c6831 100644
 --- a/common/ini/model.c
 +++ b/common/ini/model.c
 @@ -32,7 +32,7 @@ Description:
@@ -170,5 +170,5 @@ index 496a7a565c..e714799969 100644
  #define AML_END			"amlogic_end"
  
 -- 
-2.17.1
+2.7.4
 

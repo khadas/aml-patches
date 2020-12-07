@@ -1,4 +1,4 @@
-From 98f0b02eb5fe51790f35b5d2650f18069f217f8d Mon Sep 17 00:00:00 2001
+From f7ade1fc3a30658709eded2e0ddc5ab6c22639d1 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Tue, 5 Nov 2019 22:20:46 -0800
 Subject: [PATCH 01/10] RDK: migrate bootloader code base to trunk [1/3]
@@ -21,7 +21,7 @@ Change-Id: Idfe7c3052ad5d4c46f82b233f95ae9062f684c06
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 4d33269b02..8f378bffb3 100644
+index 4d33269..8f378bf 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -246,8 +246,8 @@ ifeq ($(HOSTARCH),$(ARCH))
@@ -36,5 +36,5 @@ index 4d33269b02..8f378bffb3 100644
  export CROSS_COMPILE_T32
  
 -- 
-2.17.1
+2.7.4
 

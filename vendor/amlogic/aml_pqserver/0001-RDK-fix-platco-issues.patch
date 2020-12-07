@@ -1,4 +1,4 @@
-From 4dc909d81dcb007114be60f4846ddcb17d22b61f Mon Sep 17 00:00:00 2001
+From b108fc76fce33ce8e4d8e94be6461858885e272f Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Mon, 9 Nov 2020 17:49:52 -0800
 Subject: [PATCH] RDK: fix platco issues
@@ -31,5 +31,5 @@ index 18fd7de..8d49df1 100644
            -O3 -fexceptions -fnon-call-exceptions -D_GNU_SOURCE -I$(STAGING_DIR)/usr/include
  
 -- 
-2.17.1
+2.7.4
 

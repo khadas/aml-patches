@@ -1,0 +1,27 @@
+From e6bf88cfbff73bfcd1ee23d08506eab4e3b1e914 Mon Sep 17 00:00:00 2001
+From: Blance Tang <guofeng.tang@amlogic.com>
+Date: Thu, 3 Dec 2020 12:52:59 +0800
+Subject: [PATCH] RDK build Test
+
+Signed-off-by: Blance Tang <guofeng.tang@amlogic.com>
+Change-Id: I2c09da7fbdad43f0fd282664d3387927e14987aa
+---
+ gst-aml-drm-plugins-1.0/src/secmem/Makefile.am | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/gst-aml-drm-plugins-1.0/src/secmem/Makefile.am b/gst-aml-drm-plugins-1.0/src/secmem/Makefile.am
+index b86564b..34ce87c 100644
+--- a/gst-aml-drm-plugins-1.0/src/secmem/Makefile.am
++++ b/gst-aml-drm-plugins-1.0/src/secmem/Makefile.am
+@@ -22,5 +22,4 @@ libgstsecmemallocator_la_LIBADD = $(GST_LIBS) -lsecmem
+ libgstsecmemallocator_la_LDFLAGS = $(GST_LDFLAGS)
+ libgstsecmemallocator_la_LIBTOOLFLAGS = --tag=disable-static
+ 
+-libgstsecmemallocator_includedir = $(includedir)/gstreamer-1.0/gst/allocators
+-libgstsecmemallocator_include_HEADERS = gstsecmemallocator.h
+\ No newline at end of file
++include_HEADERS = gstsecmemallocator.h 
+\ No newline at end of file
+-- 
+2.7.4
+

@@ -1,0 +1,51 @@
+From 10207221b889edc39bbc24f15a1f36a76afd09fb Mon Sep 17 00:00:00 2001
+From: Pradeep Sriram <pradeep.sriram@amlogic.com>
+Date: Tue, 1 Dec 2020 15:52:46 -0800
+Subject: [PATCH] RDK: fix v4l path
+
+Problem:
+yocto uses standard linux headers.
+all customizations need to behosted separately
+
+Solution:
+fix header path is source code
+
+Verify:
+compile pass
+
+Signed-off-by: Pradeep Sriram <pradeep.sriram@amlogic.com>
+Change-Id: I87062aeb74093ff9796e13e123f4ff2fb3601b27
+---
+ v4l2-uvm-test/src/drm.c      | 2 +-
+ v4l2-uvm-test/src/v4l2-dec.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/v4l2-uvm-test/src/drm.c b/v4l2-uvm-test/src/drm.c
+index 70c2927..19eb3da 100644
+--- a/v4l2-uvm-test/src/drm.c
++++ b/v4l2-uvm-test/src/drm.c
+@@ -25,7 +25,7 @@
+ #include <xf86drmMode.h>
+ #include <libsync.h>
+ #include <drm_fourcc.h>
+-#include <linux/videodev2.h>
++#include <linux-meson-4.9/include/linux/videodev2.h>
+ #include <meson_drm.h>
+ 
+ #include "aml_avsync.h"
+diff --git a/v4l2-uvm-test/src/v4l2-dec.c b/v4l2-uvm-test/src/v4l2-dec.c
+index d834439..6730077 100644
+--- a/v4l2-uvm-test/src/v4l2-dec.c
++++ b/v4l2-uvm-test/src/v4l2-dec.c
+@@ -14,7 +14,7 @@
+ #include <pthread.h>
+ #include <semaphore.h>
+ #include <poll.h>
+-#include <linux/videodev2.h>
++#include <linux-meson-4.9/include/linux/videodev2.h>
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+ #include <sys/types.h>
+-- 
+2.7.4
+

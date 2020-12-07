@@ -1,7 +1,7 @@
-From a17ba3035f22edb368aa88b71df1b86cf5db386f Mon Sep 17 00:00:00 2001
+From f46c8cb77803fa202dc3908b91e313153fe808e2 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 27 Jul 2020 12:22:06 -0700
-Subject: [PATCH 3/3] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
+Subject: [PATCH 4/4] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
 
 PD#SWPL-26565
 
@@ -22,7 +22,7 @@ Signed-off-by: Terrence Pu <terrence.pu@amlogic.com>
  2 files changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amve.c b/drivers/amlogic/media/enhancement/amvecm/amve.c
-index bf66dd340cd6..cb793e35f752 100644
+index bf66dd3..cb793e3 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amve.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amve.c
 @@ -2168,6 +2168,7 @@ void set_pre_gamma_reg(struct pre_gamma_table_s *pre_gma_tb)
@@ -48,7 +48,7 @@ index bf66dd340cd6..cb793e35f752 100644
  
  int vpp_pq_ctrl_config(struct pq_ctrl_s pq_cfg)
 diff --git a/drivers/amlogic/media/enhancement/amvecm/amvecm.c b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
-index fa69fa21fc63..e9535947bd1b 100644
+index 0a357fb..fcb8748 100644
 --- a/drivers/amlogic/media/enhancement/amvecm/amvecm.c
 +++ b/drivers/amlogic/media/enhancement/amvecm/amvecm.c
 @@ -8237,15 +8237,19 @@ void init_pq_control(unsigned int enable)
@@ -74,5 +74,5 @@ index fa69fa21fc63..e9535947bd1b 100644
  	ai_detect_scene_init();
  	adaptive_param_init();
 -- 
-2.17.1
+2.7.4
 

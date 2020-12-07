@@ -1,4 +1,4 @@
-From 2da3bbaf38671bd9fa95f73e38c440d44ccf015d Mon Sep 17 00:00:00 2001
+From 6221f65601842917b3b960d50e32c07fdb4df049 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Mon, 9 Nov 2020 17:57:51 -0800
 Subject: [PATCH] RDK: fix platco issues
@@ -18,7 +18,7 @@ Signed-off-by: Pradeep Sriram <pradeep.sriram@amlogic.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 656a3ab..06a060d 100644
+index 612d6cb..86e52a0 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -4,7 +4,7 @@
@@ -30,7 +30,7 @@ index 656a3ab..06a060d 100644
  CFLAGS += -Wall -Wno-unknown-pragmas -Wno-format \
            -O3 -fexceptions -fnon-call-exceptions -D_GNU_SOURCE \
            -I$(STAGING_DIR)/usr/include -DHAVE_AUDIO
-@@ -71,7 +71,7 @@ libtv.so: $(tv_SRCS)
+@@ -72,7 +72,7 @@ libtv.so: $(tv_SRCS)
  	-I$(LOCAL_PATH)/libtv/tvutils -laudio_client -o $@ $^ $(LDLIBS)
  
  tvservice: $(tvservice_SRCS) libtv.so
@@ -40,5 +40,5 @@ index 656a3ab..06a060d 100644
  	-L$(LOCAL_PATH) -ltv -laudio_client -o $@ $^ $(LDLIBS)
  
 -- 
-2.17.1
+2.7.4
 

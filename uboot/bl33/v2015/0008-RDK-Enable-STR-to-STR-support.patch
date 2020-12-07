@@ -1,4 +1,4 @@
-From 9d05cc68f837ffc43b09e319d2c94ca825dbd6bd Mon Sep 17 00:00:00 2001
+From 56c84aa2be0a9a5774fd49f39b5c8fb642dbd582 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Tue, 14 Jul 2020 05:25:37 -0700
 Subject: [PATCH 08/10] RDK: Enable STR to STR support
@@ -21,7 +21,7 @@ Change-Id: I0f28061827399b1aafffbd66ed34617546eb0942
  2 files changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index 999d990513..0774573a81 100644
+index 45666d4..30334f3 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -162,18 +162,19 @@
@@ -41,16 +41,16 @@ index 999d990513..0774573a81 100644
              "\0"\
          "storeargs="\
  		"get_bootloaderversion;" \
--		"setenv bootargs ${initargs} hdr_policy=${hdr_policy}  hdr_priority=${hdr_priority} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} irq_check_en=${Irq_check_en}  androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
-+		"setenv bootargs ${initargs} lastpwrmode=${lastpwrmode} hdr_policy=${hdr_policy}  hdr_priority=${hdr_priority} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} irq_check_en=${Irq_check_en}  androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
+-		"setenv bootargs ${initargs} phy_idx=${phy_idx} hdr_policy=${hdr_policy} hdr_priority=${hdr_priority} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} irq_check_en=${Irq_check_en}  androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
++		"setenv bootargs ${initargs} phy_idx=${phy_idx} lastpwrmode=${lastpwrmode} hdr_policy=${hdr_policy}  hdr_priority=${hdr_priority} otg_device=${otg_device} reboot_mode_android=${reboot_mode_android} logo=${display_layer},loaded,${fb_addr} fb_width=${fb_width} fb_height=${fb_height} display_bpp=${display_bpp} outputmode=${outputmode} vout=${outputmode},enable panel_type=${panel_type} lcd_ctrl=${lcd_ctrl} hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} irq_check_en=${Irq_check_en}  androidboot.selinux=${EnableSelinux} androidboot.firstboot=${firstboot} jtag=${jtag}; "\
  	"setenv bootargs ${bootargs} androidboot.hardware=amlogic androidboot.bootloader=${bootloader_version} androidboot.build.expect.baseband=N/A;"\
              "run cmdline_keys;"\
              "\0"\
 diff --git a/common/cmd_hdmitx.c b/common/cmd_hdmitx.c
-index 282443f9a1..d847ab4412 100644
+index 186eb6f..8a8ecf9 100644
 --- a/common/cmd_hdmitx.c
 +++ b/common/cmd_hdmitx.c
-@@ -100,6 +100,7 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
+@@ -63,6 +63,7 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
  	char* hdmimode;
  	char* cvbsmode;
  	char* colorattribute;
@@ -58,7 +58,7 @@ index 282443f9a1..d847ab4412 100644
  
  	st = getenv_ulong("hdmitx_hpd_bypass", 10, 0);
  	if (st) {
-@@ -143,10 +144,25 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
+@@ -106,10 +107,25 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
  	if (colorattribute)
  		printf("do_hpd_detect: colorattribute=%s\n", colorattribute);
  
@@ -86,7 +86,7 @@ index 282443f9a1..d847ab4412 100644
  		}
  	} else {
  		setenv("hdmimode", "1080p60hz");
-@@ -154,6 +170,9 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
+@@ -117,6 +133,9 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
  	}
  	hdmimode = getenv("hdmimode");
  	if (st) {
@@ -97,5 +97,5 @@ index 282443f9a1..d847ab4412 100644
  	} else {
  		cvbsmode = getenv("cvbsmode");
 -- 
-2.17.1
+2.7.4
 

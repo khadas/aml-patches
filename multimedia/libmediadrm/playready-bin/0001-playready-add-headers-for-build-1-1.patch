@@ -1,4 +1,4 @@
-From afc36c75fdccc7c7d968f8d6e39bc41fc584cf49 Mon Sep 17 00:00:00 2001
+From f83189f5486744b53706e4f01c46bbdbee3810c7 Mon Sep 17 00:00:00 2001
 From: Tao Guo <tao.guo@amlogic.com>
 Date: Mon, 1 Jun 2020 11:22:21 +0800
 Subject: [PATCH] playready: add headers for build [1/1]
@@ -17,239 +17,241 @@ U212 + RDK
 Signed-off-by: Tao Guo <tao.guo@amlogic.com>
 Change-Id: I83973f2482017924df216380b4b5101981335038
 ---
- prebuilt-v3.3/noarch/include/inc/byteorder.h  |   39 +
- .../noarch/include/inc/drmactivation.h        |   22 +
- .../include/inc/drmactivationconstants.h      |   44 +
- .../noarch/include/inc/drmactivationimp.h     |  240 +
- .../noarch/include/inc/drmallstrings.h        |   39 +
- .../noarch/include/inc/drmantirollbackclock.h |   73 +
- .../inc/drmantirollbackclockconstants.h       |   21 +
- prebuilt-v3.3/noarch/include/inc/drmbase64.h  |   67 +
- .../noarch/include/inc/drmbcertcachetypes.h   |   51 +
- .../noarch/include/inc/drmbcertconstants.h    |  316 +
- .../include/inc/drmbcertformat_generated.h    |  314 +
- .../include/inc/drmbcertformatbuilder.h       |  269 +
- .../noarch/include/inc/drmbcertformatparser.h |  254 +
- .../include/inc/drmbcertformatparsercache.h   |   33 +
- prebuilt-v3.3/noarch/include/inc/drmbcrl.h    |   69 +
- .../noarch/include/inc/drmbcrltypes.h         |   53 +
- .../noarch/include/inc/drmblackboxtypes.h     |   84 +
- .../noarch/include/inc/drmblobcache.h         |   40 +
- .../noarch/include/inc/drmbuild_oem.h         |  126 +
- .../noarch/include/inc/drmbuild_oemplayonly.h |  153 +
- .../noarch/include/inc/drmbuild_oemtee.h      |  126 +
- .../include/inc/drmbuild_oemteeplayonly.h     |  126 +
- .../noarch/include/inc/drmbytemanip.h         |   37 +
- .../noarch/include/inc/drmcallbacks.h         |   57 +
- .../noarch/include/inc/drmcallbacktypes.h     |   59 +
- prebuilt-v3.3/noarch/include/inc/drmcdmi.h    |  155 +
- .../noarch/include/inc/drmcdmiimpl.h          |   29 +
- .../noarch/include/inc/drmcdmishared.h        |   61 +
- .../noarch/include/inc/drmcdmitypes.h         |  181 +
- prebuilt-v3.3/noarch/include/inc/drmcert.h    |   52 +
- .../noarch/include/inc/drmcertparser.h        |  128 +
- .../include/inc/drmcertparserconstants.h      |   23 +
- prebuilt-v3.3/noarch/include/inc/drmchain.h   |   65 +
- .../noarch/include/inc/drmchaintypes.h        |   89 +
- .../noarch/include/inc/drmcleanstore.h        |   33 +
- .../noarch/include/inc/drmcmdlnpars.h         |   51 +
- .../noarch/include/inc/drmcompiler.h          |  675 ++
- .../noarch/include/inc/drmconstants.h         |  273 +
- .../noarch/include/inc/drmcontextsizes.h      |  169 +
- .../noarch/include/inc/drmcontract.h          |  113 +
- prebuilt-v3.3/noarch/include/inc/drmcrt.h     |  189 +
- .../noarch/include/inc/drmdatastore.h         |  206 +
- .../noarch/include/inc/drmdatastorecommon.h   |   65 +
- .../noarch/include/inc/drmdatastoretypes.h    |  285 +
- prebuilt-v3.3/noarch/include/inc/drmdebug.h   |  109 +
- prebuilt-v3.3/noarch/include/inc/drmdebug.inc |   52 +
- .../noarch/include/inc/drmderivedkey.h        |  126 +
- .../noarch/include/inc/drmdomainconstants.h   |  142 +
- .../noarch/include/inc/drmdomainimp.h         |  170 +
- .../include/inc/drmdomainkeyxmrparser.h       |   43 +
- .../include/inc/drmdomainkeyxmrparsertypes.h  |   86 +
- .../noarch/include/inc/drmdomainstore.h       |  108 +
- .../noarch/include/inc/drmdomainstoretypes.h  |   70 +
- .../include/inc/drmembeddedstore_impl.h       |   94 +
- .../noarch/include/inc/drmembedding.h         |   34 +
- .../noarch/include/inc/drmenvelope.h          |   54 +
- prebuilt-v3.3/noarch/include/inc/drmerr.h     |  233 +
- prebuilt-v3.3/noarch/include/inc/drmest.h     |  193 +
- .../noarch/include/inc/drmfeatures.h          |  330 +
- prebuilt-v3.3/noarch/include/inc/drmh264.h    |  105 +
- .../noarch/include/inc/drmhashcache.h         |   60 +
- .../include/inc/drmhdrbuilderconstants.h      |   22 +
- prebuilt-v3.3/noarch/include/inc/drmhds.h     |  327 +
- .../noarch/include/inc/drmhds_impl.h          |  430 ++
- .../include/inc/drmhdsblockheadercache.h      |   37 +
- .../noarch/include/inc/drmheaderparser.h      |   74 +
- .../include/inc/drmheaderparserconstants.h    |   21 +
- prebuilt-v3.3/noarch/include/inc/drmint64.h   |  241 +
- .../noarch/include/inc/drmkeyfilecerttypes.h  |   27 +
- .../noarch/include/inc/drmkeygenerator.h      |   69 +
- .../noarch/include/inc/drmlastinclude.h       |   19 +
- .../noarch/include/inc/drmlicacqv3.h          |  347 +
- .../noarch/include/inc/drmlicacqv3constants.h |  206 +
- prebuilt-v3.3/noarch/include/inc/drmlicense.h |   41 +
- prebuilt-v3.3/noarch/include/inc/drmliceval.h |   62 +
- .../noarch/include/inc/drmlicevaltypes.h      |  151 +
- prebuilt-v3.3/noarch/include/inc/drmlicgen.h  |   45 +
- .../noarch/include/inc/drmlicgentypes.h       |  121 +
- .../noarch/include/inc/drmlicreason.h         |   45 +
- .../noarch/include/inc/drmlicstore.h          |  290 +
- .../noarch/include/inc/drmm2tsbitstream.h     |   88 +
- .../noarch/include/inc/drmm2tsbuffermgr.h     |  101 +
- .../noarch/include/inc/drmm2tsbuilders.h      |   61 +
- .../noarch/include/inc/drmm2tslogs.h          |   62 +
- .../noarch/include/inc/drmm2tsparsers.h       |  119 +
- .../noarch/include/inc/drmm2tstypes.h         |  542 ++
- prebuilt-v3.3/noarch/include/inc/drmmanager.h |  659 ++
- .../noarch/include/inc/drmmanagerimpl.h       |   32 +
- .../noarch/include/inc/drmmanagertypes.h      |  129 +
- .../noarch/include/inc/drmmathsafe.h          |  462 ++
- .../noarch/include/inc/drmmathsafe_impl.h     | 1022 +++
- .../noarch/include/inc/drmmeterapi.h          |   23 +
- .../noarch/include/inc/drmmetercertstore.h    |  228 +
- .../noarch/include/inc/drmmeterconstants.h    |  144 +
- .../noarch/include/inc/drmmeterimp.h          |  224 +
- .../noarch/include/inc/drmmodelrevocation.h   |   25 +
- .../noarch/include/inc/drmmodulesupport.h     |   94 +
- .../noarch/include/inc/drmnamespace.h         |   73 +
- .../noarch/include/inc/drmndcertbuilder.h     |  103 +
- .../noarch/include/inc/drmndcertconstants.h   |   31 +
- .../noarch/include/inc/drmnoncestore.h        |  115 +
- .../noarch/include/inc/drmnonceverify.h       |   23 +
- .../noarch/include/inc/drmoutputleveltypes.h  |  124 +
- .../noarch/include/inc/drmperformance.h       |   59 +
- .../noarch/include/inc/drmplayreadyobj.h      |  156 +
- .../include/inc/drmplayreadyobjconstants.h    |   29 +
- prebuilt-v3.3/noarch/include/inc/drmpragmas.h |  117 +
- prebuilt-v3.3/noarch/include/inc/drmprofile.h |  218 +
- .../noarch/include/inc/drmprofileconstants.h  |  622 ++
- .../noarch/include/inc/drmprofiletypes.h      |  202 +
- .../inc/drmprovisioningformat_generated.h     |  135 +
- .../noarch/include/inc/drmremovaldatestore.h  |   73 +
- .../include/inc/drmremovaldatestorecontext.h  |   56 +
- .../noarch/include/inc/drmrevocation.h        |  110 +
- .../include/inc/drmrevocationconstants.h      |   26 +
- .../noarch/include/inc/drmrevocationenum.h    |   27 +
- .../noarch/include/inc/drmrevocationstore.h   |  114 +
- .../noarch/include/inc/drmrevocationtypes.h   |  106 +
- .../noarch/include/inc/drmrivcrlparser.h      |  102 +
- prebuilt-v3.3/noarch/include/inc/drmsal.h     |  562 ++
- .../noarch/include/inc/drmsecurecore.h        |   98 +
- .../noarch/include/inc/drmsecurecore_int.h    |   59 +
- .../noarch/include/inc/drmsecurecore_notee.h  |   58 +
- .../noarch/include/inc/drmsecurecore_tee.h    |   94 +
- .../include/inc/drmsecurecore_template.h      |  483 ++
- .../include/inc/drmsecurecoreconstants.h      |   24 +
- .../include/inc/drmsecurecorefuncptrdefs.h    |  145 +
- .../noarch/include/inc/drmsecurecoretypes.h   |   97 +
- .../noarch/include/inc/drmsecurestop.h        |  271 +
- .../include/inc/drmsecurestopconstants.h      |   67 +
- .../include/inc/drmsecurestopinternal.h       |   69 +
- .../noarch/include/inc/drmsecurestoptypes.h   |   68 +
- .../noarch/include/inc/drmsecurestore.h       |  177 +
- .../noarch/include/inc/drmsecurestoretypes.h  |  139 +
- .../noarch/include/inc/drmsecuretime.h        |   42 +
- .../include/inc/drmsecuretimeconstants.h      |   30 +
- .../noarch/include/inc/drmsecuretimetypes.h   |   23 +
- .../noarch/include/inc/drmsoapxmlconstants.h  |   71 +
- .../noarch/include/inc/drmsoapxmlutility.h    |  159 +
- .../noarch/include/inc/drmsstconstants.h      |   23 +
- .../noarch/include/inc/drmstkalloc.h          |   93 +
- .../noarch/include/inc/drmstkalloctypes.h     |   35 +
- prebuilt-v3.3/noarch/include/inc/drmstrsafe.h |  117 +
- .../noarch/include/inc/drmteeproxy.h          |  266 +
- .../include/inc/drmteeproxyformat_generated.h |  195 +
- .../include/inc/drmteeproxystructured.h       |   50 +
- .../include/inc/drmteeproxystructuredcommon.h |  182 +
- .../inc/drmteeproxystructureddefines.h        |  138 +
- .../include/inc/drmteeproxystubcommon.h       |  197 +
- prebuilt-v3.3/noarch/include/inc/drmteestub.h |   38 +
- .../noarch/include/inc/drmteetypes.h          |  612 ++
- prebuilt-v3.3/noarch/include/inc/drmtoken.h   |  137 +
- .../noarch/include/inc/drmtoolsconstants.h    |  301 +
- prebuilt-v3.3/noarch/include/inc/drmtrace.h   |  248 +
- prebuilt-v3.3/noarch/include/inc/drmtypes.h   |  531 ++
- prebuilt-v3.3/noarch/include/inc/drmutf.h     |  113 +
- .../noarch/include/inc/drmutftypes.h          |  323 +
- .../inc/drmutilitiesgeneralconstants.h        |   38 +
- .../noarch/include/inc/drmutilitieslite.h     |  247 +
- .../noarch/include/inc/drmversionconstants.h  |   22 +
- .../noarch/include/inc/drmwindowsenv.h        |   58 +
- .../noarch/include/inc/drmwmdrmnet.h          |  112 +
- .../noarch/include/inc/drmwmdrmnetconstants.h |   25 +
- prebuilt-v3.3/noarch/include/inc/drmxb.h      |  397 +
- .../noarch/include/inc/drmxbbuilder.h         |  117 +
- .../noarch/include/inc/drmxbparser.h          |   52 +
- .../noarch/include/inc/drmxmlbuilder.h        |  254 +
- .../noarch/include/inc/drmxmlbuildera.h       |  162 +
- .../include/inc/drmxmlbuilderconstants.h      |   32 +
- prebuilt-v3.3/noarch/include/inc/drmxmlhash.h |   55 +
- .../noarch/include/inc/drmxmlparser.h         |  179 +
- .../include/inc/drmxmlparserconstants.h       |   24 +
- .../noarch/include/inc/drmxmlrsakeys.h        |   56 +
- prebuilt-v3.3/noarch/include/inc/drmxmlsig.h  |  224 +
- .../noarch/include/inc/drmxmlsigconstants.h   |  167 +
- .../noarch/include/inc/drmxmrconstants.h      |  259 +
- .../include/inc/drmxmrformat_generated.h      |  379 +
- .../noarch/include/inc/drmxmrformatbuilder.h  |  255 +
- .../noarch/include/inc/drmxmrformatparser.h   |   32 +
- .../noarch/include/inc/drmxmrformattypes.h    |  255 +
- .../noarch/include/oem/ansi/inc/oem.h         |   16 +
- .../noarch/include/oem/ansi/inc/oemplatform.h |   71 +
- .../noarch/include/oem/common/inc/bigdecls.h  |   51 +
- .../noarch/include/oem/common/inc/bigdefs.h   |  332 +
- .../noarch/include/oem/common/inc/bignum.h    |  572 ++
- .../noarch/include/oem/common/inc/bigpriv.h   |   70 +
- .../noarch/include/oem/common/inc/dblint.h    |  191 +
- .../noarch/include/oem/common/inc/ecurve.h    |  135 +
- .../noarch/include/oem/common/inc/field.h     |  263 +
- .../noarch/include/oem/common/inc/fieldpriv.h |   26 +
- .../noarch/include/oem/common/inc/mprand.h    |   54 +
- .../noarch/include/oem/common/inc/oemaes.h    |   43 +
- .../include/oem/common/inc/oemaescommon.h     |   67 +
- .../include/oem/common/inc/oemaesimpl.h       |   51 +
- .../noarch/include/oem/common/inc/oemaeskey.h |   39 +
- .../include/oem/common/inc/oemaeskeywrap.h    |   54 +
- .../oem/common/inc/oemaeskeywraptypes.h       |   75 +
- .../include/oem/common/inc/oemaesmulti.h      |   70 +
- .../noarch/include/oem/common/inc/oembroker.h |   88 +
- .../include/oem/common/inc/oembyteorder.h     |  374 +
- .../include/oem/common/inc/oemcbctypes.h      |   31 +
- .../include/oem/common/inc/oemciphertypes.h   |   82 +
- .../include/oem/common/inc/oemcocktail.h      |   52 +
- .../include/oem/common/inc/oemcocktailtypes.h |   60 +
- .../noarch/include/oem/common/inc/oemcommon.h |  683 ++
- .../include/oem/common/inc/oemcommonmem.h     |  249 +
- .../include/oem/common/inc/oemcryptoctx.h     |   62 +
- .../noarch/include/oem/common/inc/oemdebug.h  |   58 +
- .../noarch/include/oem/common/inc/oemdes.h    |   87 +
- .../include/oem/common/inc/oemeccp256.h       |  243 +
- .../include/oem/common/inc/oemeccp256impl.h   |  145 +
- .../noarch/include/oem/common/inc/oemmd5.h    |   31 +
- .../include/oem/common/inc/oemmd5types.h      |   35 +
- .../include/oem/common/inc/oemprofile.h       |   24 +
- .../noarch/include/oem/common/inc/oemrc4.h    |   98 +
- .../include/oem/common/inc/oemrc4types.h      |   28 +
- .../noarch/include/oem/common/inc/oemrsa.h    |  247 +
- .../include/oem/common/inc/oemrsacommon.h     |   95 +
- .../include/oem/common/inc/oemrsaimpl.h       |  101 +
- .../include/oem/common/inc/oemrsaoaeppss.h    |  167 +
- .../oem/common/inc/oemrsaoaeppssimpl.h        |   99 +
- .../noarch/include/oem/common/inc/oemsha1.h   |  159 +
- .../noarch/include/oem/common/inc/oemsha256.h |   84 +
- .../include/oem/common/inc/oemsha256types.h   |   67 +
- .../noarch/include/oem/common/inc/oemtee.h    |  677 ++
- .../include/oem/common/inc/oemteeproxy.h      |   75 +
- .../include/oem/common/inc/oemteetypes.h      |  212 +
- .../include/oem/common/inc/oemxmlhash.h       |  145 +
- .../noarch/include/playready_secure_api.h     |   39 +
- .../noarch/include/results/drmerror.h         |   44 +
- .../noarch/include/results/drmresults.h       | 6712 +++++++++++++++++
- prebuilt-v3.3/noarch/pkgconfig/playready.pc   |   10 +
- 232 files changed, 40053 insertions(+)
+ prebuilt-v3.3/noarch/include/drmbuild_linux.h      |   35 +
+ prebuilt-v3.3/noarch/include/inc/byteorder.h       |   39 +
+ prebuilt-v3.3/noarch/include/inc/drmactivation.h   |   22 +
+ .../noarch/include/inc/drmactivationconstants.h    |   44 +
+ .../noarch/include/inc/drmactivationimp.h          |  240 +
+ prebuilt-v3.3/noarch/include/inc/drmallstrings.h   |   39 +
+ .../noarch/include/inc/drmantirollbackclock.h      |   73 +
+ .../include/inc/drmantirollbackclockconstants.h    |   21 +
+ prebuilt-v3.3/noarch/include/inc/drmbase64.h       |   67 +
+ .../noarch/include/inc/drmbcertcachetypes.h        |   51 +
+ .../noarch/include/inc/drmbcertconstants.h         |  316 +
+ .../noarch/include/inc/drmbcertformat_generated.h  |  314 +
+ .../noarch/include/inc/drmbcertformatbuilder.h     |  269 +
+ .../noarch/include/inc/drmbcertformatparser.h      |  254 +
+ .../noarch/include/inc/drmbcertformatparsercache.h |   33 +
+ prebuilt-v3.3/noarch/include/inc/drmbcrl.h         |   69 +
+ prebuilt-v3.3/noarch/include/inc/drmbcrltypes.h    |   53 +
+ .../noarch/include/inc/drmblackboxtypes.h          |   84 +
+ prebuilt-v3.3/noarch/include/inc/drmblobcache.h    |   40 +
+ prebuilt-v3.3/noarch/include/inc/drmbuild_oem.h    |  126 +
+ .../noarch/include/inc/drmbuild_oemplayonly.h      |  153 +
+ prebuilt-v3.3/noarch/include/inc/drmbuild_oemtee.h |  126 +
+ .../noarch/include/inc/drmbuild_oemteeplayonly.h   |  126 +
+ prebuilt-v3.3/noarch/include/inc/drmbytemanip.h    |   37 +
+ prebuilt-v3.3/noarch/include/inc/drmcallbacks.h    |   57 +
+ .../noarch/include/inc/drmcallbacktypes.h          |   59 +
+ prebuilt-v3.3/noarch/include/inc/drmcdmi.h         |  155 +
+ prebuilt-v3.3/noarch/include/inc/drmcdmiimpl.h     |   29 +
+ prebuilt-v3.3/noarch/include/inc/drmcdmishared.h   |   61 +
+ prebuilt-v3.3/noarch/include/inc/drmcdmitypes.h    |  181 +
+ prebuilt-v3.3/noarch/include/inc/drmcert.h         |   52 +
+ prebuilt-v3.3/noarch/include/inc/drmcertparser.h   |  128 +
+ .../noarch/include/inc/drmcertparserconstants.h    |   23 +
+ prebuilt-v3.3/noarch/include/inc/drmchain.h        |   65 +
+ prebuilt-v3.3/noarch/include/inc/drmchaintypes.h   |   89 +
+ prebuilt-v3.3/noarch/include/inc/drmcleanstore.h   |   33 +
+ prebuilt-v3.3/noarch/include/inc/drmcmdlnpars.h    |   51 +
+ prebuilt-v3.3/noarch/include/inc/drmcompiler.h     |  675 ++
+ prebuilt-v3.3/noarch/include/inc/drmconstants.h    |  273 +
+ prebuilt-v3.3/noarch/include/inc/drmcontextsizes.h |  169 +
+ prebuilt-v3.3/noarch/include/inc/drmcontract.h     |  113 +
+ prebuilt-v3.3/noarch/include/inc/drmcrt.h          |  189 +
+ prebuilt-v3.3/noarch/include/inc/drmdatastore.h    |  206 +
+ .../noarch/include/inc/drmdatastorecommon.h        |   65 +
+ .../noarch/include/inc/drmdatastoretypes.h         |  285 +
+ prebuilt-v3.3/noarch/include/inc/drmdebug.h        |  109 +
+ prebuilt-v3.3/noarch/include/inc/drmdebug.inc      |   52 +
+ prebuilt-v3.3/noarch/include/inc/drmderivedkey.h   |  126 +
+ .../noarch/include/inc/drmdomainconstants.h        |  142 +
+ prebuilt-v3.3/noarch/include/inc/drmdomainimp.h    |  170 +
+ .../noarch/include/inc/drmdomainkeyxmrparser.h     |   43 +
+ .../include/inc/drmdomainkeyxmrparsertypes.h       |   86 +
+ prebuilt-v3.3/noarch/include/inc/drmdomainstore.h  |  108 +
+ .../noarch/include/inc/drmdomainstoretypes.h       |   70 +
+ .../noarch/include/inc/drmembeddedstore_impl.h     |   94 +
+ prebuilt-v3.3/noarch/include/inc/drmembedding.h    |   34 +
+ prebuilt-v3.3/noarch/include/inc/drmenvelope.h     |   54 +
+ prebuilt-v3.3/noarch/include/inc/drmerr.h          |  233 +
+ prebuilt-v3.3/noarch/include/inc/drmest.h          |  193 +
+ prebuilt-v3.3/noarch/include/inc/drmfeatures.h     |  330 +
+ prebuilt-v3.3/noarch/include/inc/drmh264.h         |  105 +
+ prebuilt-v3.3/noarch/include/inc/drmhashcache.h    |   60 +
+ .../noarch/include/inc/drmhdrbuilderconstants.h    |   22 +
+ prebuilt-v3.3/noarch/include/inc/drmhds.h          |  327 +
+ prebuilt-v3.3/noarch/include/inc/drmhds_impl.h     |  430 ++
+ .../noarch/include/inc/drmhdsblockheadercache.h    |   37 +
+ prebuilt-v3.3/noarch/include/inc/drmheaderparser.h |   74 +
+ .../noarch/include/inc/drmheaderparserconstants.h  |   21 +
+ prebuilt-v3.3/noarch/include/inc/drmint64.h        |  241 +
+ .../noarch/include/inc/drmkeyfilecerttypes.h       |   27 +
+ prebuilt-v3.3/noarch/include/inc/drmkeygenerator.h |   69 +
+ prebuilt-v3.3/noarch/include/inc/drmlastinclude.h  |   19 +
+ prebuilt-v3.3/noarch/include/inc/drmlicacqv3.h     |  347 +
+ .../noarch/include/inc/drmlicacqv3constants.h      |  206 +
+ prebuilt-v3.3/noarch/include/inc/drmlicense.h      |   41 +
+ prebuilt-v3.3/noarch/include/inc/drmliceval.h      |   62 +
+ prebuilt-v3.3/noarch/include/inc/drmlicevaltypes.h |  151 +
+ prebuilt-v3.3/noarch/include/inc/drmlicgen.h       |   45 +
+ prebuilt-v3.3/noarch/include/inc/drmlicgentypes.h  |  121 +
+ prebuilt-v3.3/noarch/include/inc/drmlicreason.h    |   45 +
+ prebuilt-v3.3/noarch/include/inc/drmlicstore.h     |  290 +
+ .../noarch/include/inc/drmm2tsbitstream.h          |   88 +
+ .../noarch/include/inc/drmm2tsbuffermgr.h          |  101 +
+ prebuilt-v3.3/noarch/include/inc/drmm2tsbuilders.h |   61 +
+ prebuilt-v3.3/noarch/include/inc/drmm2tslogs.h     |   62 +
+ prebuilt-v3.3/noarch/include/inc/drmm2tsparsers.h  |  119 +
+ prebuilt-v3.3/noarch/include/inc/drmm2tstypes.h    |  542 ++
+ prebuilt-v3.3/noarch/include/inc/drmmanager.h      |  659 ++
+ prebuilt-v3.3/noarch/include/inc/drmmanagerimpl.h  |   32 +
+ prebuilt-v3.3/noarch/include/inc/drmmanagertypes.h |  129 +
+ prebuilt-v3.3/noarch/include/inc/drmmathsafe.h     |  462 ++
+ .../noarch/include/inc/drmmathsafe_impl.h          | 1022 +++
+ prebuilt-v3.3/noarch/include/inc/drmmeterapi.h     |   23 +
+ .../noarch/include/inc/drmmetercertstore.h         |  228 +
+ .../noarch/include/inc/drmmeterconstants.h         |  144 +
+ prebuilt-v3.3/noarch/include/inc/drmmeterimp.h     |  224 +
+ .../noarch/include/inc/drmmodelrevocation.h        |   25 +
+ .../noarch/include/inc/drmmodulesupport.h          |   94 +
+ prebuilt-v3.3/noarch/include/inc/drmnamespace.h    |   73 +
+ .../noarch/include/inc/drmndcertbuilder.h          |  103 +
+ .../noarch/include/inc/drmndcertconstants.h        |   31 +
+ prebuilt-v3.3/noarch/include/inc/drmnoncestore.h   |  115 +
+ prebuilt-v3.3/noarch/include/inc/drmnonceverify.h  |   23 +
+ .../noarch/include/inc/drmoutputleveltypes.h       |  124 +
+ prebuilt-v3.3/noarch/include/inc/drmperformance.h  |   59 +
+ prebuilt-v3.3/noarch/include/inc/drmplayreadyobj.h |  156 +
+ .../noarch/include/inc/drmplayreadyobjconstants.h  |   29 +
+ prebuilt-v3.3/noarch/include/inc/drmpragmas.h      |  117 +
+ prebuilt-v3.3/noarch/include/inc/drmprofile.h      |  218 +
+ .../noarch/include/inc/drmprofileconstants.h       |  622 ++
+ prebuilt-v3.3/noarch/include/inc/drmprofiletypes.h |  202 +
+ .../include/inc/drmprovisioningformat_generated.h  |  135 +
+ .../noarch/include/inc/drmremovaldatestore.h       |   73 +
+ .../include/inc/drmremovaldatestorecontext.h       |   56 +
+ prebuilt-v3.3/noarch/include/inc/drmrevocation.h   |  110 +
+ .../noarch/include/inc/drmrevocationconstants.h    |   26 +
+ .../noarch/include/inc/drmrevocationenum.h         |   27 +
+ .../noarch/include/inc/drmrevocationstore.h        |  114 +
+ .../noarch/include/inc/drmrevocationtypes.h        |  106 +
+ prebuilt-v3.3/noarch/include/inc/drmrivcrlparser.h |  102 +
+ prebuilt-v3.3/noarch/include/inc/drmsal.h          |  562 ++
+ prebuilt-v3.3/noarch/include/inc/drmsecurecore.h   |   98 +
+ .../noarch/include/inc/drmsecurecore_int.h         |   59 +
+ .../noarch/include/inc/drmsecurecore_notee.h       |   58 +
+ .../noarch/include/inc/drmsecurecore_tee.h         |   94 +
+ .../noarch/include/inc/drmsecurecore_template.h    |  483 ++
+ .../noarch/include/inc/drmsecurecoreconstants.h    |   24 +
+ .../noarch/include/inc/drmsecurecorefuncptrdefs.h  |  145 +
+ .../noarch/include/inc/drmsecurecoretypes.h        |   97 +
+ prebuilt-v3.3/noarch/include/inc/drmsecurestop.h   |  271 +
+ .../noarch/include/inc/drmsecurestopconstants.h    |   67 +
+ .../noarch/include/inc/drmsecurestopinternal.h     |   69 +
+ .../noarch/include/inc/drmsecurestoptypes.h        |   68 +
+ prebuilt-v3.3/noarch/include/inc/drmsecurestore.h  |  177 +
+ .../noarch/include/inc/drmsecurestoretypes.h       |  139 +
+ prebuilt-v3.3/noarch/include/inc/drmsecuretime.h   |   42 +
+ .../noarch/include/inc/drmsecuretimeconstants.h    |   30 +
+ .../noarch/include/inc/drmsecuretimetypes.h        |   23 +
+ .../noarch/include/inc/drmsoapxmlconstants.h       |   71 +
+ .../noarch/include/inc/drmsoapxmlutility.h         |  159 +
+ prebuilt-v3.3/noarch/include/inc/drmsstconstants.h |   23 +
+ prebuilt-v3.3/noarch/include/inc/drmstkalloc.h     |   93 +
+ .../noarch/include/inc/drmstkalloctypes.h          |   35 +
+ prebuilt-v3.3/noarch/include/inc/drmstrsafe.h      |  117 +
+ prebuilt-v3.3/noarch/include/inc/drmteeproxy.h     |  266 +
+ .../include/inc/drmteeproxyformat_generated.h      |  195 +
+ .../noarch/include/inc/drmteeproxystructured.h     |   50 +
+ .../include/inc/drmteeproxystructuredcommon.h      |  182 +
+ .../include/inc/drmteeproxystructureddefines.h     |  138 +
+ .../noarch/include/inc/drmteeproxystubcommon.h     |  197 +
+ prebuilt-v3.3/noarch/include/inc/drmteestub.h      |   38 +
+ prebuilt-v3.3/noarch/include/inc/drmteetypes.h     |  612 ++
+ prebuilt-v3.3/noarch/include/inc/drmtoken.h        |  137 +
+ .../noarch/include/inc/drmtoolsconstants.h         |  301 +
+ prebuilt-v3.3/noarch/include/inc/drmtrace.h        |  248 +
+ prebuilt-v3.3/noarch/include/inc/drmtypes.h        |  531 ++
+ prebuilt-v3.3/noarch/include/inc/drmutf.h          |  113 +
+ prebuilt-v3.3/noarch/include/inc/drmutftypes.h     |  323 +
+ .../include/inc/drmutilitiesgeneralconstants.h     |   38 +
+ .../noarch/include/inc/drmutilitieslite.h          |  247 +
+ .../noarch/include/inc/drmversionconstants.h       |   22 +
+ prebuilt-v3.3/noarch/include/inc/drmwindowsenv.h   |   58 +
+ prebuilt-v3.3/noarch/include/inc/drmwmdrmnet.h     |  112 +
+ .../noarch/include/inc/drmwmdrmnetconstants.h      |   25 +
+ prebuilt-v3.3/noarch/include/inc/drmxb.h           |  397 ++
+ prebuilt-v3.3/noarch/include/inc/drmxbbuilder.h    |  117 +
+ prebuilt-v3.3/noarch/include/inc/drmxbparser.h     |   52 +
+ prebuilt-v3.3/noarch/include/inc/drmxmlbuilder.h   |  254 +
+ prebuilt-v3.3/noarch/include/inc/drmxmlbuildera.h  |  162 +
+ .../noarch/include/inc/drmxmlbuilderconstants.h    |   32 +
+ prebuilt-v3.3/noarch/include/inc/drmxmlhash.h      |   55 +
+ prebuilt-v3.3/noarch/include/inc/drmxmlparser.h    |  179 +
+ .../noarch/include/inc/drmxmlparserconstants.h     |   24 +
+ prebuilt-v3.3/noarch/include/inc/drmxmlrsakeys.h   |   56 +
+ prebuilt-v3.3/noarch/include/inc/drmxmlsig.h       |  224 +
+ .../noarch/include/inc/drmxmlsigconstants.h        |  167 +
+ prebuilt-v3.3/noarch/include/inc/drmxmrconstants.h |  259 +
+ .../noarch/include/inc/drmxmrformat_generated.h    |  379 ++
+ .../noarch/include/inc/drmxmrformatbuilder.h       |  255 +
+ .../noarch/include/inc/drmxmrformatparser.h        |   32 +
+ .../noarch/include/inc/drmxmrformattypes.h         |  255 +
+ prebuilt-v3.3/noarch/include/oem/ansi/inc/oem.h    |   16 +
+ .../noarch/include/oem/ansi/inc/oemplatform.h      |   71 +
+ .../noarch/include/oem/common/inc/bigdecls.h       |   51 +
+ .../noarch/include/oem/common/inc/bigdefs.h        |  332 +
+ .../noarch/include/oem/common/inc/bignum.h         |  572 ++
+ .../noarch/include/oem/common/inc/bigpriv.h        |   70 +
+ .../noarch/include/oem/common/inc/dblint.h         |  191 +
+ .../noarch/include/oem/common/inc/ecurve.h         |  135 +
+ .../noarch/include/oem/common/inc/field.h          |  263 +
+ .../noarch/include/oem/common/inc/fieldpriv.h      |   26 +
+ .../noarch/include/oem/common/inc/mprand.h         |   54 +
+ .../noarch/include/oem/common/inc/oemaes.h         |   43 +
+ .../noarch/include/oem/common/inc/oemaescommon.h   |   67 +
+ .../noarch/include/oem/common/inc/oemaesimpl.h     |   51 +
+ .../noarch/include/oem/common/inc/oemaeskey.h      |   39 +
+ .../noarch/include/oem/common/inc/oemaeskeywrap.h  |   54 +
+ .../include/oem/common/inc/oemaeskeywraptypes.h    |   75 +
+ .../noarch/include/oem/common/inc/oemaesmulti.h    |   70 +
+ .../noarch/include/oem/common/inc/oembroker.h      |   88 +
+ .../noarch/include/oem/common/inc/oembyteorder.h   |  374 ++
+ .../noarch/include/oem/common/inc/oemcbctypes.h    |   31 +
+ .../noarch/include/oem/common/inc/oemciphertypes.h |   82 +
+ .../noarch/include/oem/common/inc/oemcocktail.h    |   52 +
+ .../include/oem/common/inc/oemcocktailtypes.h      |   60 +
+ .../noarch/include/oem/common/inc/oemcommon.h      |  683 ++
+ .../noarch/include/oem/common/inc/oemcommonmem.h   |  249 +
+ .../noarch/include/oem/common/inc/oemcryptoctx.h   |   62 +
+ .../noarch/include/oem/common/inc/oemdebug.h       |   58 +
+ .../noarch/include/oem/common/inc/oemdes.h         |   87 +
+ .../noarch/include/oem/common/inc/oemeccp256.h     |  243 +
+ .../noarch/include/oem/common/inc/oemeccp256impl.h |  145 +
+ .../noarch/include/oem/common/inc/oemmd5.h         |   31 +
+ .../noarch/include/oem/common/inc/oemmd5types.h    |   35 +
+ .../noarch/include/oem/common/inc/oemprofile.h     |   24 +
+ .../noarch/include/oem/common/inc/oemrc4.h         |   98 +
+ .../noarch/include/oem/common/inc/oemrc4types.h    |   28 +
+ .../noarch/include/oem/common/inc/oemrsa.h         |  247 +
+ .../noarch/include/oem/common/inc/oemrsacommon.h   |   95 +
+ .../noarch/include/oem/common/inc/oemrsaimpl.h     |  101 +
+ .../noarch/include/oem/common/inc/oemrsaoaeppss.h  |  167 +
+ .../include/oem/common/inc/oemrsaoaeppssimpl.h     |   99 +
+ .../noarch/include/oem/common/inc/oemsha1.h        |  159 +
+ .../noarch/include/oem/common/inc/oemsha256.h      |   84 +
+ .../noarch/include/oem/common/inc/oemsha256types.h |   67 +
+ .../noarch/include/oem/common/inc/oemtee.h         |  677 ++
+ .../noarch/include/oem/common/inc/oemteeproxy.h    |   75 +
+ .../noarch/include/oem/common/inc/oemteetypes.h    |  212 +
+ .../noarch/include/oem/common/inc/oemxmlhash.h     |  145 +
+ .../noarch/include/playready_secure_api.h          |   39 +
+ prebuilt-v3.3/noarch/include/results/drmerror.h    |   44 +
+ prebuilt-v3.3/noarch/include/results/drmresults.h  | 6712 ++++++++++++++++++++
+ prebuilt-v3.3/noarch/pkgconfig/playready.pc        |   10 +
+ 233 files changed, 40088 insertions(+)
+ create mode 100644 prebuilt-v3.3/noarch/include/drmbuild_linux.h
  create mode 100755 prebuilt-v3.3/noarch/include/inc/byteorder.h
  create mode 100755 prebuilt-v3.3/noarch/include/inc/drmactivation.h
  create mode 100755 prebuilt-v3.3/noarch/include/inc/drmactivationconstants.h
@@ -483,6 +485,47 @@ Change-Id: I83973f2482017924df216380b4b5101981335038
  create mode 100755 prebuilt-v3.3/noarch/include/results/drmresults.h
  create mode 100644 prebuilt-v3.3/noarch/pkgconfig/playready.pc
 
+diff --git a/prebuilt-v3.3/noarch/include/drmbuild_linux.h b/prebuilt-v3.3/noarch/include/drmbuild_linux.h
+new file mode 100644
+index 0000000..bb72f20
+--- /dev/null
++++ b/prebuilt-v3.3/noarch/include/drmbuild_linux.h
+@@ -0,0 +1,35 @@
++/* autogenerated by Netflix CMakefile */
++#define DRM_ACTIVATION_PLATFORM                    (0)
++#define DRM_SUPPORT_FILE_LOCKING                   (1)
++#define DRM_SUPPORT_MULTI_THREADING                (1)
++#define DRM_SUPPORT_ECCPROFILING                   (1)
++#define DRM_SUPPORT_INLINEDWORDCPY                 (1)
++#define DRM_SUPPORT_DATASTORE_PREALLOC             (1)
++#define DRM_SUPPORT_REACTIVATION                   (0)
++#define DRM_SUPPORT_NATIVE_64BIT_TYPES             (1)
++#define DRM_SUPPORT_FORCE_ALIGN                    (1)
++#define DRM_SUPPORT_ASSEMBLY                       (0)
++#define DRM_SUPPORT_PRECOMPUTE_GTABLE              (1)
++#define DRM_SUPPORT_SECUREOEMHAL                   (0)
++#define DRM_SUPPORT_SECUREOEMHAL_PLAY_ONLY         (0)
++#define DRM_SUPPORT_TEE                            (1)
++#define DRM_SUPPORT_TRACING                        (1)
++#define _DATASTORE_WRITE_THRU                      (0)
++#define _ADDLICENSE_WRITE_THRU                     (0)
++#define DRM_HDS_COPY_BUFFER_SIZE                   (32768)
++#define DRM_SUPPORT_TOOLS_NET_IO                   (0)
++#define DRM_TEST_SUPPORT_ACTIVATION                (0)
++#define USE_PK_NAMESPACES                          (0)
++#define DRM_INCLUDE_PK_NAMESPACE_USING_STATEMENT   (1)
++//#define DRM_KEYFILE_VERSION                        (3)
++#define DRM_NO_OPT                                 (0)
++#define DRM_COMPILE_FOR_NORMAL_WORLD               (1)
++#define DRM_COMPILE_FOR_SECURE_WORLD               (0)
++
++#define DRM_64BIT_TARGET                           (0)
++#define DRM_DBG                                    (1)
++
++/* also force some internal settings */
++#define TARGET_LITTLE_ENDIAN                       (1)
++#define TARGET_SUPPORTS_UNALIGNED_DWORD_POINTERS   (0)
++
 diff --git a/prebuilt-v3.3/noarch/include/inc/byteorder.h b/prebuilt-v3.3/noarch/include/inc/byteorder.h
 new file mode 100755
 index 0000000..ea41eba
@@ -41935,5 +41978,5 @@ index 0000000..8f8f632
 +Libs: -L${libdir} -lplayready -lteec
 +Cflags: -I${includedir} -I${includedir}/inc -I${includedir}/results -I${includedir}/oem/common/inc -I${includedir}/oem/ansi/inc
 -- 
-2.17.1
+2.7.4
 

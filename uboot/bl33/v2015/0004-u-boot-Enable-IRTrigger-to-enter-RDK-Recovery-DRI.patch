@@ -1,4 +1,4 @@
-From 004727240e57f1137ae7facf34facfd7481eb020 Mon Sep 17 00:00:00 2001
+From 3eeaadbf7b0769aaafa9c3d99779e435e2138467 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:06:45 -0700
 Subject: [PATCH 04/10] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
@@ -17,12 +17,12 @@ u212/HP40A
 Change-Id: I600e23aec5a9b602cd5c98c378be70b21bd5a29d
 Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
 ---
- board/amlogic/configs/g12a_u212_v1.h | 40 +++++++++-------------------
- common/cmd_irkey.c                   | 14 +++-------
+ board/amlogic/configs/g12a_u212_v1.h | 40 +++++++++++-------------------------
+ common/cmd_irkey.c                   | 14 +++----------
  2 files changed, 15 insertions(+), 39 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index ec74c0d414..512bb0eb36 100644
+index aae641a..1d128da 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -94,6 +94,8 @@
@@ -95,7 +95,7 @@ index ec74c0d414..512bb0eb36 100644
              "run switch_bootmode;"
  
 diff --git a/common/cmd_irkey.c b/common/cmd_irkey.c
-index 654019948c..5616b29fc5 100644
+index 6540199..5616b29 100644
 --- a/common/cmd_irkey.c
 +++ b/common/cmd_irkey.c
 @@ -31,22 +31,14 @@ extern uint32_t get_time(void);
@@ -125,5 +125,5 @@ index 654019948c..5616b29fc5 100644
  
  uint32_t read_key(void)
 -- 
-2.17.1
+2.7.4
 
