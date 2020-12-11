@@ -1,4 +1,4 @@
-From 6221f65601842917b3b960d50e32c07fdb4df049 Mon Sep 17 00:00:00 2001
+From bc00d5b191fa3b4053d17590e30cd3789839bf4a Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Mon, 9 Nov 2020 17:57:51 -0800
 Subject: [PATCH] RDK: fix platco issues
@@ -40,5 +40,5 @@ index 612d6cb..86e52a0 100644
  	-L$(LOCAL_PATH) -ltv -laudio_client -o $@ $^ $(LDLIBS)
  
 -- 
-2.7.4
+2.29.0
 

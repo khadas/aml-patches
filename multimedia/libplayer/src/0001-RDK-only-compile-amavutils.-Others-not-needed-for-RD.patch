@@ -1,4 +1,4 @@
-From 1077e01ef98ae0bccc213dbf8d1f32d0b64c0385 Mon Sep 17 00:00:00 2001
+From 87f0ed4d0cb26cbc49f3632c1f06651a5a030cf1 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Thu, 4 Jun 2020 17:00:24 -0700
 Subject: [PATCH] RDK: only compile amavutils. Others not needed for RDK
@@ -16,12 +16,12 @@ Verify:
 
 Change-Id: If7987b94de1bc3a780007a62886038947fa91770
 ---
- Makefile           | 88 +++++++++++++++++++++++++++---------------------------
+ Makefile           | 88 +++++++++++++++++++++++-----------------------
  amavutils/Makefile |  2 +-
  2 files changed, 45 insertions(+), 45 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 5e9b102..debb2ad 100755
+index 5e9b10281da..debb2ad6008 100755
 --- a/Makefile
 +++ b/Makefile
 @@ -1,53 +1,53 @@
@@ -123,7 +123,7 @@ index 5e9b102..debb2ad 100755
  export CC BUILD_DIR STAGING_DIR TARGET_DIR BR2_PACKAGE_LIBPLAYER_BASE_LIBS
  
 diff --git a/amavutils/Makefile b/amavutils/Makefile
-index 5254dcf..e1451a2 100755
+index 5254dcfe114..e1451a28bc0 100755
 --- a/amavutils/Makefile
 +++ b/amavutils/Makefile
 @@ -8,7 +8,7 @@ TARGET=libamavutils.so
@@ -136,5 +136,5 @@ index 5254dcf..e1451a2 100755
  TOPDIR=$(shell pwd)
  SRC?=$(TOPDIR)
 -- 
-2.7.4
+2.29.0
 

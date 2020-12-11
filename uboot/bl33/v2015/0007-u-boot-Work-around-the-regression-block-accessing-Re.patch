@@ -1,4 +1,4 @@
-From ed7aaf19a22c1590a2cb2fe4bc9aef9b429cffd2 Mon Sep 17 00:00:00 2001
+From f9f3b997cdd50cb806badc7bb50b130d9269222b Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 8 Jun 2020 12:13:38 -0700
 Subject: [PATCH 07/10] u-boot: Work around the regression block accessing
@@ -24,7 +24,7 @@ Change-Id: I63ad409283fec8a18f5b02d950bc2808d9e73bcb
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 8f378bf..d4a9839 100644
+index 8f378bffb3..d4a9839a23 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -560,7 +560,7 @@ ifdef BUILD_TAG
@@ -37,5 +37,5 @@ index 8f378bf..d4a9839 100644
  
  KBUILD_CFLAGS	+= -g
 -- 
-2.7.4
+2.29.0
 

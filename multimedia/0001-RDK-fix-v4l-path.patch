@@ -1,4 +1,4 @@
-From 10207221b889edc39bbc24f15a1f36a76afd09fb Mon Sep 17 00:00:00 2001
+From 49673322cffdb717464ae559c7b47b4397ed3a3c Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Tue, 1 Dec 2020 15:52:46 -0800
 Subject: [PATCH] RDK: fix v4l path
@@ -47,5 +47,5 @@ index d834439..6730077 100644
  #include <sys/mman.h>
  #include <sys/types.h>
 -- 
-2.7.4
+2.29.0
 

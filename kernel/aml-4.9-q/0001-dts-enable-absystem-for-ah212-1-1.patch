@@ -1,4 +1,4 @@
-From 2f68ea9b32f0077372a6273337f102d0e4eefe93 Mon Sep 17 00:00:00 2001
+From 24082e7e3bf5be1d3555970de2975706905382e4 Mon Sep 17 00:00:00 2001
 From: Bing Jiang <bing.jiang@amlogic.com>
 Date: Sat, 31 Oct 2020 13:05:48 +0800
 Subject: [PATCH] dts: enable absystem for ah212 [1/1]
@@ -17,14 +17,14 @@ Verify:
 Change-Id: Ie8173ee7fba57ba959ba35d30ec01809f35b4762
 Signed-off-by: Bing Jiang <bing.jiang@amlogic.com>
 ---
- .../dts/amlogic/partition_mbox_normal_P_rdk.dtsi   | 122 +++++++++++++++++++++
- .../dts/amlogic/sc2_s905x4_ah212_drm_buildroot.dts |  93 +---------------
+ .../amlogic/partition_mbox_normal_P_rdk.dtsi  | 122 ++++++++++++++++++
+ .../sc2_s905x4_ah212_drm_buildroot.dts        |  93 +------------
  2 files changed, 124 insertions(+), 91 deletions(-)
  create mode 100644 arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi
 
 diff --git a/arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi b/arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi
 new file mode 100644
-index 00000000..e992689
+index 000000000000..e9926897dcf6
 --- /dev/null
 +++ b/arch/arm/boot/dts/amlogic/partition_mbox_normal_P_rdk.dtsi
 @@ -0,0 +1,122 @@
@@ -151,7 +151,7 @@ index 00000000..e992689
 +			};
 +};/* end of / */
 diff --git a/arch/arm/boot/dts/amlogic/sc2_s905x4_ah212_drm_buildroot.dts b/arch/arm/boot/dts/amlogic/sc2_s905x4_ah212_drm_buildroot.dts
-index 162caa2..51b70af 100644
+index fa96d7f397a9..81cf358cc332 100644
 --- a/arch/arm/boot/dts/amlogic/sc2_s905x4_ah212_drm_buildroot.dts
 +++ b/arch/arm/boot/dts/amlogic/sc2_s905x4_ah212_drm_buildroot.dts
 @@ -19,7 +19,7 @@
@@ -171,8 +171,8 @@ index 162caa2..51b70af 100644
 +			size = <0xC800000>;
  			alignment = <0x400000>;
  			alloc-ranges = <0x30000000 0x50000000>;
- 		};
-@@ -279,95 +279,6 @@
+ 			no-kernel-map;
+@@ -280,95 +280,6 @@
  		status = "okay";
  	};
  
@@ -269,5 +269,5 @@ index 162caa2..51b70af 100644
  		compatible = "amlogic, ppmgr";
  		memory-region = <&ppmgr_reserved>;
 -- 
-2.7.4
+2.29.0
 

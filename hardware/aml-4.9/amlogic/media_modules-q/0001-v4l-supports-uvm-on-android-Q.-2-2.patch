@@ -1,4 +1,4 @@
-From 3195d0ed10be61af63913d4225b68ac69e049212 Mon Sep 17 00:00:00 2001
+From 79ace358a6eb8d048ccd4cab69971a2bc451e85f Mon Sep 17 00:00:00 2001
 From: Nanxin Qin <nanxin.qin@amlogic.com>
 Date: Mon, 12 Oct 2020 21:23:14 +0800
 Subject: [PATCH] v4l: supports uvm on android Q. [2/2]
@@ -17,39 +17,39 @@ AH212
 Change-Id: Ifa127b23e6481b58848d61793c91a9b7ff97813d
 Signed-off-by: Nanxin Qin <nanxin.qin@amlogic.com>
 ---
- drivers/amvdec_ports/aml_vcodec_adapt.c            |   1 +
- drivers/amvdec_ports/aml_vcodec_adapt.h            |   1 -
- drivers/amvdec_ports/aml_vcodec_dec.c              | 905 +++++++++++++++------
- drivers/amvdec_ports/aml_vcodec_dec.h              |  14 +-
- drivers/amvdec_ports/aml_vcodec_dec_drv.c          |  34 +-
- drivers/amvdec_ports/aml_vcodec_drv.h              | 251 +++---
- drivers/amvdec_ports/aml_vcodec_util.c             |  66 --
- drivers/amvdec_ports/aml_vcodec_util.h             |   8 +-
- drivers/amvdec_ports/aml_vcodec_vfm.c              |  25 +-
- drivers/amvdec_ports/aml_vcodec_vfm.h              |   5 +-
- drivers/amvdec_ports/aml_vcodec_vpp.c              | 509 ++++++++++++
- drivers/amvdec_ports/aml_vcodec_vpp.h              | 103 +++
- drivers/amvdec_ports/decoder/aml_hevc_parser.h     |   1 -
- drivers/amvdec_ports/decoder/aml_mpeg12_parser.h   |   1 -
- drivers/amvdec_ports/decoder/vdec_av1_if.c         |  94 ++-
- drivers/amvdec_ports/decoder/vdec_h264_if.c        |  11 +-
- drivers/amvdec_ports/decoder/vdec_hevc_if.c        |  37 +-
- drivers/amvdec_ports/decoder/vdec_mjpeg_if.c       |  14 +-
- drivers/amvdec_ports/decoder/vdec_mpeg12_if.c      |  10 +-
- drivers/amvdec_ports/decoder/vdec_mpeg4_if.c       |   4 +-
- drivers/amvdec_ports/decoder/vdec_vp9_if.c         |  42 +-
- drivers/amvdec_ports/vdec_drv_if.h                 |  16 +-
- drivers/frame_provider/decoder/avs2/vavs2.c        |  32 +-
- drivers/frame_provider/decoder/h264_multi/vmh264.c |  34 +-
- drivers/frame_provider/decoder/h265/vh265.c        | 522 +++++++-----
- .../frame_provider/decoder/mjpeg/vmjpeg_multi.c    |   2 +-
- .../frame_provider/decoder/mpeg12/vmpeg12_multi.c  |  27 +-
- drivers/frame_provider/decoder/utils/vdec.c        |  13 +
- drivers/frame_provider/decoder/utils/vdec.h        |   2 +
- .../decoder/utils/vdec_v4l2_buffer_ops.c           |  36 +-
- .../decoder/utils/vdec_v4l2_buffer_ops.h           |   7 +
- drivers/frame_provider/decoder/vav1/vav1.c         | 329 ++++----
- drivers/frame_provider/decoder/vp9/vvp9.c          | 499 +++++++-----
+ drivers/amvdec_ports/aml_vcodec_adapt.c       |   1 +
+ drivers/amvdec_ports/aml_vcodec_adapt.h       |   1 -
+ drivers/amvdec_ports/aml_vcodec_dec.c         | 905 +++++++++++++-----
+ drivers/amvdec_ports/aml_vcodec_dec.h         |  14 +-
+ drivers/amvdec_ports/aml_vcodec_dec_drv.c     |  34 +-
+ drivers/amvdec_ports/aml_vcodec_drv.h         | 251 +++--
+ drivers/amvdec_ports/aml_vcodec_util.c        |  66 --
+ drivers/amvdec_ports/aml_vcodec_util.h        |   8 +-
+ drivers/amvdec_ports/aml_vcodec_vfm.c         |  25 +-
+ drivers/amvdec_ports/aml_vcodec_vfm.h         |   5 +-
+ drivers/amvdec_ports/aml_vcodec_vpp.c         | 509 ++++++++++
+ drivers/amvdec_ports/aml_vcodec_vpp.h         | 103 ++
+ .../amvdec_ports/decoder/aml_hevc_parser.h    |   1 -
+ .../amvdec_ports/decoder/aml_mpeg12_parser.h  |   1 -
+ drivers/amvdec_ports/decoder/vdec_av1_if.c    |  94 +-
+ drivers/amvdec_ports/decoder/vdec_h264_if.c   |  11 +-
+ drivers/amvdec_ports/decoder/vdec_hevc_if.c   |  37 +-
+ drivers/amvdec_ports/decoder/vdec_mjpeg_if.c  |  14 +-
+ drivers/amvdec_ports/decoder/vdec_mpeg12_if.c |  10 +-
+ drivers/amvdec_ports/decoder/vdec_mpeg4_if.c  |   4 +-
+ drivers/amvdec_ports/decoder/vdec_vp9_if.c    |  42 +-
+ drivers/amvdec_ports/vdec_drv_if.h            |  16 +-
+ drivers/frame_provider/decoder/avs2/vavs2.c   |  32 +-
+ .../decoder/h264_multi/vmh264.c               |  34 +-
+ drivers/frame_provider/decoder/h265/vh265.c   | 522 +++++-----
+ .../decoder/mjpeg/vmjpeg_multi.c              |   2 +-
+ .../decoder/mpeg12/vmpeg12_multi.c            |  27 +-
+ drivers/frame_provider/decoder/utils/vdec.c   |  13 +
+ drivers/frame_provider/decoder/utils/vdec.h   |   2 +
+ .../decoder/utils/vdec_v4l2_buffer_ops.c      |  36 +-
+ .../decoder/utils/vdec_v4l2_buffer_ops.h      |   7 +
+ drivers/frame_provider/decoder/vav1/vav1.c    | 329 ++++---
+ drivers/frame_provider/decoder/vp9/vvp9.c     | 499 ++++++----
  33 files changed, 2532 insertions(+), 1123 deletions(-)
  create mode 100644 drivers/amvdec_ports/aml_vcodec_vpp.c
  create mode 100644 drivers/amvdec_ports/aml_vcodec_vpp.h
@@ -2042,7 +2042,7 @@ index e9195dc..23e1b88 100644
  
  static inline struct aml_vcodec_ctx *fh_to_ctx(struct v4l2_fh *fh)
 diff --git a/drivers/amvdec_ports/aml_vcodec_util.c b/drivers/amvdec_ports/aml_vcodec_util.c
-index 03180ab..54b0d06 100644
+index 509a42a..54b0d06 100644
 --- a/drivers/amvdec_ports/aml_vcodec_util.c
 +++ b/drivers/amvdec_ports/aml_vcodec_util.c
 @@ -22,72 +22,6 @@
@@ -2070,9 +2070,9 @@ index 03180ab..54b0d06 100644
 -	struct aml_vcodec_ctx *ctx = (struct aml_vcodec_ctx *)data;
 -	struct device *dev = &ctx->dev->plat_dev->dev;
 -
--	//mem->vaddr = dma_alloc_coherent(dev, size, &mem->dma_addr, GFP_KERNEL);
--	mem->vaddr = codec_mm_dma_alloc_coherent(dev_name(dev), size,
--			&mem->dma_addr, GFP_KERNEL, 0);
+-	mem->vaddr = dma_alloc_coherent(dev, size, &mem->dma_addr, GFP_KERNEL);
+-	//mem->vaddr = codec_mm_dma_alloc_coherent(dev_name(dev), size,
+-	//		&mem->dma_addr, GFP_KERNEL, 0);
 -	if (!mem->vaddr) {
 -		v4l_dbg(ctx, V4L_DEBUG_CODEC_ERROR,
 -			"%s dma_alloc size=%ld failed!\n", dev_name(dev),
@@ -2866,7 +2866,7 @@ index 8abbc78..1af2919 100644
  #define SEQ_END_CODE            0x000001b7
  #define SEQ_START_CODE          0x000001b3
 diff --git a/drivers/amvdec_ports/decoder/vdec_av1_if.c b/drivers/amvdec_ports/decoder/vdec_av1_if.c
-index 0a79789..d4f4976 100644
+index 2b9b657..0dc1deb 100644
 --- a/drivers/amvdec_ports/decoder/vdec_av1_if.c
 +++ b/drivers/amvdec_ports/decoder/vdec_av1_if.c
 @@ -121,6 +121,7 @@ struct vdec_av1_inst {
@@ -2890,7 +2890,7 @@ index 0a79789..d4f4976 100644
  		pbuf += sprintf(pbuf, "save_buffer_mode:0;");
  		pbuf += sprintf(pbuf, "no_head:0;");
  		pbuf += sprintf(pbuf, "parm_v4l_canvas_mem_mode:%d;",
-@@ -526,7 +525,7 @@ static void vdec_av1_deinit(unsigned long h_vdec)
+@@ -527,7 +526,7 @@ static void vdec_av1_deinit(unsigned long h_vdec)
  
  static int vdec_av1_get_fb(struct vdec_av1_inst *inst, struct vdec_v4l2_buffer **out)
  {
@@ -2899,7 +2899,7 @@ index 0a79789..d4f4976 100644
  }
  
  static void vdec_av1_get_vf(struct vdec_av1_inst *inst, struct vdec_v4l2_buffer **out)
-@@ -1153,6 +1152,12 @@ static int vdec_av1_decode(unsigned long h_vdec,
+@@ -1154,6 +1153,12 @@ static int vdec_av1_decode(unsigned long h_vdec,
  		"parms status: %u\n", parms->parms_status);
   }
  
@@ -2912,7 +2912,7 @@ index 0a79789..d4f4976 100644
  static int vdec_av1_get_param(unsigned long h_vdec,
  			       enum vdec_get_param_type type, void *out)
  {
-@@ -1190,6 +1195,16 @@ static int vdec_av1_get_param(unsigned long h_vdec,
+@@ -1191,6 +1196,16 @@ static int vdec_av1_get_param(unsigned long h_vdec,
  		get_param_config_info(inst, out);
  		break;
  
@@ -2929,7 +2929,7 @@ index 0a79789..d4f4976 100644
  	default:
  		v4l_dbg(inst->ctx, V4L_DEBUG_CODEC_ERROR,
  			"invalid get parameter type=%d\n", type);
-@@ -1204,12 +1219,68 @@ static void set_param_write_sync(struct vdec_av1_inst *inst)
+@@ -1205,12 +1220,68 @@ static void set_param_write_sync(struct vdec_av1_inst *inst)
  	complete(&inst->comp);
  }
  
@@ -2998,7 +2998,7 @@ index 0a79789..d4f4976 100644
  
  	/* fill visible area size that be used for EGL. */
  	pic->visible_width	= ps->visible_width;
-@@ -1225,7 +1296,8 @@ static void set_param_ps_info(struct vdec_av1_inst *inst,
+@@ -1226,7 +1297,8 @@ static void set_param_ps_info(struct vdec_av1_inst *inst,
  	pic->coded_width	= ps->coded_width;
  	pic->coded_height	= ps->coded_height;
  
@@ -3008,7 +3008,7 @@ index 0a79789..d4f4976 100644
  	pic->c_len_sz		= pic->y_len_sz >> 1;
  
  	/* calc DPB size */
-@@ -1245,6 +1317,12 @@ static void set_param_ps_info(struct vdec_av1_inst *inst,
+@@ -1246,6 +1318,12 @@ static void set_param_ps_info(struct vdec_av1_inst *inst,
  		ps->dpb_size);
  }
  
@@ -3021,7 +3021,7 @@ index 0a79789..d4f4976 100644
  static void set_param_hdr_info(struct vdec_av1_inst *inst,
  	struct aml_vdec_hdr_infos *hdr)
  {
-@@ -1288,6 +1366,10 @@ static int vdec_av1_set_param(unsigned long h_vdec,
+@@ -1289,6 +1367,10 @@ static int vdec_av1_set_param(unsigned long h_vdec,
  		set_param_ps_info(inst, in);
  		break;
  
@@ -4544,7 +4544,7 @@ index 5f39717..505c4b9 100644
  		decbuf_v_size	= decbuf_u_size;
  		canvas_width	= ALIGN(hw->frame_width, 64);
 diff --git a/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c b/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c
-index 8359c69..f8c3c07 100644
+index 4ac5801..fe0e8ad 100644
 --- a/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c
 +++ b/drivers/frame_provider/decoder/mpeg12/vmpeg12_multi.c
 @@ -217,6 +217,7 @@ struct pic_info_t {
@@ -6154,5 +6154,5 @@ index 6e2a974..ed9908b 100644
  
  	if (pdata->sys_info) {
 -- 
-2.7.4
+2.29.0
 
