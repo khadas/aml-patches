@@ -1,4 +1,4 @@
-From 95ac47693e98d8293006bef8baf5448f190f1802 Mon Sep 17 00:00:00 2001
+From ed1a88254522a64df11a117ae0b1e6a95f26cdf0 Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Mon, 9 Nov 2020 17:49:52 -0800
 Subject: [PATCH] RDK: fix platco issues

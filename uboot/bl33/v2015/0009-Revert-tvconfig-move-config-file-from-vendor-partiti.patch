@@ -1,4 +1,4 @@
-From 67093caa6945b0ad5382034ca5761793e2217843 Mon Sep 17 00:00:00 2001
+From 98c0926254c51ee259e7e1ad520fce5bfcd0f821 Mon Sep 17 00:00:00 2001
 From: johnny lee <johnny.lee@amlogic.com>
 Date: Tue, 8 Sep 2020 13:15:24 +0800
 Subject: [PATCH 09/10] Revert "tvconfig: move config file from vendor

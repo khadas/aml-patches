@@ -1,4 +1,4 @@
-From bf73451eea1692a34de9ef994a99d257a3ac8cb4 Mon Sep 17 00:00:00 2001
+From 0099568a6951d6e17c98b42376f89c4449f083f3 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:06:45 -0700
 Subject: [PATCH 04/10] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)

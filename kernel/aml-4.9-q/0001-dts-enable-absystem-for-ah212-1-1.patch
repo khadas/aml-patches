@@ -1,4 +1,4 @@
-From 24082e7e3bf5be1d3555970de2975706905382e4 Mon Sep 17 00:00:00 2001
+From dd1d1625b383223e20e0b745fc8dc81701d62736 Mon Sep 17 00:00:00 2001
 From: Bing Jiang <bing.jiang@amlogic.com>
 Date: Sat, 31 Oct 2020 13:05:48 +0800
 Subject: [PATCH] dts: enable absystem for ah212 [1/1]
