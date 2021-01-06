@@ -1,4 +1,4 @@
-From d25653b75b1b543ec7fff7be805fd863fa544562 Mon Sep 17 00:00:00 2001
+From 31a78fc9edf2430cd602b2300392b6d8ced43ed0 Mon Sep 17 00:00:00 2001
 From: rex wang <rex.wang1@amlogic.com>
 Date: Tue, 23 Jun 2020 14:42:57 +0800
 Subject: [PATCH 2/3] rdk: tm2 revb ms12 support [1/]

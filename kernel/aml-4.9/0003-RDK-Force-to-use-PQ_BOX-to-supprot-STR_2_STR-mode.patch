@@ -1,4 +1,4 @@
-From 90342868845fb89cea3d3ff7d98744aac8c58870 Mon Sep 17 00:00:00 2001
+From 18266554050b90c67966f587cac5cc31bdd35e1c Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Mon, 27 Jul 2020 12:22:06 -0700
 Subject: [PATCH 3/3] RDK: Force to use PQ_BOX to supprot STR_2_STR mode
