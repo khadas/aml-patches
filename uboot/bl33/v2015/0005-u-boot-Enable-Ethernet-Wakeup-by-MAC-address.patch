@@ -1,4 +1,4 @@
-From bd7782a6f31ecf9ff2fa886470c1e19d324e8631 Mon Sep 17 00:00:00 2001
+From bf592181c215386644465d47b67d91b33ee68a07 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:24:58 -0700
 Subject: [PATCH 05/10] u-boot: Enable Ethernet Wakeup by MAC address
@@ -21,10 +21,10 @@ Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/board/amlogic/g12a_u212_v1/firmware/scp_task/pwr_ctrl.c b/board/amlogic/g12a_u212_v1/firmware/scp_task/pwr_ctrl.c
-index 9b832adc95..1dd8ea56c9 100644
+index ce060eee2d..dd5bac69fc 100644
 --- a/board/amlogic/g12a_u212_v1/firmware/scp_task/pwr_ctrl.c
 +++ b/board/amlogic/g12a_u212_v1/firmware/scp_task/pwr_ctrl.c
-@@ -110,7 +110,7 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
+@@ -123,7 +123,7 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
  
  	p->status = RESPONSE_OK;
  	val = (POWER_KEY_WAKEUP_SRC | AUTO_WAKEUP_SRC | REMOTE_WAKEUP_SRC |

@@ -1,4 +1,4 @@
-From d2b37dbb35f623b3528029c71f3ab59b3d3373df Mon Sep 17 00:00:00 2001
+From bbcda8a92ac9d692cc864eb99e2d19c23736b300 Mon Sep 17 00:00:00 2001
 From: Bing Jiang <bing.jiang@amlogic.com>
 Date: Mon, 2 Nov 2020 16:02:04 +0800
 Subject: [PATCH] uboot: add set root system [1/1]
@@ -42,7 +42,7 @@ index 3885365363..081a3e45ef 100644
                  "setenv loadaddr ${loadaddr_kernel};"\
                  "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
 diff --git a/board/amlogic/defconfigs/sc2_ah212_defconfig b/board/amlogic/defconfigs/sc2_ah212_defconfig
-index 437eb2c504..fef34abd7e 100644
+index 026f88eb89..39a5570125 100644
 --- a/board/amlogic/defconfigs/sc2_ah212_defconfig
 +++ b/board/amlogic/defconfigs/sc2_ah212_defconfig
 @@ -36,7 +36,7 @@ CONFIG_CMD_SARADC=y

@@ -1,4 +1,4 @@
-From 38d8557a45b87b59050f5c40121e0306068e424d Mon Sep 17 00:00:00 2001
+From e164d3ad21130be4976b16abfebf8545a311ca0d Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Fri, 18 Oct 2019 14:55:57 -0700
 Subject: [PATCH] RDK: update aml-dvb to only compile test apps

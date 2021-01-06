@@ -1,4 +1,4 @@
-From a6566be7ec11c24e1773c1359dc25bca88327493 Mon Sep 17 00:00:00 2001
+From 0099568a6951d6e17c98b42376f89c4449f083f3 Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:06:45 -0700
 Subject: [PATCH 04/10] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
@@ -22,10 +22,10 @@ Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
  2 files changed, 15 insertions(+), 39 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index d4fa42dab4..01c4d8eedf 100644
+index aae641a7f5..1d128da3a8 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
-@@ -81,6 +81,8 @@
+@@ -94,6 +94,8 @@
  #define CONFIG_AML_MESON_SERIAL   1
  #define CONFIG_SERIAL_MULTI		1
  
@@ -34,7 +34,7 @@ index d4fa42dab4..01c4d8eedf 100644
  //Enable ir remote wake up for bl30
  #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL1 0xef10fe01 //amlogic tv ir --- power
  #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL2 0xFFFFFFFF
-@@ -277,29 +279,10 @@
+@@ -290,29 +292,10 @@
                  "bootm ${loadaddr};fi;"\
              "\0"\
          "recovery_from_flash="\
@@ -68,7 +68,7 @@ index d4fa42dab4..01c4d8eedf 100644
              "\0"\
          "init_display="\
              "get_rebootmode;"\
-@@ -359,12 +342,12 @@
+@@ -372,12 +355,12 @@
              "fi;"\
              "\0"\
  	"irremote_update="\
@@ -86,7 +86,7 @@ index d4fa42dab4..01c4d8eedf 100644
  			"fi;fi;" \
  		"fi;\0" \
  
-@@ -376,6 +359,7 @@
+@@ -389,6 +372,7 @@
              "run init_display;"\
              "run storeargs;"\
              "run upgrade_key;" \
@@ -95,10 +95,10 @@ index d4fa42dab4..01c4d8eedf 100644
              "run switch_bootmode;"
  
 diff --git a/common/cmd_irkey.c b/common/cmd_irkey.c
-index ea549d7186..3d256dea96 100644
+index 654019948c..5616b29fc5 100644
 --- a/common/cmd_irkey.c
 +++ b/common/cmd_irkey.c
-@@ -19,22 +19,14 @@ extern uint32_t get_time(void);
+@@ -31,22 +31,14 @@ extern uint32_t get_time(void);
  
  void init_custom_trigger(void)
  {
