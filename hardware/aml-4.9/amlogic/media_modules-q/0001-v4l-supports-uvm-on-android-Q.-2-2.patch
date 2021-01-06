@@ -1,4 +1,4 @@
-From 9b05c0e43fbbd383489d22f786aedd1862b9aa1c Mon Sep 17 00:00:00 2001
+From fd91dabde884a71cf64d733f4624f42e01a72b62 Mon Sep 17 00:00:00 2001
 From: Nanxin Qin <nanxin.qin@amlogic.com>
 Date: Mon, 12 Oct 2020 21:23:14 +0800
 Subject: [PATCH] v4l: supports uvm on android Q. [2/2]
@@ -55,10 +55,10 @@ Signed-off-by: Nanxin Qin <nanxin.qin@amlogic.com>
  create mode 100644 drivers/amvdec_ports/aml_vcodec_vpp.h
 
 diff --git a/drivers/amvdec_ports/aml_vcodec_adapt.c b/drivers/amvdec_ports/aml_vcodec_adapt.c
-index 521526c..43c320d 100644
+index 95ee48a..a4fc80c 100644
 --- a/drivers/amvdec_ports/aml_vcodec_adapt.c
 +++ b/drivers/amvdec_ports/aml_vcodec_adapt.c
-@@ -738,6 +738,7 @@ int aml_codec_reset(struct aml_vdec_adapt *ada_ctx, int *mode)
+@@ -660,6 +660,7 @@ int aml_codec_reset(struct aml_vdec_adapt *ada_ctx, int *mode)
  	if (vdec) {
  		if (!ada_ctx->ctx->q_data[AML_Q_DATA_SRC].resolution_changed)
  			vdec_set_eos(vdec, false);
@@ -1564,7 +1564,7 @@ index 3653ff0..dbee7e7 100644
  
  #endif /* _AML_VCODEC_DEC_H_ */
 diff --git a/drivers/amvdec_ports/aml_vcodec_dec_drv.c b/drivers/amvdec_ports/aml_vcodec_dec_drv.c
-index 1a975c2..2334264 100644
+index 1ed0b97..4c38994 100644
 --- a/drivers/amvdec_ports/aml_vcodec_dec_drv.c
 +++ b/drivers/amvdec_ports/aml_vcodec_dec_drv.c
 @@ -34,6 +34,7 @@
@@ -1639,9 +1639,9 @@ index 1a975c2..2334264 100644
 +EXPORT_SYMBOL(dump_vpp_input);
 +module_param(dump_vpp_input, int, 0644);
  
- EXPORT_SYMBOL(param_sets_from_ucode);
- module_param(param_sets_from_ucode, bool, 0644);
-@@ -626,6 +642,18 @@ module_param(param_sets_from_ucode, bool, 0644);
+ int dump_output_frame;
+ EXPORT_SYMBOL(dump_output_frame);
+@@ -630,6 +646,18 @@ module_param(param_sets_from_ucode, bool, 0644);
  EXPORT_SYMBOL(enable_drm_mode);
  module_param(enable_drm_mode, bool, 0644);
  
@@ -3557,7 +3557,7 @@ index dc8782a..dd1d1fc 100644
  			vf->width = (force_w_h >> 16) & 0xffff;
  			vf->height = force_w_h & 0xffff;
 diff --git a/drivers/frame_provider/decoder/h264_multi/vmh264.c b/drivers/frame_provider/decoder/h264_multi/vmh264.c
-index 85ef3cc..2d4528c 100644
+index ffa17ef..c277b2a 100644
 --- a/drivers/frame_provider/decoder/h264_multi/vmh264.c
 +++ b/drivers/frame_provider/decoder/h264_multi/vmh264.c
 @@ -1072,19 +1072,6 @@ static int  compute_losless_comp_header_size(int width, int height)
@@ -3640,7 +3640,7 @@ index 85ef3cc..2d4528c 100644
  			}
  		} else {
  			vf->type = VIDTYPE_PROGRESSIVE | VIDTYPE_VIU_FIELD |
-@@ -8676,6 +8663,7 @@ static int vmh264_get_ps_info(struct vdec_h264_hw_s *hw,
+@@ -8675,6 +8662,7 @@ static int vmh264_get_ps_info(struct vdec_h264_hw_s *hw,
  	 * bit 15: frame_mbs_only_flag
  	 * bit 13-14: chroma_format_idc
  	 */
@@ -3649,7 +3649,7 @@ index 85ef3cc..2d4528c 100644
  	if (hw->dpb.mSPS.profile_idc != 100 &&
  		hw->dpb.mSPS.profile_idc != 110 &&
 diff --git a/drivers/frame_provider/decoder/h265/vh265.c b/drivers/frame_provider/decoder/h265/vh265.c
-index feffe99..04a13e0 100644
+index bb5870f..10c4fa4 100644
 --- a/drivers/frame_provider/decoder/h265/vh265.c
 +++ b/drivers/frame_provider/decoder/h265/vh265.c
 @@ -1414,6 +1414,9 @@ struct PIC_s {
@@ -4382,7 +4382,7 @@ index feffe99..04a13e0 100644
  						}
  					}
  
-@@ -11014,8 +11044,21 @@ force_output:
+@@ -11029,8 +11059,21 @@ force_output:
  						struct aml_vdec_ps_infos ps;
  						int width = hevc->param.p.pic_width_in_luma_samples;
  						int height = hevc->param.p.pic_height_in_luma_samples;
@@ -4404,7 +4404,7 @@ index feffe99..04a13e0 100644
  						vh265_get_ps_info(hevc, width, height, &ps);
  						/*notice the v4l2 codec.*/
  						vdec_v4l_set_ps_infos(ctx, &ps);
-@@ -11035,7 +11078,6 @@ force_output:
+@@ -11050,7 +11093,6 @@ force_output:
  					reset_process_time(hevc);
  					vdec_schedule_work(&hevc->work);
  					return IRQ_HANDLED;
@@ -4412,7 +4412,7 @@ index feffe99..04a13e0 100644
  				}
  			}
  
-@@ -12495,6 +12537,28 @@ static int get_used_buf_count(struct hevc_state_s *hevc)
+@@ -12510,6 +12552,28 @@ static int get_used_buf_count(struct hevc_state_s *hevc)
  }
  #endif
  
@@ -4441,7 +4441,7 @@ index feffe99..04a13e0 100644
  
  static unsigned char is_new_pic_available(struct hevc_state_s *hevc)
  {
-@@ -12713,6 +12777,14 @@ static unsigned char get_data_check_sum
+@@ -12728,6 +12792,14 @@ static unsigned char get_data_check_sum
  	for (jj = 0; jj < size; jj++)
  		sum += data[jj];
  
@@ -4456,7 +4456,7 @@ index feffe99..04a13e0 100644
  	if (!hevc->chunk->block->is_mapped)
  		codec_mm_unmap_phyaddr(data);
  	return sum;
-@@ -12941,21 +13013,8 @@ static void vh265_work_implement(struct hevc_state_s *hevc,
+@@ -12956,21 +13028,8 @@ static void vh265_work_implement(struct hevc_state_s *hevc,
  			if (hevc->used_4k_num >= 0 &&
  				hevc->cur_pic &&
  				hevc->cur_pic->scatter_alloc
@@ -4480,7 +4480,7 @@ index feffe99..04a13e0 100644
  		}
  		hevc->pic_decoded_lcu_idx =
  			READ_VREG(HEVC_PARSER_LCU_START)
-@@ -13301,7 +13360,17 @@ static unsigned long run_ready(struct vdec_s *vdec, unsigned long mask)
+@@ -13316,7 +13375,17 @@ static unsigned long run_ready(struct vdec_s *vdec, unsigned long mask)
  	}
  	hevc->timeout_processing = 0;
  	if (!hevc->first_sc_checked && hevc->mmu_enable) {
@@ -4499,7 +4499,7 @@ index feffe99..04a13e0 100644
  		hevc->first_sc_checked =1;
  		hevc_print(hevc, 0,
  			"vh265 cached=%d  need_size=%d speed= %d ms\n",
-@@ -13389,10 +13458,14 @@ static unsigned long run_ready(struct vdec_s *vdec, unsigned long mask)
+@@ -13404,10 +13473,14 @@ static unsigned long run_ready(struct vdec_s *vdec, unsigned long mask)
  
  		if (ctx->param_sets_from_ucode) {
  			if (hevc->v4l_params_parsed) {
@@ -4518,7 +4518,7 @@ index feffe99..04a13e0 100644
  			} else {
  				if (ctx->v4l_resolution_change)
  					ret = 0;
-@@ -13931,9 +14004,10 @@ static void vh265_dump_state(struct vdec_s *vdec)
+@@ -13946,9 +14019,10 @@ static void vh265_dump_state(struct vdec_s *vdec)
  
  	for (i = 0; i < BUF_POOL_SIZE; i++) {
  		hevc_print(hevc, 0,
@@ -4643,10 +4643,10 @@ index 4ac5801..fe0e8ad 100644
  		prepare_display_buf(hw, disp_pic);
  		vdec_schedule_work(&hw->work);
 diff --git a/drivers/frame_provider/decoder/utils/vdec.c b/drivers/frame_provider/decoder/utils/vdec.c
-index 9646f7d..ab218bf 100644
+index 1d6edc5..89fc5a7 100644
 --- a/drivers/frame_provider/decoder/utils/vdec.c
 +++ b/drivers/frame_provider/decoder/utils/vdec.c
-@@ -5703,6 +5703,19 @@ void vdec_config_vld_reg(struct vdec_s *vdec, u32 addr, u32 size)
+@@ -5696,6 +5696,19 @@ void vdec_config_vld_reg(struct vdec_s *vdec, u32 addr, u32 size)
  }
  EXPORT_SYMBOL(vdec_config_vld_reg);
  

@@ -1,4 +1,4 @@
-From 8643d5b353d804c9cbc7c199729b8053f52081a9 Mon Sep 17 00:00:00 2001
+From e6ba6e689452b331051a6917bafd0f318d5cc29a Mon Sep 17 00:00:00 2001
 From: Pradeep Sriram <pradeep.sriram@amlogic.com>
 Date: Tue, 1 Dec 2020 15:52:46 -0800
 Subject: [PATCH] RDK: fix v4l path
