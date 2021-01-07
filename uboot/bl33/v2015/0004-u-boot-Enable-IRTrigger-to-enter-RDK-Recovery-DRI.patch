@@ -1,7 +1,7 @@
-From a6566be7ec11c24e1773c1359dc25bca88327493 Mon Sep 17 00:00:00 2001
+From 16ded8f7ec8deadfee4fca6390d1bfe684b6c9ce Mon Sep 17 00:00:00 2001
 From: Terrence Pu <terrence.pu@amlogic.com>
 Date: Sun, 7 Jun 2020 22:06:45 -0700
-Subject: [PATCH 04/10] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
+Subject: [PATCH] u-boot: Enable IRTrigger to enter RDK Recovery (DRI)
 
 PD#SWPL-26832
 
@@ -22,7 +22,7 @@ Signed-off-by: Terrence Pu <terrence.pug@amlogic.com>
  2 files changed, 15 insertions(+), 39 deletions(-)
 
 diff --git a/board/amlogic/configs/g12a_u212_v1.h b/board/amlogic/configs/g12a_u212_v1.h
-index d4fa42dab4..01c4d8eedf 100644
+index 538a4b2e30..2f50afbe25 100644
 --- a/board/amlogic/configs/g12a_u212_v1.h
 +++ b/board/amlogic/configs/g12a_u212_v1.h
 @@ -81,6 +81,8 @@
@@ -34,7 +34,7 @@ index d4fa42dab4..01c4d8eedf 100644
  //Enable ir remote wake up for bl30
  #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL1 0xef10fe01 //amlogic tv ir --- power
  #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL2 0xFFFFFFFF
-@@ -277,29 +279,10 @@
+@@ -275,29 +277,10 @@
                  "bootm ${loadaddr};fi;"\
              "\0"\
          "recovery_from_flash="\
@@ -53,7 +53,7 @@ index d4fa42dab4..01c4d8eedf 100644
 -                    "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
 -                "else "\
 -                    "if test ${vendor_boot_mode} = true; then "\
--                        "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
+-                        "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset} androidboot.slot_suffix=${active_slot};"\
 -                        "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
 -                    "else "\
 -                        "setenv bootargs ${bootargs} ${fs_type} aml_dt=${aml_dt} recovery_part=${recovery_part} recovery_offset=${recovery_offset} androidboot.slot_suffix=${active_slot};"\
@@ -68,7 +68,7 @@ index d4fa42dab4..01c4d8eedf 100644
              "\0"\
          "init_display="\
              "get_rebootmode;"\
-@@ -359,12 +342,12 @@
+@@ -357,12 +340,12 @@
              "fi;"\
              "\0"\
  	"irremote_update="\
@@ -86,7 +86,7 @@ index d4fa42dab4..01c4d8eedf 100644
  			"fi;fi;" \
  		"fi;\0" \
  
-@@ -376,6 +359,7 @@
+@@ -374,6 +357,7 @@
              "run init_display;"\
              "run storeargs;"\
              "run upgrade_key;" \
@@ -125,5 +125,5 @@ index ea549d7186..3d256dea96 100644
  
  uint32_t read_key(void)
 -- 
-2.29.0
+2.29.2
 
