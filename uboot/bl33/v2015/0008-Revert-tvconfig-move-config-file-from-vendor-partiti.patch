@@ -1,8 +1,8 @@
-From 920d66acf375aa0271e675100a83f21f7bcbf815 Mon Sep 17 00:00:00 2001
+From 9f7f7d2747d6c6c6e85318dfcb95572f6e1d144c Mon Sep 17 00:00:00 2001
 From: johnny lee <johnny.lee@amlogic.com>
 Date: Tue, 8 Sep 2020 13:15:24 +0800
-Subject: [PATCH 09/10] Revert "tvconfig: move config file from vendor
- partition to ODM partition. [1/1]"
+Subject: [PATCH 8/9] Revert "tvconfig: move config file from vendor partition
+ to ODM partition. [1/1]"
 
 This reverts commit 48b87ac64309cdf885d843b3ff249e059be123c2.
 
@@ -22,7 +22,7 @@ Signed-off-by: johnny lee <johnny.lee@amlogic.com>
  10 files changed, 19 insertions(+), 19 deletions(-)
 
 diff --git a/board/amlogic/configs/tl1_skt_v1.h b/board/amlogic/configs/tl1_skt_v1.h
-index 4f5195602f..7c3b971367 100644
+index 5d952f954f..05d7fffb14 100644
 --- a/board/amlogic/configs/tl1_skt_v1.h
 +++ b/board/amlogic/configs/tl1_skt_v1.h
 @@ -110,8 +110,8 @@
@@ -33,11 +33,11 @@ index 4f5195602f..7c3b971367 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tl1_t309_v1.h b/board/amlogic/configs/tl1_t309_v1.h
-index 4f09a7fb4e..3a874f2941 100644
+index 8c1f55ee27..7fc9e51c9d 100644
 --- a/board/amlogic/configs/tl1_t309_v1.h
 +++ b/board/amlogic/configs/tl1_t309_v1.h
 @@ -112,8 +112,8 @@
@@ -48,11 +48,11 @@ index 4f09a7fb4e..3a874f2941 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tl1_x301_v1.h b/board/amlogic/configs/tl1_x301_v1.h
-index 5952780c27..6368319a08 100644
+index 2cfd18ac1a..8e81b6d181 100644
 --- a/board/amlogic/configs/tl1_x301_v1.h
 +++ b/board/amlogic/configs/tl1_x301_v1.h
 @@ -115,8 +115,8 @@
@@ -63,14 +63,14 @@ index 5952780c27..6368319a08 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962e2_ab311_v1.h b/board/amlogic/configs/tm2_t962e2_ab311_v1.h
-index 6122a35dae..ebd59960db 100644
+index 267a9b0593..45502a6f04 100644
 --- a/board/amlogic/configs/tm2_t962e2_ab311_v1.h
 +++ b/board/amlogic/configs/tm2_t962e2_ab311_v1.h
-@@ -127,8 +127,8 @@
+@@ -130,8 +130,8 @@
          "powermode=on\0"\
          "ffv_wake=off\0"\
          "ffv_freeze=off\0"\
@@ -78,11 +78,11 @@ index 6122a35dae..ebd59960db 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962e2_ab319_v1.h b/board/amlogic/configs/tm2_t962e2_ab319_v1.h
-index 81f638ea97..6136f9ea67 100644
+index 3727857449..6dd42b2c8e 100644
 --- a/board/amlogic/configs/tm2_t962e2_ab319_v1.h
 +++ b/board/amlogic/configs/tm2_t962e2_ab319_v1.h
 @@ -120,8 +120,8 @@
@@ -93,14 +93,14 @@ index 81f638ea97..6136f9ea67 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962x3_ab301_v1.h b/board/amlogic/configs/tm2_t962x3_ab301_v1.h
-index 9b399e502f..fd814667f0 100644
+index a73277829a..6eb5ee7c6d 100644
 --- a/board/amlogic/configs/tm2_t962x3_ab301_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_ab301_v1.h
-@@ -118,8 +118,8 @@
+@@ -121,8 +121,8 @@
          "powermode=on\0"\
          "ffv_wake=off\0"\
          "ffv_freeze=off\0"\
@@ -108,11 +108,11 @@ index 9b399e502f..fd814667f0 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962x3_ab309_v1.h b/board/amlogic/configs/tm2_t962x3_ab309_v1.h
-index fbc7dca79b..531fe8f32a 100644
+index 55e878e27c..1da622add8 100644
 --- a/board/amlogic/configs/tm2_t962x3_ab309_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_ab309_v1.h
 @@ -114,8 +114,8 @@
@@ -123,11 +123,11 @@ index fbc7dca79b..531fe8f32a 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_t962x3_t312_v1.h b/board/amlogic/configs/tm2_t962x3_t312_v1.h
-index f9d5ba669d..57e3601e1e 100644
+index 6359590f71..4fbf08dac0 100644
 --- a/board/amlogic/configs/tm2_t962x3_t312_v1.h
 +++ b/board/amlogic/configs/tm2_t962x3_t312_v1.h
 @@ -118,8 +118,8 @@
@@ -138,11 +138,11 @@ index f9d5ba669d..57e3601e1e 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/board/amlogic/configs/tm2_v901d_t501_v1.h b/board/amlogic/configs/tm2_v901d_t501_v1.h
-index 00eb5ab908..efcf9996e4 100644
+index 87bf0ec098..76b495c355 100644
 --- a/board/amlogic/configs/tm2_v901d_t501_v1.h
 +++ b/board/amlogic/configs/tm2_v901d_t501_v1.h
 @@ -117,8 +117,8 @@
@@ -153,22 +153,22 @@ index 00eb5ab908..efcf9996e4 100644
 -        "edid_20_dir=/odm/etc/tvconfig/hdmi/port_20.bin\0" \
 +        "edid_14_dir=/vendor/etc/tvconfig/hdmi/port_14.bin\0" \
 +        "edid_20_dir=/vendor/etc/tvconfig/hdmi/port_20.bin\0" \
+         "edid_14_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_14.bin\0" \
+         "edid_20_dir_dynamic=/odm_ext/etc/tvconfig/hdmi/port_20.bin\0" \
          "edid_select=0\0" \
-         "port_map=0x4321\0" \
-         "cec_fun=0x2F\0" \
 diff --git a/common/ini/model.c b/common/ini/model.c
-index 58e92f358f..7fac2e8a21 100644
+index 5336357ee2..22324d26c2 100644
 --- a/common/ini/model.c
 +++ b/common/ini/model.c
-@@ -19,7 +19,7 @@
- #include "ini_io.h"
+@@ -20,7 +20,7 @@
  #include "model.h"
+ #include <partition_table.h>
  
--#define DEFAULT_MODEL_SUM_PATH "/odm/etc/tvconfig/model/model_sum.ini"
-+#define DEFAULT_MODEL_SUM_PATH "/vendor/etc/tvconfig/model/model_sum.ini"
+-#define DEFAULT_MODEL_SUM_PATH1 "/odm/etc/tvconfig/model/model_sum.ini"
++#define DEFAULT_MODEL_SUM_PATH1 "/vendor/etc/tvconfig/model/model_sum.ini"
+ #define DEFAULT_MODEL_SUM_PATH2 "/odm_ext/etc/tvconfig/model/model_sum.ini"
  #define AML_START		"amlogic_start"
  #define AML_END			"amlogic_end"
- 
 -- 
-2.29.0
+2.17.1
 
