@@ -1,0 +1,86 @@
+From 12888c7b577a389671544b065c59254ca4f20bd0 Mon Sep 17 00:00:00 2001
+From: Xueling Li <xueling.li@amlogic.com>
+Date: Mon, 10 May 2021 08:33:54 +0000
+Subject: [PATCH] RDK: enable deep sleep manager
+
+PD#SWPL-47766
+
+Problem:
+  deep sleep manager not handled
+
+Solution:
+  add related code to handle it
+
+Verify: check deep sleep function
+Signed-off-by: Xueling Li <xueling.li@amlogic.com>
+Change-Id: I598fef55ce6bbfd710c48628fe18b026d4de6953
+---
+ Makefile.am        | 2 +-
+ configure.ac       | 7 ++++++-
+ power/plat-power.c | 8 ++++----
+ 3 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index bf1179c..755735a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1 +1 @@
+-SUBDIRS = ir power
++SUBDIRS = ir power deepsleep
+diff --git a/configure.ac b/configure.ac
+index a7561fd..a0bbe17 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -16,16 +16,21 @@ LT_INIT
+ # Libs and cflags
+ IARMMGRS_HAL_IR_LIBS=""
+ IARMMGRS_HAL_POWER_LIBS=""
++IARMMGRS_HAL_DEEPSLEEP_LIBS=""
+ AC_SUBST(IARMMGRS_HAL_IR_LIBS)
+ AC_SUBST(IARMMGRS_HAL_POWER_LIBS)
++AC_SUBST(IARMMGRS_HAL_DEEPSLEEP_LIBS)
+ 
+ # More libs and cflags should using pkg-config later.
+ # now we just temperary hard coded here.
+ IARMMGRS_HAL_IR_CFLAGS="-I$PKG_CONFIG_SYSROOT_DIR/usr/include/rdk/iarmmgrs-hal"
+ IARMMGRS_HAL_POWER_CFLAGS="-I$PKG_CONFIG_SYSROOT_DIR/usr/include/rdk/iarmmgrs-hal \
+                            -I$PKG_CONFIG_SYSROOT_DIR/usr/include/rdk/iarmbus"
++IARMMGRS_HAL_DEEPSLEEP_CFLAGS="-I$PKG_CONFIG_SYSROOT_DIR/usr/include/rdk/iarmmgrs-hal \
++                           -I$PKG_CONFIG_SYSROOT_DIR/usr/include/rdk/iarmbus"
+ AC_SUBST(IARMMGRS_HAL_IR_CFLAGS)
+ AC_SUBST(IARMMGRS_HAL_POWER_CFLAGS)
++AC_SUBST(IARMMGRS_HAL_DEEPSLEEP_CFLAGS)
+ 
+ # Checks for header files.
+ AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/time.h unistd.h])
+@@ -35,5 +40,5 @@ AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/time.h unistd.h])
+ # Checks for library functions.
+ AC_FUNC_MALLOC
+ 
+-AC_CONFIG_FILES([Makefile ir/Makefile power/Makefile])
++AC_CONFIG_FILES([Makefile ir/Makefile power/Makefile deepsleep/Makefile])
+ AC_OUTPUT
+diff --git a/power/plat-power.c b/power/plat-power.c
+index b8e8c7f..ae6e720 100644
+--- a/power/plat-power.c
++++ b/power/plat-power.c
+@@ -54,12 +54,12 @@ int PLAT_API_SetPowerState(IARM_Bus_PWRMgr_PowerState_t newState)
+ 			break;
+ 		case IARM_BUS_PWRMGR_POWERSTATE_STANDBY:
+ 			printf("Inside case standby\n");
+-			system("systemctl stop wifi.service");
+-			/* set wake lock to prevent system from entering real standby */
+-			amsysfs_set_sysfs_str(SYS_POWER_WAKE_LOCK, wake_lock_name);
+-			amsysfs_set_sysfs_str(sysfs,"mem");
+ 			power_state = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+ 			break;
++                case IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP:
++                        printf("Inside case lightsleep\n");
++                        power_state = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
++                        break;
+ 		case IARM_BUS_PWRMGR_POWERSTATE_ON:
+ 			printf("Inside case poweron\n");
+ 			amsysfs_set_sysfs_str(sysfs,"wake");
+-- 
+2.29.2
+
