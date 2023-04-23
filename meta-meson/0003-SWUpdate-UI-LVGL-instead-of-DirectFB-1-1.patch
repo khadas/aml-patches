@@ -1,0 +1,93 @@
+From 484509ab57ba641a9022aec5cd9d0a9d2a8da97d Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Tue, 18 Apr 2023 11:29:16 +0800
+Subject: [PATCH 3/3] SWUpdate UI: LVGL instead of DirectFB [1/1]
+
+PD#SWPL-120006
+
+Problem:
+DirectFB is 2M larger than LVGL's library,
+resulting in recovery.img fails to be
+burned too large.
+
+Solution:
+Use LVGL instead of DirectFB.
+
+Verify:
+T7C PB
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I57e5a97dcc4887053081a7b307bbffca1f477118
+---
+ conf/machine/include/amlogic_common.inc             |  3 +++
+ recipes-core/swupdate/aml-swupdate-ui_git.bb        |  9 ++-------
+ .../lvgl/files/0001-lvgl-color-depth-modify.patch   | 13 +++++++++++++
+ recipes-graphics/lvgl/lvgl_git.bb                   |  1 +
+ 4 files changed, 19 insertions(+), 7 deletions(-)
+ create mode 100644 recipes-graphics/lvgl/files/0001-lvgl-color-depth-modify.patch
+
+diff --git a/conf/machine/include/amlogic_common.inc b/conf/machine/include/amlogic_common.inc
+index af0a0e4..4ffc6c0 100644
+--- a/conf/machine/include/amlogic_common.inc
++++ b/conf/machine/include/amlogic_common.inc
+@@ -126,3 +126,6 @@ VIRTUAL-RUNTIME_dev_manager ?= "busybox-mdev"
+ KERNEL_MODULE_AUTOLOAD += "gpio_keypad adc_keypad reg_access"
+ # set bootup splash
+ SPLASH ?= "psplash"
++
++# SWUpdate UI config graphic library
++SWUPDATE_UI_LIB = "lvgl"
+diff --git a/recipes-core/swupdate/aml-swupdate-ui_git.bb b/recipes-core/swupdate/aml-swupdate-ui_git.bb
+index 723494e..dcfdc12 100644
+--- a/recipes-core/swupdate/aml-swupdate-ui_git.bb
++++ b/recipes-core/swupdate/aml-swupdate-ui_git.bb
+@@ -15,13 +15,8 @@ PV = "${SRCPV}"
+ S = "${WORKDIR}/git"
+ 
+ # configurate lvgl app needs below two conditions
+-# if you don't want to use lvgl, disable below two configurations.
+-#EXTRA_OEMAKE = "CONFIG_LVGL_APP=y"
+-#PACKAGECONFIG_append += " lvgl"
+-
+-# if you use directfb, enable this configuration.
+-PACKAGECONFIG_append += " directfb"
+-
++EXTRA_OEMAKE = "${@bb.utils.contains("SWUPDATE_UI_LIB", "lvgl", "CONFIG_LVGL_APP=y", "" ,d)}"
++PACKAGECONFIG_append += "${@bb.utils.contains("SWUPDATE_UI_LIB", "lvgl", " lvgl", " directfb" ,d)}"
+ PACKAGECONFIG[lvgl] = "-lvgl,-no-lvgl,lvgl lv-drivers"
+ PACKAGECONFIG[directfb] = "-directfb,-no-directfb,directfb"
+ 
+diff --git a/recipes-graphics/lvgl/files/0001-lvgl-color-depth-modify.patch b/recipes-graphics/lvgl/files/0001-lvgl-color-depth-modify.patch
+new file mode 100644
+index 0000000..2a0c545
+--- /dev/null
++++ b/recipes-graphics/lvgl/files/0001-lvgl-color-depth-modify.patch
+@@ -0,0 +1,13 @@
++diff --git a/lv_conf_template.h b/lv_conf_template.h
++index 8bdddb497..7c0ac86b7 100644
++--- a/lv_conf_template.h
+++++ b/lv_conf_template.h
++@@ -24,7 +24,7 @@
++  *====================*/
++ 
++ /*Color depth: 1 (1 byte per pixel), 8 (RGB332), 16 (RGB565), 32 (ARGB8888)*/
++-#define LV_COLOR_DEPTH 16
+++#define LV_COLOR_DEPTH 32
++ 
++ /*Swap the 2 bytes of RGB565 color. Useful if the display has an 8-bit interface (e.g. SPI)*/
++ #define LV_COLOR_16_SWAP 0
+diff --git a/recipes-graphics/lvgl/lvgl_git.bb b/recipes-graphics/lvgl/lvgl_git.bb
+index 59f9527..fd66ba3 100644
+--- a/recipes-graphics/lvgl/lvgl_git.bb
++++ b/recipes-graphics/lvgl/lvgl_git.bb
+@@ -6,6 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENCE.txt;md5=bf1198c89ae87f043108cea62460b03a"
+ 
+ SRC_URI = "gitsm://github.com/lvgl/lvgl;destsuffix=${S};protocol=https;nobranch=1 \
+             file://0001-amlogic-lvgl-porting.patch \
++            file://0001-lvgl-color-depth-modify.patch \
+ "
+ SRCREV = "d38eb1e689fa5a64c25e677275172d9c8a4ab2f0"
+ 
+-- 
+2.25.1
+
