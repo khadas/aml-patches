@@ -1,4 +1,4 @@
-From 4091de784af025267cdc2b7bf014dc33c354cc86 Mon Sep 17 00:00:00 2001
+From 20acb1eab2701234de0ff7123702e7644e6e6be8 Mon Sep 17 00:00:00 2001
 From: "haotian.qu" <haotian.qu@amlogic.com>
 Date: Wed, 26 Apr 2023 10:55:32 +0800
 Subject: [PATCH] SWUpdate: upgrade fails by network [1/1]
@@ -36,7 +36,7 @@ index 0f8a960..a5e738a 100755
    else
      swupdate --recovery -l 6 -k /etc/swupdate-public.pem -b "0 1 2 3 4" -w "-r /var/www/swupdate/" > /tmp/swupdate.log &
 diff --git a/recipes-core/images/amlogic-yocto.bb b/recipes-core/images/amlogic-yocto.bb
-index 6cae6d9..be6f374 100644
+index 6cae6d9..6388073 100644
 --- a/recipes-core/images/amlogic-yocto.bb
 +++ b/recipes-core/images/amlogic-yocto.bb
 @@ -21,7 +21,7 @@ IMAGE_INSTALL += " \
@@ -44,7 +44,7 @@ index 6cae6d9..be6f374 100644
      ${@bb.utils.contains('DISTRO_FEATURES', 'aml-bluez-alsa', 'aml-bluez-alsa', '', d)} \
      ${@bb.utils.contains("DISTRO_FEATURES", "gst1-plugins-tsplayer", "gst1-plugins-tsplayer", "", d)} \
 -    ${@bb.utils.contains('DISTRO_FEATURES', 'swupdate', 'swupdate', '', d)} \
-+    ${@bb.utils.contains('DISTRO_FEATURES', 'swupdate', 'swupdate aml-bootloader-message', '', d)} \
++    ${@bb.utils.contains('DISTRO_FEATURES', 'swupdate', 'swupdate aml-bootloader-message libconfig', '', d)} \
      ${@bb.utils.contains('DISTRO_FEATURES', 'test_tools', 'test-tools', '', d)} \
      "
  
