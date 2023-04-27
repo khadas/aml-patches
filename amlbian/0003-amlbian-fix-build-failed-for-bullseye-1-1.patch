@@ -1,0 +1,92 @@
+From e91e89b8b768891df8bd4e3b9f7b38630d64c7fb Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Thu, 27 Apr 2023 11:01:58 +0800
+Subject: [PATCH] amlbian : fix build failed for bullseye  [1/1]
+
+PD#SWPL-121789
+
+Problem:
+bullseye build failed
+
+Solution:
+add set setenv-config
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I6deac13f88398bfda4c5c5070fb15ea5b56c9239
+---
+ config/config                                             | 2 +-
+ config/functions/{build_base_rootfs => build-base-rootfs} | 2 +-
+ config/functions/functions                                | 2 +-
+ {config/Debian => env}/setenv-config                      | 0
+ env/setenv.sh                                             | 4 +---
+ 5 files changed, 4 insertions(+), 6 deletions(-)
+ rename config/functions/{build_base_rootfs => build-base-rootfs} (99%)
+ rename {config/Debian => env}/setenv-config (100%)
+
+diff --git a/config/config b/config/config
+index 1b4ca24..338ce5b 100755
+--- a/config/config
++++ b/config/config
+@@ -104,7 +104,7 @@ SUPPORT_LANGUAGE_VALUES="ENG | CHS" # English | Chinese simple
+ 
+ ## Default values
+ [[ -z $BUILD_TYPE ]] && BUILD_TYPE=develop # TODO : should change to release before release
+-[[ -z $DOWNLOAD_MIRROR ]] && DOWNLOAD_MIRROR=china
++[[ -z $DOWNLOAD_MIRROR ]] && DOWNLOAD_MIRROR=default
+ [[ -z $COMPRESS_IMAGE ]] && COMPRESS_IMAGE=yes
+ [[ -z $NO_CCACHE ]] && NO_CCACHE=no
+ [[ -z $COMPRESS_IMAGE ]] && COMPRESS_IMAGE=no
+diff --git a/config/functions/build_base_rootfs b/config/functions/build-base-rootfs
+similarity index 99%
+rename from config/functions/build_base_rootfs
+rename to config/functions/build-base-rootfs
+index 6557c31..703f118 100755
+--- a/config/functions/build_base_rootfs
++++ b/config/functions/build-base-rootfs
+@@ -387,7 +387,7 @@ build_base_rootfs()
+ 		shell_chroot "apt install _AML_PRE_BRACKET_check-language-support_AML_POST_BRACKET_ -y"
+ 	fi
+ 
+-	if [ "$BUILD_TYPE" != release ]; then
++	if [ "$BUILD_TYPE" == develop ]; then
+ 		# DEBUG: print free space
+ 		echo -e "\nFree space:"
+ 		eval 'df -h'
+diff --git a/config/functions/functions b/config/functions/functions
+index a78c585..6c572f2 100755
+--- a/config/functions/functions
++++ b/config/functions/functions
+@@ -5,7 +5,7 @@
+ source config/functions/common-functions
+ 
+ ## Functions
+-source config/functions/build_base_rootfs
++source config/functions/build-base-rootfs
+ source config/functions/build-rootfs
+ source config/functions/git-repo
+ source config/functions/build-package
+diff --git a/config/Debian/setenv-config b/env/setenv-config
+similarity index 100%
+rename from config/Debian/setenv-config
+rename to env/setenv-config
+diff --git a/env/setenv.sh b/env/setenv.sh
+index 7a14efb..04a084b 100755
+--- a/env/setenv.sh
++++ b/env/setenv.sh
+@@ -2,9 +2,7 @@
+ 
+ # amlbian build env configurator
+ 
+-## TODO : Should remove Unbuntu with instead of Debian when release
+-source amlbian/config/Ubuntu/setenv-config
+-#source amlbian/config/Debian/setenv-config
++source amlbian/env/setenv-config
+ 
+ SRC=$(realpath "${BASH_SOURCE:-$0}"); ROOT=${SRC%/*}/..; CDIR=$PWD
+ 
+-- 
+2.25.1
+
