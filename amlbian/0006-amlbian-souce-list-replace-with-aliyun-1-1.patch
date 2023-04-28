@@ -1,0 +1,63 @@
+From ff228b538c33ac2f201a24423984368128ab9eee Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Thu, 27 Apr 2023 19:57:58 +0800
+Subject: [PATCH] amlbian: souce-list replace with aliyun [1/1]
+
+PD#SWPL-95583
+
+Problem:
+souce-list replace with aliyun.
+
+Solution:
+souce-list replace with aliyun.
+
+Verify:
+local
+
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+Change-Id: I8a46abde8704b4f33be8d6fac8189aff1e12a888
+---
+ config-t7-bullseye-minimal.conf               | 1 -
+ config/Debian/distribution-base-rootfs-config | 3 ++-
+ config/config                                 | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/config-t7-bullseye-minimal.conf b/config-t7-bullseye-minimal.conf
+index 2715ccd..5955969 100755
+--- a/config-t7-bullseye-minimal.conf
++++ b/config-t7-bullseye-minimal.conf
+@@ -20,4 +20,3 @@ INSTALL_TYPE=EMMC
+ DISTRIBUTION=Debian
+ DISTRIB_RELEASE=bullseye
+ DISTRIB_TYPE=minimal
+-DOWNLOAD_MIRROR=default
+diff --git a/config/Debian/distribution-base-rootfs-config b/config/Debian/distribution-base-rootfs-config
+index 0140c48..716ca83 100755
+--- a/config/Debian/distribution-base-rootfs-config
++++ b/config/Debian/distribution-base-rootfs-config
+@@ -37,7 +37,8 @@ esac
+ DEBIAN_MIRROR='httpredir.debian.org/debian'
+ 
+ if [[ $DOWNLOAD_MIRROR == china ]] ; then
+-	DEBIAN_MIRROR='mirrors.tuna.tsinghua.edu.cn/debian'
++	# DEBIAN_MIRROR='mirrors.tuna.tsinghua.edu.cn/debian'
++	DEBIAN_MIRROR='mirrors.aliyun.com/debian'
+ fi
+ 
+ # apt-cacher-ng mirror configuration
+diff --git a/config/config b/config/config
+index 338ce5b..1b4ca24 100755
+--- a/config/config
++++ b/config/config
+@@ -104,7 +104,7 @@ SUPPORT_LANGUAGE_VALUES="ENG | CHS" # English | Chinese simple
+ 
+ ## Default values
+ [[ -z $BUILD_TYPE ]] && BUILD_TYPE=develop # TODO : should change to release before release
+-[[ -z $DOWNLOAD_MIRROR ]] && DOWNLOAD_MIRROR=default
++[[ -z $DOWNLOAD_MIRROR ]] && DOWNLOAD_MIRROR=china
+ [[ -z $COMPRESS_IMAGE ]] && COMPRESS_IMAGE=yes
+ [[ -z $NO_CCACHE ]] && NO_CCACHE=no
+ [[ -z $COMPRESS_IMAGE ]] && COMPRESS_IMAGE=no
+-- 
+2.25.1
+
