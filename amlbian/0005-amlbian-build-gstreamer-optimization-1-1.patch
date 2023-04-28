@@ -1,0 +1,46 @@
+From bc4f6553c2994fc311ebb6dcfd83d56f2a233292 Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Fri, 28 Apr 2023 10:34:23 +0800
+Subject: [PATCH] amlbian:build gstreamer optimization  [1/1]
+
+PD#SWPL-114580
+
+Problem:
+if gstreamer cache is empty,build will error.
+
+Solution:
+add new function.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: I92ae08c2429d5fc28d1ddbf36a21cb4e26180574
+---
+ config/functions/build-gstreamer | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/config/functions/build-gstreamer b/config/functions/build-gstreamer
+index 9cba524..254a415 100755
+--- a/config/functions/build-gstreamer
++++ b/config/functions/build-gstreamer
+@@ -18,7 +18,7 @@ build_gstreamer() {
+     then
+         echo "gstreamer cache file already exist,needn't copy"
+     else
+-        if [ -d "$PKG_BUILD_CACHE"/gstreamer_cache ]
++        if [[ -d "$PKG_BUILD_CACHE"/gstreamer_cache && -f "$PKG_BUILD_CACHE"/gstreamer_cache/.cachesuccess ]]
+         then
+             echo "cp -rf "$PKG_BUILD_CACHE"/gstreamer_cache/ $GSTREAMER_COMPILE_DIR/subprojects"
+             eval "cp -rf "$PKG_BUILD_CACHE"/gstreamer_cache/* $GSTREAMER_COMPILE_DIR/subprojects"
+@@ -116,6 +116,7 @@ build_gstreamer() {
+           #echo "$file_after_install add to installed_files"
+           echo "cp -rf $gst_file_after_install $PKG_BUILD_CACHE/gstreamer_cache"
+           cp -rf $GSTREAMER_COMPILE_DIR/subprojects/$gst_file_after_install $PKG_BUILD_CACHE/gstreamer_cache
++          touch .cachesuccess
+       else
+           flag=0
+       fi
+-- 
+2.25.1
+
