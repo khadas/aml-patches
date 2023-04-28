@@ -1,0 +1,74 @@
+From 23329cfd4a8ebd9ee0d41198c82d15bb2ee69c6b Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Fri, 28 Apr 2023 13:36:00 +0800
+Subject: [PATCH] amlbian: Modify docker's read me  [1/1]
+
+PD#SWPL-114580
+
+Problem:
+amlbian docker READ documentation is not complete enough.
+
+Solution:
+add new documentation.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: Ia19c4fb6dc0a2370233cd9f8f4615604b42fb717
+---
+ docs/How to use Docker build.md | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/docs/How to use Docker build.md b/docs/How to use Docker build.md
+index 81b507d..9943f4f 100755
+--- a/docs/How to use Docker build.md	
++++ b/docs/How to use Docker build.md	
+@@ -3,8 +3,8 @@
+ 
+ ## Why use Docker build?
+ many guys use the same environment, avoid environment issue.
+-Because amlbian build need root privilege, so if you have no root privilege in the build server, 
+-you should use Docker build. 
++Because amlbian build need root privilege, so if you have no root privilege in the build server,
++you should use Docker build.
+ 
+ 
+ ## Precondition
+@@ -14,6 +14,21 @@ You should have a Ubuntu machine as build server.
+ 
+ Build docker image, in amlbian root folder, the same folder with Dockerfile, run
+ All the guys in the same build server can share the same dockder image
++
++Download docker,you can run this command
++```bash
++$ sudo apt-get install docker.io
++```
++
++You need to setup the docker,add docker user,you should replace $USER with your own username
++```bash
++$ sudo groupadd docker
++$ sudo gpasswd -a $USER docker
++$ sudo newgrp docker
++```
++
++Then you should run this command to create your images
++You should enter the directory where the Dockerfile is located.(default in amlbian/Dockerfile)
+ ```bash
+ $ docker build -t DockerImageName .
+ ```
+@@ -30,6 +45,11 @@ Run docker build
+ ```bash
+ $ ./docker-run-debian.sh
+ ```
++
++You should put "-v /mnt/fileroot/$(whoami):/mnt/fileroot/$(whoami)\" in docker-run-debian.sh
++Replace "/mnt/fileroot/$(whoami)" with your own amlbian code path,
++"/mnt/fileroot/$(whoami)" is the path you will mount to docker
++
+ for more details help, you can use ./docker-run-debian.sh with no parameters for help information
+ 
+ 
+-- 
+2.25.1
+

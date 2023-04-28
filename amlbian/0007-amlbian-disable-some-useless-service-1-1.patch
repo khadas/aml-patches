@@ -1,4 +1,4 @@
-From 707820f027d91588dd8dac9299580809d93329d5 Mon Sep 17 00:00:00 2001
+From b4edd3b6e276f44a68077154a6ac0721e6e4210f Mon Sep 17 00:00:00 2001
 From: "yi.zhang1" <yi.zhang1@amlogic.com>
 Date: Thu, 13 Apr 2023 17:19:52 +0800
 Subject: [PATCH] amlbian: disable some useless service  [1/1]

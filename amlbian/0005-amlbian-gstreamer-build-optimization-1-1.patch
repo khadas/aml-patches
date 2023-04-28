@@ -1,7 +1,7 @@
-From bc4f6553c2994fc311ebb6dcfd83d56f2a233292 Mon Sep 17 00:00:00 2001
+From bf6f8e8a914fbdf9306abac9084c8c8e408f575a Mon Sep 17 00:00:00 2001
 From: "yi.zhang1" <yi.zhang1@amlogic.com>
 Date: Fri, 28 Apr 2023 10:34:23 +0800
-Subject: [PATCH] amlbian:build gstreamer optimization  [1/1]
+Subject: [PATCH] amlbian: gstreamer-build optimization  [1/1]
 
 PD#SWPL-114580
 

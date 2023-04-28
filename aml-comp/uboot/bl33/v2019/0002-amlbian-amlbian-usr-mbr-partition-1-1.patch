@@ -1,4 +1,4 @@
-From 568a0e22050face7a4a26eaa15961876a8f4afc9 Mon Sep 17 00:00:00 2001
+From 6da6f2613830eb1ebf83235aa9cd388d2a3329c3 Mon Sep 17 00:00:00 2001
 From: "yi.liu" <yi.liu@amlogic.com>
 Date: Wed, 26 Apr 2023 14:43:43 +0800
 Subject: [PATCH] amlbian: amlbian usr mbr partition [1/1]

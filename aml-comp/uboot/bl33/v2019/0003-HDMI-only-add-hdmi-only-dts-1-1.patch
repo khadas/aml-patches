@@ -1,0 +1,82 @@
+From 8ca37eca60548d33c61e609e30e87cc510ce4236 Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Fri, 28 Apr 2023 18:13:01 +0800
+Subject: [PATCH] HDMI only: add hdmi only dts [1/1]
+
+PD#SWPL-121703
+
+Problem:
+add hdmi only dts
+
+Solution:
+add hdmi only dts
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I9e7f594a72aca469db66085ad507d8aef545f19e
+---
+ ...1d2_an400_linux_drm_hdmitx_only_debian.dts | 50 +++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 arch/arm/dts/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts
+
+diff --git a/arch/arm/dts/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts b/arch/arm/dts/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts
+new file mode 100644
+index 0000000000..35ace493d5
+--- /dev/null
++++ b/arch/arm/dts/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts
+@@ -0,0 +1,50 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2019 Amlogic, Inc. All rights reserved.
++ */
++
++/dts-v1/;
++
++#include "meson-t7-an400-lpddr4x-debian.dtsi"
++#include "meson-t7_skt-panel.dtsi"
++
++/ {
++	compatible = "amlogic,t7-an400-lpddr4x-debian", "amlogic,t7-txxx", "amlogic,meson-t7";
++	model = "Amlogic Meson T7 PXP Board";
++};
++
++/* This UART is brought out to the DB9 connector */
++&uart_a {
++	status = "okay";
++};
++
++&uart_b {
++	status = "disabled";
++};
++
++&saradc {
++	status = "okay";
++};
++
++&amhdmitx {
++	enc_idx = <0>; /* value can be 0 or 2 */
++};
++
++/* demo for i2c user */
++&i2c3 {
++	status= "disabled";
++	clock-frequency = <100000>;
++	/* pinctrl-names = "default";*/
++	/* pinctrl-0 = <&i2c3_master_pins2>;*/
++};
++
++&pinctrl_periphs {
++	bl_pwm_off_pins:bl_pwm_off_pin {
++		mux {
++			groups = "GPIOH_5";
++			function = "gpio_periphs";
++			output-high;
++		};
++	};
++}; /* end of pinctrl_periphs */
++
+-- 
+2.25.1
+

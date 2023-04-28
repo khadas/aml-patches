@@ -1,4 +1,4 @@
-From 60163fd06fc815f21222a5b7a1bde19516c8e8a4 Mon Sep 17 00:00:00 2001
+From 62e70ab085ccc37ec9bb0d39bab74484df3d37c2 Mon Sep 17 00:00:00 2001
 From: "haotian.qu" <haotian.qu@amlogic.com>
 Date: Wed, 26 Apr 2023 20:39:06 +0800
 Subject: [PATCH] SWUpdate: upgrade fails by network. [1/1]
@@ -18,31 +18,22 @@ T7C PB
 Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
 Change-Id: I015c21f2d80fbf7a2e1206e15ac6894ecb17f7b8
 ---
- bootloader_message/bootloader_message.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ bootloader_message/bootloader_message.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/bootloader_message/bootloader_message.c b/bootloader_message/bootloader_message.c
-index 2976ac2..d81b9db 100644
+index 2976ac2..af44b40 100644
 --- a/bootloader_message/bootloader_message.c
 +++ b/bootloader_message/bootloader_message.c
-@@ -558,13 +558,13 @@ static int set_bootloader_message_block(const struct bootloader_message *in) {
+@@ -558,7 +558,7 @@ static int set_bootloader_message_block(const struct bootloader_message *in) {
  
  int get_store_device() {
      int ret = 0;
 -    ret = access("/proc/inand", F_OK);
-+    ret = access("/proc/mtd", F_OK);
++    ret = access("/sys/block/mmcblk0", F_OK);
      if (ret == 0 ) {
--        printf("emmc device!\n");
--        return 0;
--    } else {
-         printf("nand device!\n");
-         return -1;
-+    } else {
-+        printf("emmc device!\n");
-+        return 0;
-     }
- }
- 
+         printf("emmc device!\n");
+         return 0;
 -- 
 2.25.1
 

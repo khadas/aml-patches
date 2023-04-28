@@ -1,4 +1,4 @@
-From 322ca1db23d7dcb18f56de0d5b46c1a683858e6c Mon Sep 17 00:00:00 2001
+From 8d43fecf27f98969f59aeb63e61ec4f088849949 Mon Sep 17 00:00:00 2001
 From: "yi.liu" <yi.liu@amlogic.com>
 Date: Thu, 27 Apr 2023 12:02:05 +0800
 Subject: [PATCH] amlbian: debian build error [1/1]

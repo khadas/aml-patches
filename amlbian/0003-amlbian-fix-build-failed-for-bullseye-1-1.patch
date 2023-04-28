@@ -1,4 +1,4 @@
-From e91e89b8b768891df8bd4e3b9f7b38630d64c7fb Mon Sep 17 00:00:00 2001
+From 324d9bcf524da7ce3cf93ea102447968a2258c27 Mon Sep 17 00:00:00 2001
 From: "guoping.li" <guoping.li@amlogic.com>
 Date: Thu, 27 Apr 2023 11:01:58 +0800
 Subject: [PATCH] amlbian : fix build failed for bullseye  [1/1]
