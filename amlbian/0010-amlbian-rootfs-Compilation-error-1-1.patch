@@ -1,0 +1,37 @@
+From cfb084eefbcacd905b1f6c42a0a8b9d2ec2edd98 Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Tue, 9 May 2023 19:21:44 +0800
+Subject: [PATCH] amlbian: Compilation error [1/1]
+
+PD#SWPL-123153
+
+Problem:
+Compilation error when not using amlbian downloads
+
+Solution:
+Create a directory before entering
+
+Verify:
+t7c amlbian
+
+Change-Id: I1358468bafd944280eb00c4b2da8656f13206cd7
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+---
+ config/functions/build-base-rootfs | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/config/functions/build-base-rootfs b/config/functions/build-base-rootfs
+index 703f118..99f6f8f 100755
+--- a/config/functions/build-base-rootfs
++++ b/config/functions/build-base-rootfs
+@@ -227,6 +227,7 @@ download_rootfs_from_cache() {
+ save_rootfs_to_cache() {
+ 	local cache_file_name=$1
+ 
++	mkdir -p $ROOTFS_CACHE_PATH
+ 	cd $ROOTFS_CACHE_PATH
+ 
+ 	if [ "$NO_PROGRESS" ]; then
+-- 
+2.25.1
+
