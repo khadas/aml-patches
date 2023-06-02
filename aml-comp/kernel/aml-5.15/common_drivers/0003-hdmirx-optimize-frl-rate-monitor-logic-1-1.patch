@@ -1,0 +1,214 @@
+From 939205dd2f417709c47d0b54d7b393b06aefb9d5 Mon Sep 17 00:00:00 2001
+From: yicheng shen <yicheng.shen@amlogic.com>
+Date: Fri, 12 May 2023 15:07:24 +0800
+Subject: [PATCH 3/6] hdmirx: optimize frl rate monitor logic [1/1]
+
+PD#SWPL-117249
+
+Problem:
+1.rx driver signal detection error due to sw state machine
+goes to a wrong state-frl_trn;
+2.cfg_clk and meter_clk should be turned off when suspend;
+
+Solution:
+optimize frl rate monitor logic
+turn off cfg_clk and meter_clk when suspend
+
+Verify:
+T5M
+
+Change-Id: I89eeb12507a658a195871fc40cdb04a19f52f9dd
+Signed-off-by: yicheng shen <yicheng.shen@amlogic.com>
+---
+ drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.c   |  2 +-
+ drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.h   |  3 +-
+ drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.c    | 33 +++++++++++--------
+ drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.h    |  1 +
+ .../media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.c    | 13 ++++++++
+ .../media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.h    |  2 +-
+ .../media/vin/tvin/hdmirx/hdmi_rx_wrapper.c   | 15 +--------
+ 7 files changed, 39 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.c b/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.c
+index adcd1a60..206f4988 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.c
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.c
+@@ -995,7 +995,7 @@ static bool is_it_vid_fmt(u8 port)
+ 	else
+ 		ret = false;
+ 
+-	if (log_level & VIDEO_LOG)
++	if (log_level & DBG_LOG)
+ 		rx_pr("sw_vic: %d, it video format: %d\n", rx[port].pre.sw_vic, ret);
+ 	return ret;
+ }
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.h b/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.h
+index 5070e691..5895e728 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.h
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_drv.h
+@@ -73,7 +73,8 @@
+ /* merge project modifications back to trunk */
+ /* optimize unnormal_format logic */
+ /* 2023.5.12 fix silent issue, switch to FSM_HPD_LOW */
+-#define RX_VER1 "ver.2023/5/12"
++/* 2023.05.15 optimize frl_rate monitor logic */
++#define RX_VER1 "ver.2023/5/15"
+ 
+ /*
+  * Currently, a total of 5 VSIF packages are supported,
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.c b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.c
+index 6b391398..e106dc60 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.c
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.c
+@@ -1671,10 +1671,14 @@ void rx_get_aud_info(struct aud_info_s *audio_info, u8 port)
+ 		tmp += hdmirx_rd_cor(RX_ACR_DBYTE3_DP2_IVCRX, port);
+ 		audio_info->cts = tmp;
+ 		//if (rx_info.chip_id >= CHIP_ID_T3) {
+-		if (pkt->length == 10) //aif length is 10
+-			audio_info->aud_packet_received = 1;
+-		else
++		if (pkt->length == 10) { //aif length is 10
++			if (audio_info->aud_hbr_rcv)
++				audio_info->aud_packet_received = 8;
++			else
++				audio_info->aud_packet_received = 1;
++		} else {
+ 			audio_info->aud_packet_received = 0;
++		}
+ 		audio_info->ch_sts[0] = hdmirx_rd_cor(RX_CHST1_AUD_IVCRX, port);
+ 		audio_info->ch_sts[1] = hdmirx_rd_cor(RX_CHST2_AUD_IVCRX, port);
+ 		audio_info->ch_sts[2] = hdmirx_rd_cor(RX_CHST3a_AUD_IVCRX, port);
+@@ -2886,17 +2890,20 @@ void control_reset(void)
+ 
+ void rx_dig_clk_en(bool en)
+ {
+-	if (rx_info.chip_id >= CHIP_ID_T7)
+-		return;
+-	hdcp22_clk_en(en);
+-	/* enable gate of cts_hdmirx_modet_clk */
+-	/* enable gate of cts_hdmirx_cfg_clk */
+-	if (rx_info.chip_id >= CHIP_ID_T5) {
+-		hdmirx_wr_bits_clk_ctl(HHI_HDMIRX_CLK_CNTL, MODET_CLK_EN, en);
+-		hdmirx_wr_bits_clk_ctl(HHI_HDMIRX_CLK_CNTL, CFG_CLK_EN, en);
++	if (rx_info.chip_id >= CHIP_ID_T7) {
++		hdmirx_wr_bits_clk_ctl(RX_CLK_CTRL1, CFG_CLK_EN, en);
++		hdmirx_wr_bits_clk_ctl(RX_CLK_CTRL3, METER_CLK_EN, en);
+ 	} else {
+-		wr_reg_hhi_bits(HHI_HDMIRX_CLK_CNTL, MODET_CLK_EN, en);
+-		wr_reg_hhi_bits(HHI_HDMIRX_CLK_CNTL, CFG_CLK_EN, en);
++		hdcp22_clk_en(en);
++		/* enable gate of cts_hdmirx_modet_clk */
++		/* enable gate of cts_hdmirx_cfg_clk */
++		if (rx_info.chip_id >= CHIP_ID_T5) {
++			hdmirx_wr_bits_clk_ctl(HHI_HDMIRX_CLK_CNTL, MODET_CLK_EN, en);
++			hdmirx_wr_bits_clk_ctl(HHI_HDMIRX_CLK_CNTL, CFG_CLK_EN, en);
++		} else {
++			wr_reg_hhi_bits(HHI_HDMIRX_CLK_CNTL, MODET_CLK_EN, en);
++			wr_reg_hhi_bits(HHI_HDMIRX_CLK_CNTL, CFG_CLK_EN, en);
++		}
+ 	}
+ }
+ 
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.h b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.h
+index 62a984ef..e07473df 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.h
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw.h
+@@ -1262,6 +1262,7 @@
+ #define RX_CLK_CTRL1		(0x4B << 2)
+ #define RX_CLK_CTRL2		(0x4C << 2)
+ #define RX_CLK_CTRL3		(0x4D << 2)
++	#define METER_CLK_EN				_BIT(8)
+ #define CLKCTRL_SYS_CLK_EN0_REG2	(0x13 << 2)
+ 
+ /*t5w*/
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.c b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.c
+index ea7eb65c..808c13ca 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.c
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.c
+@@ -52,6 +52,7 @@ int tr_delay0 = 5;
+ int tr_delay1 = 10;
+ int frate_cnt = 100;
+ enum frl_train_sts_e frl_train_sts = E_FRL_TRAIN_START;
++static int frate_flg;
+ 
+ /* for T3X 2.0 */
+ static const u32 phy_misc_t3x_20[][2] = {
+@@ -4787,3 +4788,15 @@ void dump_aud21_param(u8 port)
+ 	rx_pr("ana 4x = 0x%x\n", hdmirx_rd_top_common_1(TOP_ACR_CNTL2_T3X));
+ }
+ 
++void frate_monitor(u8 port)
++{
++	int frate = 0;
++
++	frate = hdmirx_rd_cor(SCDCS_CONFIG1_SCDC_IVCRX, port) & 0xf;
++	if (frate != frate_flg) {
++		frate_flg = frate;
++		if (frate)
++			rx[port].state = FSM_FRL_TRN;
++		rx_pr("port-%d frate change to %d\n", port, frate);
++	}
++}
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.h b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.h
+index 3ea65a53..c127b987 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.h
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_hw_t3x.h
+@@ -191,7 +191,7 @@ bool is_frl_train_finished(void);
+ void rx_long_bist_t3x(void);
+ void rx_t3x_prbs(void);
+ void dump_aud21_param(u8 port);
+-
++void frate_monitor(u8 port);
+ //void reset_pcs(void);
+ 
+ /*function declare end*/
+diff --git a/drivers/media/vin/tvin/hdmirx/hdmi_rx_wrapper.c b/drivers/media/vin/tvin/hdmirx/hdmi_rx_wrapper.c
+index ca875fe3..2392a14e 100644
+--- a/drivers/media/vin/tvin/hdmirx/hdmi_rx_wrapper.c
++++ b/drivers/media/vin/tvin/hdmirx/hdmi_rx_wrapper.c
+@@ -190,7 +190,6 @@ int clk_chg_max = 3;
+ // 3. for hdcp1.4 cts. need to wait for hdcp start.
+ // waiting time cannot be reduced 1S
+ static int hdcp_none_wait_max = 80;
+-static int frate_flg = 0xf;
+ 
+ void hdmirx_phy_var_init(void)
+ {
+@@ -5943,6 +5942,7 @@ void rx_port2_main_state_machine(void)
+ 	int one_frame_cnt;
+ 	u8 port = E_PORT2;
+ 
++	frate_monitor(port);
+ 	if ((dbg_port - 1 != port) &&
+ 		dbg_port)
+ 		return;
+@@ -7509,18 +7509,6 @@ void rx_hpd_monitor(void)
+ 	}
+ }
+ 
+-void frate_monitor(u8 port)
+-{
+-	int frate = 0;
+-
+-	frate = hdmirx_rd_cor(SCDCS_CONFIG1_SCDC_IVCRX, port) & 0xf;
+-	if (frate != frate_flg) {
+-		frate_flg = frate;
+-		rx[port].state = FSM_FRL_TRN;
+-		rx_pr("port-%d frate change to %d\n", port, frate);
+-	}
+-}
+-
+ void hdmirx_timer_handler(struct timer_list *t)
+ {
+ 	struct hdmirx_dev_s *devp = from_timer(devp, t, timer);
+@@ -7557,7 +7545,6 @@ void hdmirx_timer_handler(struct timer_list *t)
+ 					rx_port2_main_state_machine();
+ 					rx_port3_main_state_machine();
+ 				}
+-				frate_monitor(rx_info.main_port);
+ 			}
+ 			/* rx_pkt_check_content(rx_info.main_port); */
+ 			#ifdef K_TEST_CHK_ERR_CNT
+-- 
+2.25.1
+

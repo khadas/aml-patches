@@ -1,0 +1,1015 @@
+From 5332ce4e01b23415e47628e7c6dbc0ee4ff43130 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Tue, 30 May 2023 11:23:14 +0800
+Subject: [PATCH] Amlbian: support ROS2 [1/4]
+
+PD#SWPL-126024
+
+Problem:
+remove jpeg-tube....
+install ROS2
+
+Solution:
+fix all install conflict issue, such as jpeg tube
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I57bbdf930570cdd882667be7916d4b174d2e0de7
+---
+ gst-plugin-nn/src/Makefile.am |  10 +-
+ gst-plugin-nn/src/facedb.c    | 302 --------------------------------
+ gst-plugin-nn/src/facedb.h    |  39 -----
+ gst-plugin-nn/src/gstamlnn.c  | 315 +---------------------------------
+ gst-plugin-nn/src/gstamlnn.h  |  18 +-
+ gst-plugin-nn/src/list.h      |  72 --------
+ 6 files changed, 8 insertions(+), 748 deletions(-)
+ delete mode 100644 gst-plugin-nn/src/facedb.c
+ delete mode 100644 gst-plugin-nn/src/facedb.h
+ delete mode 100644 gst-plugin-nn/src/list.h
+
+diff --git a/gst-plugin-nn/src/Makefile.am b/gst-plugin-nn/src/Makefile.am
+index 258c603..cf83953 100644
+--- a/gst-plugin-nn/src/Makefile.am
++++ b/gst-plugin-nn/src/Makefile.am
+@@ -3,7 +3,7 @@
+ plugin_LTLIBRARIES = libgstamlnn.la
+ 
+ # sources used to compile this plug-in
+-libgstamlnn_la_SOURCES = gstamlnn.c facedb.c
++libgstamlnn_la_SOURCES = gstamlnn.c
+ 
+ # compiler and linker flags used to compile this plugin, set in configure.ac
+ libgstamlnn_la_CFLAGS = $(GST_CFLAGS) \
+@@ -13,15 +13,13 @@ libgstamlnn_la_CFLAGS = $(GST_CFLAGS) \
+ libgstamlnn_la_LIBADD = $(GST_LIBS) \
+ 			$(SQLITE3_LIBS) \
+ 			-lgst-aml-ion-allocator \
+- 		        -lgst-aml-gfx2d \
+-			-lgst-jpeg-swdec \
++			-lgst-aml-gfx2d \
+ 			-ldetect-library \
+ 			-lge2d \
+ 			-lnnsdk \
+-			-lnndemo \
+-			-ljpeg
++			-lnndemo
+ 
+-libgstamlnn_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
++libgstamlnn_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) -Wl,--as-needed
+ libgstamlnn_la_LIBTOOLFLAGS = --tag=disable-static
+ 
+ # headers we need but don't want installed
+diff --git a/gst-plugin-nn/src/facedb.c b/gst-plugin-nn/src/facedb.c
+deleted file mode 100644
+index 4e8733a..0000000
+--- a/gst-plugin-nn/src/facedb.c
++++ /dev/null
+@@ -1,302 +0,0 @@
+-/*
+- * Copyright (C) 2014-2019 Amlogic, Inc. All rights reserved.
+- *
+- * All information contained herein is Amlogic confidential.
+- *
+- * This software is provided to you pursuant to Software License Agreement
+- * (SLA) with Amlogic Inc ("Amlogic"). This software may be used
+- * only in accordance with the terms of this agreement.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification is strictly prohibited without prior written permission from
+- * Amlogic.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- */
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <assert.h>
+-#include <math.h>
+-#include <sqlite3.h>
+-#include "jpeg.h"
+-
+-#include "facedb.h"
+-
+-#define EPS 0.000001
+-
+-static float gs_threshold = 0.6;
+-static float gs_scale = 0.0;
+-static int gs_threshold_uint = 0;
+-
+-static int
+-calcdiff(const unsigned char *ldat, const unsigned char *rdat, size_t size) {
+-  int i;
+-  int diff, sum = 0;
+-  for (i = 0; i < size; i++) {
+-    diff = ldat[i] - rdat[i];
+-    sum += diff * diff;
+-  }
+-  return sum;
+-}
+-
+-static void
+-calculateDiff(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+-  assert (2 == argc);
+-  const void *ldat = sqlite3_value_blob (argv[0]);
+-  const void *rdat = sqlite3_value_blob (argv[1]);
+-  size_t size_ldat = sqlite3_value_bytes (argv[0]) / sizeof(unsigned char);
+-  size_t size_rdat = sqlite3_value_bytes (argv[1]) / sizeof(unsigned char);
+-  int diff = gs_threshold_uint + 1;
+-  if (size_ldat == size_rdat) {
+-    diff = calcdiff ((const unsigned char*)ldat, (const unsigned char*)rdat, size_ldat);
+-  }
+-  sqlite3_result_int (ctx, diff);
+-}
+-
+-static void
+-prepare_tables (sqlite3 *db) {
+-  sqlite3_stmt* stmt = NULL;
+-
+-  sqlite3_prepare_v2 (db,
+-      "CREATE TABLE IF NOT EXISTS `faceinfo` ("
+-      "`index` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+-      "`uid`   INTEGER NOT NULL,"
+-      "`faceid`    BLOB NOT NULL,"
+-      "`faceimg`   BLOB NOT NULL"
+-      ");", -1, &stmt, NULL);
+-  sqlite3_step (stmt);
+-  sqlite3_finalize (stmt);
+-  stmt = NULL;
+-
+-  sqlite3_prepare_v2 (db,
+-      "CREATE TABLE IF NOT EXISTS `userinfo` ("
+-      "`uid`   INTEGER NOT NULL PRIMARY KEY UNIQUE,"
+-      "`name`  TEXT NOT NULL"
+-      ");", -1, &stmt, NULL);
+-  sqlite3_step (stmt);
+-  sqlite3_finalize (stmt);
+-  return;
+-}
+-
+-static void
+-_insert_data (sqlite3 *db, FACE_ID_t *faceid, size_t faceid_size, unsigned char* faceimg, int width, int height) {
+-  sqlite3_stmt* stmt = NULL;
+-  unsigned char *jpg = NULL;
+-
+-  int rc = sqlite3_prepare_v2 (db,
+-      "SELECT count(`uid`) FROM faceinfo WHERE `faceid`=? collate BINARY",
+-      -1, &stmt, NULL);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_prepare_v2. %s\n", sqlite3_errmsg(db));
+-    return;
+-  }
+-  rc = sqlite3_bind_blob (stmt, 1, (void *)faceid, sizeof(FACE_ID_t) * faceid_size, NULL);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_bind_blob. %s\n", sqlite3_errmsg(db));
+-    goto insert_data_end;
+-  }
+-
+-  while (sqlite3_step (stmt) == SQLITE_ROW) {
+-    int count = sqlite3_column_int (stmt, 0);
+-    if (count > 0) {
+-      // face already exists
+-      goto insert_data_end;
+-    }
+-  }
+-
+-  unsigned long szjpg =
+-    generate_jpeg_to_mem (faceimg, width, height, 80, &jpg);
+-
+-  if (szjpg == 0) { return; }
+-
+-  sqlite3_prepare_v2 (db,
+-      "insert into faceinfo (`uid`, `faceid`, `faceimg`) values (0, ?, ?)",
+-      -1, &stmt, NULL);
+-  sqlite3_bind_blob (stmt, 1, (void *)faceid, sizeof(FACE_ID_t) * faceid_size, NULL);
+-  sqlite3_bind_blob (stmt, 2, (void *)jpg, szjpg, NULL);
+-  sqlite3_step (stmt);
+-
+-insert_data_end:
+-  sqlite3_finalize (stmt);
+-  stmt = NULL;
+-  if (jpg != NULL) free (jpg);
+-}
+-
+-void *db_init (const char *dbfile) {
+-  sqlite3 *db;
+-  int rc = sqlite3_open (dbfile, &db);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_open %s. %s\n", dbfile, sqlite3_errmsg(db));
+-    return NULL;
+-  }
+-  rc = sqlite3_create_function_v2(db, "CalcDiff", 2, SQLITE_UTF8,
+-      NULL, calculateDiff, NULL, NULL, NULL);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_create_function_v2 -> calcdiff. %s\n", sqlite3_errmsg(db));
+-    goto on_error;
+-  }
+-
+-  prepare_tables (db);
+-
+-  return (void*)db;
+-on_error:
+-  if (db) {
+-    sqlite3_close (db);
+-    db = NULL;
+-  }
+-  return (void *)db;
+-}
+-
+-void db_deinit (void *db) {
+-  if (db) {
+-    sqlite3_close ((sqlite3 *)db);
+-  }
+-}
+-
+-void update_threshold_uint() {
+-  gs_threshold_uint = (int)((gs_threshold * gs_threshold) / (gs_scale * gs_scale));
+-}
+-
+-void db_set_threshold (float t) {
+-  gs_threshold = t;
+-  if (gs_scale > EPS) {
+-    update_threshold_uint();
+-  }
+-}
+-
+-void db_set_scale (float s) {
+-  gs_scale = s;
+-  update_threshold_uint();
+-}
+-
+-int db_search_result (void *db, FACE_ID_t *faceid, size_t faceid_size,
+-    unsigned char* faceimg, int width, int height,
+-    const char *format, char *buf, size_t bufsize) {
+-  if (db == NULL) return -1;
+-
+-  int rc;
+-  int uid = -1;
+-
+-  sqlite3 *sdb = (sqlite3 *)db;
+-  sqlite3_stmt* stmt = NULL;
+-
+-  if (buf) buf[0] = '\0';
+-
+-  // find the matched user id
+-  rc = sqlite3_prepare_v2 (sdb,
+-      "SELECT `index`, `uid`, CalcDiff(`faceid`, ?) FROM faceinfo WHERE `uid` > 0",
+-      -1, &stmt, NULL);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_prepare_v2. %s\n", sqlite3_errmsg(sdb));
+-    goto on_search_end;
+-  }
+-  rc = sqlite3_bind_blob (stmt, 1, (void *)faceid, sizeof(FACE_ID_t) * faceid_size, NULL);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_bind_blob. %s\n", sqlite3_errmsg(sdb));
+-    goto on_search_end;
+-  }
+-
+-  while (sqlite3_step (stmt) == SQLITE_ROW) {
+-    int face_diff = 0;
+-    int id = sqlite3_column_int (stmt, 1);
+-    int diff = sqlite3_column_int (stmt, 2);
+-    if (diff > gs_threshold_uint) continue;
+-    if (uid == -1) {
+-      uid = id;
+-      face_diff = diff;
+-    } else {
+-      if (diff < face_diff) {
+-        uid = id;
+-        face_diff = diff;
+-      }
+-    }
+-  }
+-
+-  sqlite3_finalize (stmt);
+-  stmt = NULL;
+-
+-  if (uid == -1) {
+-    goto on_search_end;
+-  }
+-
+-  // get the detail info
+-  char sql[256] = {0};
+-  snprintf (sql, sizeof(sql), "SELECT %s FROM userinfo WHERE uid=?", format);
+-  rc = sqlite3_prepare_v2 (sdb,
+-      sql, -1, &stmt, NULL);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_prepare_v2. %s\n", sqlite3_errmsg(sdb));
+-    goto on_search_end;
+-  }
+-  rc = sqlite3_bind_int (stmt, 1, uid);
+-  if (rc != SQLITE_OK) {
+-    fprintf (stderr, "sqlite3_bind_int. %s\n", sqlite3_errmsg(sdb));
+-    goto on_search_end;
+-  }
+-
+-  rc = sqlite3_step (stmt);
+-  if (rc == SQLITE_ROW) {
+-    int count = sqlite3_column_count (stmt);
+-    int i;
+-    for (i = 0; i < count; i++) {
+-      int type = sqlite3_column_type (stmt, i);
+-      const char *name = sqlite3_column_name (stmt, i);
+-      char vbuf[256] = {0};
+-      switch (type) {
+-        case SQLITE_TEXT:
+-          {
+-            const unsigned char *t =
+-              sqlite3_column_text (stmt, i);
+-            snprintf (vbuf, sizeof(vbuf), "%s\n", t);
+-          }
+-          break;
+-        case SQLITE_INTEGER:
+-          {
+-            int v =
+-              sqlite3_column_int (stmt, i);
+-            snprintf (vbuf, sizeof(vbuf), "%d\n", v);
+-          }
+-          break;
+-        case SQLITE_FLOAT:
+-          {
+-            double v =
+-              sqlite3_column_double (stmt, i);
+-            snprintf (vbuf, sizeof(vbuf), "%f\n", v);
+-          }
+-          break;
+-        default:
+-          break;
+-      }
+-      if (bufsize > 0) {
+-        size_t vbuf_len = strlen(vbuf);
+-        strncat (buf, vbuf, bufsize > vbuf_len ? vbuf_len : bufsize);
+-        bufsize -= vbuf_len;
+-      } else {
+-        break;
+-      }
+-    }
+-  } else {
+-    goto on_search_end;
+-  }
+-
+-on_search_end:
+-  if (stmt) {
+-    sqlite3_finalize (stmt);
+-  }
+-  if (faceimg != NULL) {
+-    _insert_data (sdb, faceid, faceid_size, faceimg, width, height);
+-  }
+-  return uid;
+-}
+-
+diff --git a/gst-plugin-nn/src/facedb.h b/gst-plugin-nn/src/facedb.h
+deleted file mode 100644
+index f2d144b..0000000
+--- a/gst-plugin-nn/src/facedb.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * Copyright (C) 2014-2019 Amlogic, Inc. All rights reserved.
+- *
+- * All information contained herein is Amlogic confidential.
+- *
+- * This software is provided to you pursuant to Software License Agreement
+- * (SLA) with Amlogic Inc ("Amlogic"). This software may be used
+- * only in accordance with the terms of this agreement.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification is strictly prohibited without prior written permission from
+- * Amlogic.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- */
+-#ifndef _FACEDB_H_
+-#define _FACEDB_H_
+-
+-typedef unsigned char FACE_ID_t;
+-
+-void *db_init (const char *dbfile);
+-void db_deinit (void *db);
+-void db_set_threshold (float t);
+-void db_set_scale(float s);
+-int db_search_result (void *db, FACE_ID_t *faceid, size_t faceid_size,
+-    unsigned char* faceimg, int width, int height,
+-    const char *format, char *buf, size_t bufsize);
+-
+-#endif /* _FACEDB_H_ */
+diff --git a/gst-plugin-nn/src/gstamlnn.c b/gst-plugin-nn/src/gstamlnn.c
+index 9354ead..a5af9ae 100644
+--- a/gst-plugin-nn/src/gstamlnn.c
++++ b/gst-plugin-nn/src/gstamlnn.c
+@@ -49,9 +49,6 @@
+ #include <gst/gst.h>
+ #include <gst/video/video.h>
+ 
+-#include "facedb.h"
+-#include "jpeg.h"
+-
+ #include "gstamlnn.h"
+ 
+ #include "gfx_2d.h"
+@@ -115,32 +112,15 @@ typedef struct _NNResultBuffer {
+ 
+ #define DEFAULT_PROP_FACE_DET_MODEL DET_AML_FACE_DETECTION
+ 
+-#define DEFAULT_PROP_FACE_RECOG_MODEL DET_AML_FACE_RECOGNITION
+-#define DEFAULT_PROP_FORMAT "uid,name"
+-#define DEFAULT_PROP_DBPATH ""
+-#define DEFAULT_PROP_THRESHOLD 0.6
+-#define DEFAULT_PROP_RECOG_TRIGGER_TIMEOUT 2
+ #define DEFAULT_PROP_MAX_DET_NUM 10
+ 
+ 
+ #define NN_INPUT_BUF_FORMAT GST_VIDEO_FORMAT_RGB
+ 
+-/* Filter signals and args */
+-enum {
+-  SIGNAL_FACE_RECOGNIZED,
+-  LAST_SIGNAL
+-};
+-
+-static guint gst_amlnn_signals[LAST_SIGNAL] = { 0 };
+ 
+ enum {
+   PROP_0,
+   PROP_FACE_DET_MODEL,
+-  PROP_FACE_RECOG_MODEL,
+-  PROP_DBPATH,
+-  PROP_FORMAT,
+-  PROP_THRESHOLD,
+-  PROP_RECOG_TRIGGER_TIMEOUT,
+   PROP_MAX_DET_NUM,
+ };
+ 
+@@ -160,22 +140,6 @@ static GType gst_aml_face_det_model_get_type(void) {
+   return aml_face_det_model;
+ }
+ 
+-#define GST_TYPE_AML_FACE_RECOG_MODEL (gst_aml_face_recog_model_get_type())
+-static GType gst_aml_face_recog_model_get_type(void) {
+-  static GType aml_face_recog_model = 0;
+-  static const GEnumValue aml_face_recog_models[] = {
+-      {DET_FACENET, "facenet", "facenet"},
+-      {DET_AML_FACE_RECOGNITION, "aml_face_recognition", "aml_face_recognition"},
+-      {DET_BUTT, "disable", "disable"},
+-      {0, NULL, NULL},
+-  };
+-
+-  if (!aml_face_recog_model) {
+-    aml_face_recog_model =
+-        g_enum_register_static("GstAMLFaceRecogModel", aml_face_recog_models);
+-  }
+-  return aml_face_recog_model;
+-}
+ 
+ /* the capabilities of the inputs and outputs.
+  */
+@@ -223,8 +187,6 @@ static GstFlowReturn gst_aml_nn_transform_ip(GstBaseTransform *base,
+ static gboolean gst_aml_nn_set_caps(GstBaseTransform *base, GstCaps *incaps,
+                                     GstCaps *outcaps);
+ 
+-static gboolean gst_aml_nn_sink_event(GstBaseTransform *base, GstEvent *event);
+-
+ static gboolean detection_init(GstAmlNN *self);
+ static gpointer amlnn_process(void *data);
+ static void push_result(GstBaseTransform *base, NNResultBuffer *resbuf);
+@@ -243,49 +205,12 @@ static void gst_aml_nn_class_init(GstAmlNNClass *klass) {
+   gobject_class->get_property = gst_aml_nn_get_property;
+   gobject_class->finalize = gst_aml_nn_finalize;
+ 
+-  gst_amlnn_signals[SIGNAL_FACE_RECOGNIZED] = g_signal_new(
+-      "face-recognized", G_TYPE_FROM_CLASS(klass), G_SIGNAL_RUN_LAST, 0, NULL,
+-      NULL, NULL, G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_STRING);
+-
+   g_object_class_install_property(
+       G_OBJECT_CLASS(klass), PROP_FACE_DET_MODEL,
+       g_param_spec_enum("detection-model", "detection-model",
+                         "face detection model", GST_TYPE_AML_FACE_DET_MODEL,
+                         DEFAULT_PROP_FACE_DET_MODEL,
+                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-
+-  g_object_class_install_property(
+-      G_OBJECT_CLASS(klass), PROP_FACE_RECOG_MODEL,
+-      g_param_spec_enum("recognition-model", "recognition-model",
+-                        "face recognition model", GST_TYPE_AML_FACE_RECOG_MODEL,
+-                        DEFAULT_PROP_FACE_RECOG_MODEL,
+-                        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-
+-  g_object_class_install_property(
+-      G_OBJECT_CLASS(klass), PROP_DBPATH,
+-      g_param_spec_string(
+-          "db-path", "db-path", "database location of face recognition",
+-          DEFAULT_PROP_DBPATH, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-
+-  g_object_class_install_property(
+-      G_OBJECT_CLASS(klass), PROP_FORMAT,
+-      g_param_spec_string("result-format", "result-format",
+-                          "string format of face recognition result",
+-                          DEFAULT_PROP_FORMAT,
+-                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-
+-  g_object_class_install_property(
+-      gobject_class, PROP_THRESHOLD,
+-      g_param_spec_float(
+-          "threshold", "Threshold", "threshold of face recognition", 0.01, 1.50,
+-          DEFAULT_PROP_THRESHOLD, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-
+-  g_object_class_install_property(
+-      gobject_class, PROP_RECOG_TRIGGER_TIMEOUT,
+-      g_param_spec_int(
+-          "recog-trigger-timeout", "Recognition-Trigger-Timeout", "timeout of recognition trigger for single face (seconds)", 1, 60,
+-          DEFAULT_PROP_RECOG_TRIGGER_TIMEOUT, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-
+   g_object_class_install_property(
+       gobject_class, PROP_MAX_DET_NUM,
+       g_param_spec_int(
+@@ -311,9 +236,6 @@ static void gst_aml_nn_class_init(GstAmlNNClass *klass) {
+   GST_BASE_TRANSFORM_CLASS(klass)->start = GST_DEBUG_FUNCPTR(gst_aml_nn_open);
+   GST_BASE_TRANSFORM_CLASS(klass)->stop = GST_DEBUG_FUNCPTR(gst_aml_nn_close);
+ 
+-  GST_BASE_TRANSFORM_CLASS(klass)->sink_event =
+-      GST_DEBUG_FUNCPTR(gst_aml_nn_sink_event);
+-
+   GST_BASE_TRANSFORM_CLASS(klass)->transform_ip_on_passthrough = FALSE;
+ }
+ 
+@@ -326,15 +248,6 @@ static void gst_aml_nn_init(GstAmlNN *nn) {
+   memset(&nn->face_det, 0, sizeof(ModelInfo));
+   nn->face_det.model = DEFAULT_PROP_FACE_DET_MODEL;
+   nn->max_detect_num = DEFAULT_PROP_MAX_DET_NUM;
+-  memset(&nn->face_recog, 0, sizeof(ModelInfo));
+-  nn->face_recog.model = DEFAULT_PROP_FACE_RECOG_MODEL;
+-
+-  nn->db_param.handle = NULL;
+-  nn->db_param.file = g_strdup(DEFAULT_PROP_DBPATH);
+-  nn->db_param.format = g_strdup(DEFAULT_PROP_FORMAT);
+-  nn->db_param.threshold = DEFAULT_PROP_THRESHOLD;
+-  nn->db_param.bstore_face = FALSE;
+-  nn->custimg = NULL;
+ 
+   nn->handle = NULL;
+ 
+@@ -348,9 +261,6 @@ static void gst_aml_nn_init(GstAmlNN *nn) {
+ 
+   nn->m_ready = FALSE;
+ 
+-  list_init(&nn->recognized_list);
+-  nn->recog_trigger_timeout = DEFAULT_PROP_RECOG_TRIGGER_TIMEOUT;
+-
+   // set debug log level
+   det_set_log_config(DET_DEBUG_LEVEL_WARN,DET_LOG_TERMINAL);
+ 
+@@ -416,24 +326,6 @@ static gboolean close_model(ModelInfo *m) {
+   return TRUE;
+ }
+ 
+-static gboolean open_db(RecogDBParam *param) {
+-  if (param->handle != NULL)
+-    return TRUE;
+-
+-  if (param->file[0] != '\0') {
+-    param->handle = db_init(param->file);
+-    db_set_threshold(param->threshold);
+-  }
+-  return param->handle != NULL;
+-}
+-
+-static gboolean close_db(RecogDBParam *param) {
+-  if (param->handle == NULL)
+-    return TRUE;
+-  db_deinit(param->handle);
+-  param->handle = NULL;
+-  return TRUE;
+-}
+ 
+ struct idle_task_data {
+   GstAmlNN *self;
+@@ -442,12 +334,6 @@ struct idle_task_data {
+       ModelInfo *minfo;
+       det_model_type new_model;
+     } model;
+-    struct _db {
+-      gchar *file;
+-    } db;
+-    struct _img {
+-      gchar *file;
+-    } img;
+   } u;
+ };
+ 
+@@ -474,55 +360,6 @@ static gboolean idle_close_model(struct idle_task_data *data) {
+   return G_SOURCE_REMOVE;
+ }
+ 
+-static gboolean idle_close_db(struct idle_task_data *data) {
+-  if (data == NULL || data->self == NULL || data->self->m_running == FALSE ||
+-      data->u.db.file == NULL) {
+-    return G_SOURCE_REMOVE;
+-  }
+-
+-  GstAmlNN *self = data->self;
+-
+-  g_mutex_lock(&self->m_mutex);
+-  close_db(&self->db_param);
+-  g_free(self->db_param.file);
+-  self->db_param.file = data->u.db.file;
+-  g_mutex_unlock(&self->m_mutex);
+-
+-  g_free(data);
+-  return G_SOURCE_REMOVE;
+-}
+-
+-static gboolean idle_request_capface(struct idle_task_data *data) {
+-  if (data == NULL || data->self == NULL || data->self->m_running == FALSE) {
+-    return G_SOURCE_REMOVE;
+-  }
+-
+-  GstAmlNN *self = data->self;
+-
+-  g_mutex_lock(&self->m_mutex);
+-  self->db_param.bstore_face = TRUE;
+-  g_mutex_unlock(&self->m_mutex);
+-
+-  g_free(data);
+-  return G_SOURCE_REMOVE;
+-}
+-
+-static gboolean idle_request_capface_from_image(struct idle_task_data *data) {
+-  if (data == NULL || data->self == NULL || data->self->m_running == FALSE ||
+-      data->u.img.file == NULL) {
+-    return G_SOURCE_REMOVE;
+-  }
+-
+-  GstAmlNN *self = data->self;
+-
+-  g_mutex_lock(&self->m_mutex);
+-  if (self->custimg) g_free(self->custimg);
+-  self->custimg = data->u.img.file;
+-  g_mutex_unlock(&self->m_mutex);
+-
+-  g_free(data);
+-  return G_SOURCE_REMOVE;
+-}
+ 
+ static void gst_aml_nn_set_property(GObject *object, guint prop_id,
+                                     const GValue *value, GParamSpec *pspec) {
+@@ -544,47 +381,6 @@ static void gst_aml_nn_set_property(GObject *object, guint prop_id,
+       }
+     }
+   } break;
+-  case PROP_FACE_RECOG_MODEL: {
+-    det_model_type m = g_value_get_enum(value);
+-    if (m != self->face_recog.model) {
+-      if (self->face_recog.initialized) {
+-        struct idle_task_data *data = g_new(struct idle_task_data, 1);
+-        data->self = self;
+-        data->u.model.minfo = &self->face_recog;
+-        data->u.model.new_model = m;
+-        // close recognition model for the next reinitialization
+-        g_idle_add((GSourceFunc)idle_close_model, data);
+-      } else {
+-        self->face_recog.model = m;
+-      }
+-    }
+-  } break;
+-  case PROP_DBPATH: {
+-    gchar *file = g_value_dup_string(value);
+-    if (g_strcmp0(file, self->db_param.file)) {
+-      if (self->db_param.handle != NULL) {
+-        struct idle_task_data *data = g_new(struct idle_task_data, 1);
+-        data->self = self;
+-        data->u.db.file = file;
+-        g_idle_add((GSourceFunc)idle_close_db, data);
+-      } else {
+-        self->db_param.file = file;
+-      }
+-    } else {
+-      g_free(file);
+-    }
+-  } break;
+-  case PROP_FORMAT:
+-    g_free(self->db_param.format);
+-    self->db_param.format = g_value_dup_string(value);
+-    break;
+-  case PROP_THRESHOLD:
+-    self->db_param.threshold = g_value_get_float(value);
+-    db_set_threshold(self->db_param.threshold);
+-    break;
+-  case PROP_RECOG_TRIGGER_TIMEOUT:
+-    self->recog_trigger_timeout = g_value_get_int(value);
+-    break;
+   case PROP_MAX_DET_NUM: {
+     int n = g_value_get_int(value);
+     if (self->face_det.initialized && n != self->max_detect_num) {
+@@ -606,20 +402,6 @@ static void gst_aml_nn_get_property(GObject *object, guint prop_id,
+   case PROP_FACE_DET_MODEL:
+     g_value_set_enum(value, self->face_det.model);
+     break;
+-  case PROP_FACE_RECOG_MODEL:
+-    g_value_set_enum(value, self->face_recog.model);
+-    break;
+-  case PROP_DBPATH:
+-    g_value_set_string(value, self->db_param.file);
+-    break;
+-  case PROP_FORMAT:
+-    g_value_set_string(value, self->db_param.format);
+-    break;
+-  case PROP_THRESHOLD:
+-    g_value_set_float(value, self->db_param.threshold);
+-    break;
+-  case PROP_RECOG_TRIGGER_TIMEOUT:
+-    g_value_set_int(value, self->recog_trigger_timeout);
+   case PROP_MAX_DET_NUM:
+     g_value_set_int(value, self->max_detect_num);
+     break;
+@@ -658,11 +440,6 @@ static gboolean gst_aml_nn_close(GstBaseTransform *base) {
+   g_thread_join(self->m_thread);
+   self->m_thread = NULL;
+ 
+-  if (self->custimg) {
+-    g_free(self->custimg);
+-    self->custimg = NULL;
+-  }
+-
+   if (self->handle) {
+     gfx_deinit(self->handle);
+     self->handle = NULL;
+@@ -681,10 +458,9 @@ static gboolean gst_aml_nn_close(GstBaseTransform *base) {
+     }                                                                          \
+   } while (0)
+ 
++
+ static void gst_aml_nn_finalize(GObject *object) {
+   GstAmlNN *self = GST_AMLNN(object);
+-  FREE_STRING(self->db_param.file);
+-  FREE_STRING(self->db_param.format);
+   G_OBJECT_CLASS(parent_class)->finalize(object);
+ }
+ 
+@@ -703,40 +479,6 @@ static gboolean gst_aml_nn_set_caps(GstBaseTransform *base, GstCaps *incaps,
+   return TRUE;
+ }
+ 
+-/* GstBaseTransform vmethod implementations */
+-static gboolean gst_aml_nn_sink_event(GstBaseTransform *base, GstEvent *event) {
+-  GstAmlNN *self = GST_AMLNN(base);
+-
+-  switch (GST_EVENT_TYPE(event)) {
+-  case GST_EVENT_CUSTOM_DOWNSTREAM_OOB: {
+-    const GstStructure *st = gst_event_get_structure(event);
+-
+-    // GST_INFO_OBJECT(self, "GST_EVENT_CUSTOM_DOWNSTREAM_OOB");
+-
+-    if (gst_structure_has_name(st, "do-image-facecap")) {
+-
+-      GST_INFO_OBJECT(self, "do-image-facecap");
+-
+-      const GValue *value = gst_structure_get_value(st, "image-path");
+-      struct idle_task_data *data = g_new(struct idle_task_data, 1);
+-      data->self = self;
+-      data->u.img.file = g_value_dup_string (value);
+-      g_idle_add((GSourceFunc)idle_request_capface_from_image, data);
+-    }
+-    if (gst_structure_has_name(st, "do-facecap")) {
+-
+-      GST_INFO_OBJECT(self, "do-facecap");
+-
+-      struct idle_task_data *data = g_new(struct idle_task_data, 1);
+-      data->self = self;
+-      g_idle_add((GSourceFunc)idle_request_capface, data);
+-    }
+-  } break;
+-  default:
+-    break;
+-  }
+-  return GST_BASE_TRANSFORM_CLASS(parent_class)->sink_event(base, event);
+-}
+ 
+ static void push_result(GstBaseTransform *base,
+                         NNResultBuffer *resbuf) {
+@@ -774,46 +516,6 @@ static void push_result(GstBaseTransform *base,
+   gst_buffer_unref(gstbuf);
+ }
+ 
+-static GstMemory *process_custom_image(GstAmlNN *self) {
+-  int width, height, stride;
+-  GstMemory *input_memory = NULL;
+-  GstMapInfo minfo;
+-
+-  // read image to input memory
+-  GST_INFO_OBJECT(self, "processing image: %s", self->custimg);
+-  if (!jpeg_to_rgb888(self->custimg, &width, &height, &stride, NULL)) {
+-    goto fail_exit;
+-  }
+-
+-  gint input_size = stride * height;
+-  input_memory = gst_allocator_alloc(self->dmabuf_alloc, input_size, NULL);
+-  if (input_memory == NULL) {
+-    GST_ERROR_OBJECT(self, "failed to allocate new dma buffer");
+-    goto fail_exit;
+-  }
+-  if (!gst_memory_map(input_memory, &minfo, GST_MAP_WRITE)) {
+-    GST_ERROR_OBJECT(self, "failed to map new dma buffer");
+-    goto fail_exit;
+-  }
+-
+-  if (!jpeg_to_rgb888(self->custimg, &width, &height, &stride, minfo.data)) {
+-    GST_ERROR_OBJECT(self, "failed to generate rgb data from %s",
+-                     self->custimg);
+-    gst_memory_unmap(input_memory, &minfo);
+-    goto fail_exit;
+-  }
+-  gst_memory_unmap(input_memory, &minfo);
+-
+-  GST_INFO_OBJECT(self, "image size: %dx%d", width, height);
+-
+-fail_exit:
+-  if (input_memory) {
+-    gst_memory_unref (input_memory);
+-  }
+-  return input_memory;
+-}
+-
+-
+ 
+ static gboolean detection_init(GstAmlNN *self) {
+   // open face detect model
+@@ -1038,17 +740,8 @@ static gpointer amlnn_process(void *data) {
+       goto loop_continue;
+     }
+ 
+-    if (self->custimg) {
+-      GST_INFO_OBJECT(self, "custimg=%s", self->custimg);
+-      process_custom_image(self);
+-      g_free(self->custimg);
+-      self->custimg = NULL;
+-      self->db_param.bstore_face = TRUE;
+-      is_normal_process = FALSE;
+-    } else{
+-      is_normal_process = TRUE;
+-      GST_INFO_OBJECT(self, "is_normal_process=%d", is_normal_process);
+-    }
++    is_normal_process = TRUE;
++    GST_INFO_OBJECT(self, "is_normal_process=%d", is_normal_process);
+ 
+     detection_process(self, &resbuf);
+ 
+@@ -1105,9 +798,7 @@ static gpointer amlnn_process(void *data) {
+   }
+ 
+   // exiting
+-  close_db(&self->db_param);
+   close_model(&self->face_det);
+-  close_model(&self->face_recog);
+ 
+   return NULL;
+ }
+diff --git a/gst-plugin-nn/src/gstamlnn.h b/gst-plugin-nn/src/gstamlnn.h
+index 31c460e..4f6156c 100644
+--- a/gst-plugin-nn/src/gstamlnn.h
++++ b/gst-plugin-nn/src/gstamlnn.h
+@@ -30,7 +30,6 @@
+ #include <gst/gst.h>
+ #include <gst/base/gstbasesink.h>
+ #include <nn_detect.h>
+-#include "list.h"
+ 
+ G_BEGIN_DECLS
+ 
+@@ -76,21 +75,12 @@ typedef struct _model_info {
+   int prepare_idx;
+ } ModelInfo;
+ 
+-typedef struct _recog_db_param {
+-    gchar *format;
+-    gfloat threshold;
+-    gchar *file;
+-    void *handle;
+-    gboolean bstore_face;
+-} RecogDBParam;
+ 
+ struct _GstAmlNN {
+   GstBaseTransform element;
+-  /* properties */
+-  RecogDBParam db_param;
+ 
+   /*< private >*/
+-  ModelInfo face_det, face_recog;
++  ModelInfo face_det;
+ 
+   gint max_detect_num;
+ 
+@@ -108,12 +98,6 @@ struct _GstAmlNN {
+ 
+   GstVideoInfo info;
+   gboolean is_info_set;
+-
+-  gchar *custimg;
+-  gboolean b_process_custimg;
+-
+-  struct listnode recognized_list;
+-  gint recog_trigger_timeout;
+ };
+ 
+ struct _GstAmlNNClass {
+diff --git a/gst-plugin-nn/src/list.h b/gst-plugin-nn/src/list.h
+deleted file mode 100644
+index fe77601..0000000
+--- a/gst-plugin-nn/src/list.h
++++ /dev/null
+@@ -1,72 +0,0 @@
+-#ifndef _LIST_H_
+-#define _LIST_H_
+-
+-#include <stddef.h>
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif /* __cplusplus */
+-
+-struct listnode
+-{
+-    struct listnode *next;
+-    struct listnode *prev;
+-};
+-
+-#define list_entry(node, container, member) \
+-    (container *) (((char*) (node)) - offsetof(container, member))
+-
+-#define list_declare(name) \
+-    struct listnode name = { \
+-        .next = &name, \
+-        .prev = &name, \
+-    }
+-
+-#define list_for_each(node, list) \
+-    for (node = (list)->next; node != (list); node = node->next)
+-
+-#define list_for_each_reverse(node, list) \
+-    for (node = (list)->prev; node != (list); node = node->prev)
+-
+-#define list_for_each_safe(node, n, list) \
+-    for (node = (list)->next, n = node->next; \
+-         node != (list); \
+-         node = n, n = node->next)
+-
+-static inline void list_init(struct listnode *node)
+-{
+-    node->next = node;
+-    node->prev = node;
+-}
+-
+-static inline void list_add_tail(struct listnode *head, struct listnode *item)
+-{
+-    item->next = head;
+-    item->prev = head->prev;
+-    head->prev->next = item;
+-    head->prev = item;
+-}
+-
+-static inline void list_add_head(struct listnode *head, struct listnode *item)
+-{
+-    item->next = head->next;
+-    item->prev = head;
+-    head->next->prev = item;
+-    head->next = item;
+-}
+-
+-static inline void list_remove(struct listnode *item)
+-{
+-    item->next->prev = item->prev;
+-    item->prev->next = item->next;
+-}
+-
+-#define list_empty(list) ((list) == (list)->next)
+-#define list_head(list) ((list)->next)
+-#define list_tail(list) ((list)->prev)
+-
+-#ifdef __cplusplus
+-};
+-#endif /* __cplusplus */
+-
+-#endif
+-- 
+2.25.1
+

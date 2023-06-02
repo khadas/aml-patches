@@ -1,0 +1,414 @@
+From 8fdd6cbcc88f8e22bad2cf73e9924e9066f857af Mon Sep 17 00:00:00 2001
+From: Xingxing Wang <xingxing.wang@amlogic.com>
+Date: Fri, 26 May 2023 11:41:11 +0800
+Subject: [PATCH 5/6] dvfs: align cpu frequency in big little clusters [1/1]
+
+PD#SWPL-119769
+
+Problem:
+cpu frequency too large to keep performance
+
+Solution:
+1.if one cluster runs at max freq, the other cluster keep
+freq above 1G
+2.align opp-table to kernel4.9(remove 100M&250M)
+
+Verify:
+g12b
+
+Change-Id: I8fc30d04526d1cefbe585c9917eaa7018da5db56
+Signed-off-by: Xingxing Wang <xingxing.wang@amlogic.com>
+---
+ .../boot/dts/amlogic/g12b_a311d_w400.dts      | 44 ++++++-------------
+ .../dts/amlogic/g12b_a311d_w400_debian.dts    | 44 ++++++-------------
+ .../dts/amlogic/g12b_a311d_w400_linux.dts     | 44 ++++++-------------
+ arch/arm64/boot/dts/amlogic/mesong12b.dtsi    |  2 +
+ drivers/cpufreq/meson-cpufreq.c               | 11 ++++-
+ drivers/cpufreq/meson-cpufreq.h               |  3 +-
+ 6 files changed, 56 insertions(+), 92 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400.dts
+index b505afbf..90e79620 100644
+--- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400.dts
++++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400.dts
+@@ -811,42 +811,34 @@
+ 		opp-shared;
+ 
+ 		opp00 {
+-			opp-hz = /bits/ 64 <100000000>;
+-			opp-microvolt = <770000>;
+-		};
+-		opp01 {
+-			opp-hz = /bits/ 64 <250000000>;
+-			opp-microvolt = <770000>;
+-		};
+-		opp02 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp03 {
++		opp01 {
+ 			opp-hz = /bits/ 64 <667000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp04 {
++		opp02 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp05 {
++		opp03 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp06 {
++		opp04 {
+ 			opp-hz = /bits/ 64 <1398000000>;
+ 			opp-microvolt = <800000>;
+ 		};
+-		opp07 {
++		opp05 {
+ 			opp-hz = /bits/ 64 <1512000000>;
+ 			opp-microvolt = <840000>;
+ 		};
+-		opp08 {
++		opp06 {
+ 			opp-hz = /bits/ 64 <1608000000>;
+ 			opp-microvolt = <880000>;
+ 		};
+-		opp09 {
++		opp07 {
+ 			opp-hz = /bits/ 64 <1704000000>;
+ 			opp-microvolt = <910000>;
+ 		};
+@@ -857,42 +849,34 @@
+ 		opp-shared;
+ 
+ 		opp00 {
+-			opp-hz = /bits/ 64 <100000000>;
+-			opp-microvolt = <790000>;
+-		};
+-		opp01 {
+-			opp-hz = /bits/ 64 <250000000>;
+-			opp-microvolt = <790000>;
+-		};
+-		opp02 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <790000>;
+ 		};
+-		opp03 {
++		opp01 {
+ 			opp-hz = /bits/ 64 <667000000>;
+ 			opp-microvolt = <790000>;
+ 		};
+-		opp04 {
++		opp02 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <810000>;
+ 		};
+-		opp05 {
++		opp03 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <810000>;
+ 		};
+-		opp06 {
++		opp04 {
+ 			opp-hz = /bits/ 64 <1398000000>;
+ 			opp-microvolt = <830000>;
+ 		};
+-		opp07 {
++		opp05 {
+ 			opp-hz = /bits/ 64 <1512000000>;
+ 			opp-microvolt = <870000>;
+ 		};
+-		opp08 {
++		opp06 {
+ 			opp-hz = /bits/ 64 <1608000000>;
+ 			opp-microvolt = <910000>;
+ 		};
+-		opp09 {
++		opp07 {
+ 			opp-hz = /bits/ 64 <1704000000>;
+ 			opp-microvolt = <940000>;
+ 		};
+diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts
+index 19d19f41..8f121f1c 100644
+--- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts
+@@ -801,42 +801,34 @@
+ 		opp-shared;
+ 
+ 		opp00 {
+-			opp-hz = /bits/ 64 <100000000>;
+-			opp-microvolt = <770000>;
+-		};
+-		opp01 {
+-			opp-hz = /bits/ 64 <250000000>;
+-			opp-microvolt = <770000>;
+-		};
+-		opp02 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp03 {
++		opp01 {
+ 			opp-hz = /bits/ 64 <667000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp04 {
++		opp02 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp05 {
++		opp03 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp06 {
++		opp04 {
+ 			opp-hz = /bits/ 64 <1398000000>;
+ 			opp-microvolt = <800000>;
+ 		};
+-		opp07 {
++		opp05 {
+ 			opp-hz = /bits/ 64 <1512000000>;
+ 			opp-microvolt = <840000>;
+ 		};
+-		opp08 {
++		opp06 {
+ 			opp-hz = /bits/ 64 <1608000000>;
+ 			opp-microvolt = <880000>;
+ 		};
+-		opp09 {
++		opp07 {
+ 			opp-hz = /bits/ 64 <1704000000>;
+ 			opp-microvolt = <910000>;
+ 		};
+@@ -847,42 +839,34 @@
+ 		opp-shared;
+ 
+ 		opp00 {
+-			opp-hz = /bits/ 64 <100000000>;
+-			opp-microvolt = <790000>;
+-		};
+-		opp01 {
+-			opp-hz = /bits/ 64 <250000000>;
+-			opp-microvolt = <790000>;
+-		};
+-		opp02 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <790000>;
+ 		};
+-		opp03 {
++		opp01 {
+ 			opp-hz = /bits/ 64 <667000000>;
+ 			opp-microvolt = <790000>;
+ 		};
+-		opp04 {
++		opp02 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <810000>;
+ 		};
+-		opp05 {
++		opp03 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <810000>;
+ 		};
+-		opp06 {
++		opp04 {
+ 			opp-hz = /bits/ 64 <1398000000>;
+ 			opp-microvolt = <830000>;
+ 		};
+-		opp07 {
++		opp05 {
+ 			opp-hz = /bits/ 64 <1512000000>;
+ 			opp-microvolt = <870000>;
+ 		};
+-		opp08 {
++		opp06 {
+ 			opp-hz = /bits/ 64 <1608000000>;
+ 			opp-microvolt = <910000>;
+ 		};
+-		opp09 {
++		opp07 {
+ 			opp-hz = /bits/ 64 <1704000000>;
+ 			opp-microvolt = <940000>;
+ 		};
+diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts
+index b94519fb..51fbe9ad 100644
+--- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts
++++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts
+@@ -801,42 +801,34 @@
+ 		opp-shared;
+ 
+ 		opp00 {
+-			opp-hz = /bits/ 64 <100000000>;
+-			opp-microvolt = <770000>;
+-		};
+-		opp01 {
+-			opp-hz = /bits/ 64 <250000000>;
+-			opp-microvolt = <770000>;
+-		};
+-		opp02 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp03 {
++		opp01 {
+ 			opp-hz = /bits/ 64 <667000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp04 {
++		opp02 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp05 {
++		opp03 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <770000>;
+ 		};
+-		opp06 {
++		opp04 {
+ 			opp-hz = /bits/ 64 <1398000000>;
+ 			opp-microvolt = <800000>;
+ 		};
+-		opp07 {
++		opp05 {
+ 			opp-hz = /bits/ 64 <1512000000>;
+ 			opp-microvolt = <840000>;
+ 		};
+-		opp08 {
++		opp06 {
+ 			opp-hz = /bits/ 64 <1608000000>;
+ 			opp-microvolt = <880000>;
+ 		};
+-		opp09 {
++		opp07 {
+ 			opp-hz = /bits/ 64 <1704000000>;
+ 			opp-microvolt = <910000>;
+ 		};
+@@ -847,42 +839,34 @@
+ 		opp-shared;
+ 
+ 		opp00 {
+-			opp-hz = /bits/ 64 <100000000>;
+-			opp-microvolt = <790000>;
+-		};
+-		opp01 {
+-			opp-hz = /bits/ 64 <250000000>;
+-			opp-microvolt = <790000>;
+-		};
+-		opp02 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <790000>;
+ 		};
+-		opp03 {
++		opp01 {
+ 			opp-hz = /bits/ 64 <667000000>;
+ 			opp-microvolt = <790000>;
+ 		};
+-		opp04 {
++		opp02 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <810000>;
+ 		};
+-		opp05 {
++		opp03 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <810000>;
+ 		};
+-		opp06 {
++		opp04 {
+ 			opp-hz = /bits/ 64 <1398000000>;
+ 			opp-microvolt = <830000>;
+ 		};
+-		opp07 {
++		opp05 {
+ 			opp-hz = /bits/ 64 <1512000000>;
+ 			opp-microvolt = <870000>;
+ 		};
+-		opp08 {
++		opp06 {
+ 			opp-hz = /bits/ 64 <1608000000>;
+ 			opp-microvolt = <910000>;
+ 		};
+-		opp09 {
++		opp07 {
+ 			opp-hz = /bits/ 64 <1704000000>;
+ 			opp-microvolt = <940000>;
+ 		};
+diff --git a/arch/arm64/boot/dts/amlogic/mesong12b.dtsi b/arch/arm64/boot/dts/amlogic/mesong12b.dtsi
+index e73f9146..47c2c5a3 100644
+--- a/arch/arm64/boot/dts/amlogic/mesong12b.dtsi
++++ b/arch/arm64/boot/dts/amlogic/mesong12b.dtsi
+@@ -70,6 +70,7 @@
+ 			capacity-dmips-mhz = <632>;
+ 			dynamic-power-coefficient = <110>;
+ 			#cooling-cells = <2>;
++			hmp_boost_enable;
+ 		};
+ 
+ 		CPU1:cpu@1 {
+@@ -111,6 +112,7 @@
+ 			capacity-dmips-mhz = <1024>;
+ 			dynamic-power-coefficient = <550>;
+ 			#cooling-cells = <2>;
++			hmp_boost_enable;
+ 		};
+ 
+ 		CPU3:cpu@101 {
+diff --git a/drivers/cpufreq/meson-cpufreq.c b/drivers/cpufreq/meson-cpufreq.c
+index dd799a0e..5fb8f376 100644
+--- a/drivers/cpufreq/meson-cpufreq.c
++++ b/drivers/cpufreq/meson-cpufreq.c
+@@ -444,7 +444,14 @@ static int meson_cpufreq_set_target(struct cpufreq_policy *policy,
+ 
+ 	pr_debug("setting target for cpu %d, index =%d\n", policy->cpu, index);
+ 
+-	freq_new = freq_table[cur_cluster][index].frequency * 1000;
++	freq_new = freq_table[cur_cluster][index].frequency;
++	if (cpufreq_data->hmp_boost_enable && freq_new >= policy->max)
++		cluster_need_boost[!cur_cluster] = 1;
++	else
++		cluster_need_boost[!cur_cluster] = 0;
++	if (cluster_need_boost[cur_cluster] && freq_new < mid_rate)
++		freq_new = mid_rate;
++	freq_new = freq_new * 1000;
+ 
+ 	if (!IS_ERR(cpu_reg)) {
+ 		opp = dev_pm_opp_find_freq_ceil(cpu_dev, &freq_new);
+@@ -967,6 +974,8 @@ static int meson_cpufreq_init(struct cpufreq_policy *policy)
+ 							 "cpufreq_voltage_set_skip");
+ 	reg_use_buck[cur_cluster] = of_property_read_bool(np,
+ 		"cpu_reg_use_buck");
++	cpufreq_data->hmp_boost_enable = of_property_read_bool(np,
++		"hmp_boost_enable");
+ 	dsu_opp_table = kmalloc(sizeof(*dsu_opp_table) * 4, GFP_KERNEL);
+ 	if (IS_ERR(dsu_opp_table)) {
+ 		pr_err("failed to alloc dsu_opp_table.\n");
+diff --git a/drivers/cpufreq/meson-cpufreq.h b/drivers/cpufreq/meson-cpufreq.h
+index bf84473a..6f6e0563 100644
+--- a/drivers/cpufreq/meson-cpufreq.h
++++ b/drivers/cpufreq/meson-cpufreq.h
+@@ -24,7 +24,7 @@ static struct clk *clk[MAX_CLUSTERS];
+ static bool reg_use_buck[MAX_CLUSTERS];
+ static struct cpufreq_frequency_table *freq_table[MAX_CLUSTERS];
+ static struct cpumask cluster_cpus[MAX_CLUSTERS];
+-//static struct thermal_cooling_device *cooldev[MAX_CLUSTERS];
++static int cluster_need_boost[MAX_CLUSTERS];
+ 
+ /* Default voltage_tolerance */
+ #define DEF_VOLT_TOL		0
+@@ -60,6 +60,7 @@ struct meson_cpufreq_driver_data {
+ 	bool reg_external_used;
+ 	u32 *dsu_opp_table;
+ 	bool dsu_clock_shared;
++	bool hmp_boost_enable;
+ 	struct cpufreq_policy *policy;
+ 	/* voltage tolerance in percentage */
+ 	unsigned int volt_tol;
+-- 
+2.25.1
+

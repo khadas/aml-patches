@@ -1,0 +1,292 @@
+From 3c8333fb67dbd9c8a31881d5d749f6cd2c0fe513 Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Fri, 19 May 2023 13:49:02 +0800
+Subject: [PATCH 2/9] amlbian: minimal support adb tool [1/1]
+
+PD#SWPL-124247
+
+Problem:
+minimal support adb tool.
+
+Solution:
+minimal support adb tool.
+
+Verify:
+local
+
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+Change-Id: I64a2f8b8a15c6ee3ecae4de7ea411484bd2e5bf8
+---
+ config/boards/amlogic/A311D-W400.conf       | 28 ---------
+ config/boards/amlogic/S905D3-AC200.conf     | 38 ------------
+ config/boards/amlogic/T7-AN400.conf         | 38 ------------
+ config/boards/amlogic/board-base-config.inc | 66 +++++++++++++++++++++
+ config/config                               |  2 +
+ config/functions/common-functions           | 13 ++--
+ 6 files changed, 76 insertions(+), 109 deletions(-)
+
+diff --git a/config/boards/amlogic/A311D-W400.conf b/config/boards/amlogic/A311D-W400.conf
+index b6e2a12..5e1454f 100644
+--- a/config/boards/amlogic/A311D-W400.conf
++++ b/config/boards/amlogic/A311D-W400.conf
+@@ -106,31 +106,3 @@ build_deb_packages_platform() {
+ 	fi
+ }
+ 
+-## Install deb packages for platform
+-install_deb_packages_platform() {
+-
+-	if [ "$DISTRIB_TYPE" == "minimal" ]; then
+-		warning_msg "Ignore install platform packages for minimal image."
+-		return 0
+-	fi
+-
+-	deb_status_append=`find $DEB_PACKAGES/status_append -name "*.deb"`
+-
+-	mkdir -p $DEB_STATUS_APPEND
+-	mkdir -p $DEB_AMLOGIC
+-
+-	for debs in `find $DEB_PACKAGES -name "*.deb"`; do
+-		if [[ "${deb_status_append[@]}" =~ "${debs##*/}" ]]; then
+-			cp $debs $DEB_STATUS_APPEND
+-		else
+-			cp $debs $DEB_AMLOGIC
+-		fi
+-	done
+-
+-	install_debs_status_chroot
+-	install_debs_chroot
+-	install_gstreamer_deb
+-
+-	# remove all debs
+-	rm -rf $DEB_TEMP
+-}
+diff --git a/config/boards/amlogic/S905D3-AC200.conf b/config/boards/amlogic/S905D3-AC200.conf
+index b0b3bd3..6400b1e 100644
+--- a/config/boards/amlogic/S905D3-AC200.conf
++++ b/config/boards/amlogic/S905D3-AC200.conf
+@@ -96,41 +96,3 @@ tweaks_platform() {
+ 		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "ln -fs  dtb/amlogic/$(basename $LINUX_DTB) /boot/dtb.img"'
+ 	fi
+ }
+-
+-## Build deb packages for platform
+-build_deb_packages_platform() {
+-
+-	if [ "$DISTRIB_TYPE" == "minimal" ]; then
+-		warning_msg "Ignore build platform packages for minimal image."
+-		return 0
+-	fi
+-}
+-
+-## Install deb packages for platform
+-install_deb_packages_platform() {
+-
+-	if [ "$DISTRIB_TYPE" == "minimal" ]; then
+-		warning_msg "Ignore install platform packages for minimal image."
+-		return 0
+-	fi
+-
+-	deb_status_append=`find $DEB_PACKAGES/status_append -name "*.deb"`
+-
+-	mkdir -p $DEB_STATUS_APPEND
+-	mkdir -p $DEB_AMLOGIC
+-
+-	for debs in `find $DEB_PACKAGES -name "*.deb"`; do
+-		if [[ "${deb_status_append[@]}" =~ "${debs##*/}" ]]; then
+-			cp $debs $DEB_STATUS_APPEND
+-		else
+-			cp $debs $DEB_AMLOGIC
+-		fi
+-	done
+-
+-	install_debs_status_chroot
+-	install_debs_chroot
+-	install_gstreamer_deb
+-
+-	# remove all debs
+-	rm -rf $DEB_TEMP
+-}
+diff --git a/config/boards/amlogic/T7-AN400.conf b/config/boards/amlogic/T7-AN400.conf
+index 59d1af4..e2e70e0 100644
+--- a/config/boards/amlogic/T7-AN400.conf
++++ b/config/boards/amlogic/T7-AN400.conf
+@@ -123,41 +123,3 @@ tweaks_platform() {
+ 		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "ln -fs  dtb/amlogic/$(basename $LINUX_DTB) /boot/dtb.img"'
+ 	fi
+ }
+-
+-## Build deb packages for platform
+-build_deb_packages_platform() {
+-
+-	if [ "$DISTRIB_TYPE" == "minimal" ]; then
+-		warning_msg "Ignore build platform packages for minimal image."
+-		return 0
+-	fi
+-}
+-
+-## Install deb packages for platform
+-install_deb_packages_platform() {
+-
+-	if [ "$DISTRIB_TYPE" == "minimal" ]; then
+-		warning_msg "Ignore install platform packages for minimal image."
+-		return 0
+-	fi
+-
+-	deb_status_append=`find $DEB_PACKAGES/status_append -name "*.deb"`
+-
+-	mkdir -p $DEB_STATUS_APPEND
+-	mkdir -p $DEB_AMLOGIC
+-
+-	for debs in `find $DEB_PACKAGES -name "*.deb"`; do
+-		if [[ "${deb_status_append[@]}" =~ "${debs##*/}" ]]; then
+-			cp $debs $DEB_STATUS_APPEND
+-		else
+-			cp $debs $DEB_AMLOGIC
+-		fi
+-	done
+-
+-	install_debs_status_chroot
+-	install_debs_chroot
+-	install_gstreamer_deb
+-
+-	# remove all debs
+-	rm -rf $DEB_TEMP
+-}
+diff --git a/config/boards/amlogic/board-base-config.inc b/config/boards/amlogic/board-base-config.inc
+index a8b01f4..7e757af 100644
+--- a/config/boards/amlogic/board-base-config.inc
++++ b/config/boards/amlogic/board-base-config.inc
+@@ -172,3 +172,69 @@ pack_image_platform() {
+     echo ""
+ 	info_msg "IMAGE: ${GREEN}$BUILD_IMAGES/$IMAGE_FILE_NAME ${ENDCOLOR} is ready!"
+ }
++
++## Build deb packages for platform
++build_deb_packages_platform() {
++
++	if [ "$DISTRIB_TYPE" == "minimal" ]; then
++		warning_msg "Ignore build platform packages for minimal image."
++		return 0
++	fi
++}
++
++## Install debs for minimal
++install_debs_for_minimal() {
++	
++	# debs status append
++	deb_status_append=(libc6_2.31+git0+4f0a61f753-r0_arm64.deb)
++	mkdir -p $DEB_STATUS_APPEND_MINIMAL
++	for debs in `find $DEB_PACKAGES -name "*.deb"`; do
++		if [[ "${deb_status_append[@]}" =~ "${debs##*/}" ]]; then
++			cp $debs $DEB_STATUS_APPEND_MINIMAL
++		fi
++	done
++
++	# debs needed by minimal
++	packages_arr=(libcrypto1.1_1.1.1l-r0_arm64.deb android-tools_5.1.1.r37-r0_arm64.deb android-tools-conf_1.0-r0_arm64.deb)
++	mkdir -p $DEB_MINIMAL
++	for debs in `find $DEB_PACKAGES -name "*.deb"`; do
++		if [[ "${packages_arr[@]}" =~ "${debs##*/}" ]]; then
++			cp $debs $DEB_MINIMAL
++		fi
++	done
++
++	# debs debs
++	install_debs_status_chroot $DEB_STATUS_APPEND_MINIMAL
++	install_debs_chroot minimal
++
++	# remove all debs
++	rm -rf $DEB_TEMP
++}
++
++## Install deb packages for platform
++install_deb_packages_platform() {
++
++	if [ "$DISTRIB_TYPE" == "minimal" ]; then
++		warning_msg "install platform packages for minimal image."
++		install_debs_for_minimal
++		return 0
++	fi
++
++	deb_status_append=`find $DEB_PACKAGES/status_append -name "*.deb"`
++	mkdir -p $DEB_STATUS_APPEND
++	mkdir -p $DEB_AMLOGIC
++	for debs in `find $DEB_PACKAGES -name "*.deb"`; do
++		if [[ "${deb_status_append[@]}" =~ "${debs##*/}" ]]; then
++			cp $debs $DEB_STATUS_APPEND
++		else
++			cp $debs $DEB_AMLOGIC
++		fi
++	done
++
++	install_debs_status_chroot $DEB_STATUS_APPEND
++	install_debs_chroot amlogic
++	install_gstreamer_deb
++
++	# remove all debs
++	rm -rf $DEB_TEMP
++}
+diff --git a/config/config b/config/config
+index 63a8573..2cbc0dd 100755
+--- a/config/config
++++ b/config/config
+@@ -72,7 +72,9 @@ ROOTFS="$BUILD_IMAGES/rootfs"
+ ROOTFS_TEMP="$BUILD_IMAGES/.tmp/rootfs-${WORK_BOARD}-${DISTRIB_RELEASE}-${DISTRIB_TYPE}"
+ DEB_TEMP="$ROOTFS_TEMP/.deb-temp"
+ DEB_STATUS_APPEND="$DEB_TEMP/status_append"
++DEB_STATUS_APPEND_MINIMAL="$DEB_TEMP/status_append_minimal"
+ DEB_AMLOGIC="$DEB_TEMP/amlogic"
++DEB_MINIMAL="$DEB_TEMP/minimal"
+ 
+ ## package is readonly, needn't build, so move in downloads folder, reuse for multiple project
+ PKG_BUILD_CACHE="$DOWNLOAD_PKG_DIR/packages_cache"
+diff --git a/config/functions/common-functions b/config/functions/common-functions
+index 0e2ad0b..ad5eae8 100755
+--- a/config/functions/common-functions
++++ b/config/functions/common-functions
+@@ -337,7 +337,8 @@ umount_chroot() {
+ install_debs_status_chroot()
+ {
+ 	# backup dpkg status
+-	cd $DEB_STATUS_APPEND
++	local deb_status_dir=$1
++	cd $deb_status_dir
+ 	cp $ROOTFS_TEMP/var/lib/dpkg/status $ROOTFS_TEMP/var/lib/dpkg/status_bak
+ 
+ 	# remove conflict packages, for our debs install
+@@ -346,7 +347,7 @@ install_debs_status_chroot()
+ 		chroot $ROOTFS_TEMP /bin/bash -c "dpkg --purge --force-all $deb" || exit 1
+ 	done
+ 
+-	for file in `find $DEB_STATUS_APPEND -name "*.deb"`; do
++	for file in `find $deb_status_dir -name "*.deb"`; do
+ 		deb_decomp_dir=${file%.deb}
+ 		dpkg -e $file $deb_decomp_dir && rm $file
+ 		package_name=`cat $deb_decomp_dir/control | head -n 1`
+@@ -388,9 +389,11 @@ install_deb_chroot()
+ ## Install debs from a folder in chroot
+ install_debs_chroot()
+ {
+-	info_msg "Installing amlogic debs in chroot..."
++	local deb_dir=$1
++
++	info_msg "Installing  $deb_dir debs in chroot..."
+ 	mount_chroot "$ROOTFS_TEMP"
+-	chroot $ROOTFS_TEMP /bin/bash -c "dpkg -i --force-bad-version,confdef /.deb-temp/amlogic/*.deb" || exit 1
++	chroot $ROOTFS_TEMP /bin/bash -c "dpkg -i --force-bad-version,confdef /.deb-temp/${deb_dir}/*.deb" || exit 1
+ 	umount_chroot "$ROOTFS_TEMP"
+ 	#rm -f $ROOTFS_TEMP/root/$name
+ 
+@@ -400,7 +403,7 @@ install_debs_chroot()
+ 
+ 	chroot $ROOTFS_TEMP /bin/bash -c "apt --fix-broken --option Dpkg::Options::="--force-confdef" install -y" || exit 1
+ 
+-	info_msg "Install amlogic debs in chroot, fix broken done"
++	info_msg "Install $deb_dir debs in chroot, fix broken done"
+ }
+ 
+ install_gst_deb_chroot()
+-- 
+2.25.1
+

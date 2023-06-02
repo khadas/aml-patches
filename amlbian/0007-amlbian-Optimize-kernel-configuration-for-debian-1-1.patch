@@ -1,0 +1,96 @@
+From b86a8c7b6f6e1c360338197ebc94df337b95385b Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Thu, 25 May 2023 11:01:38 +0800
+Subject: [PATCH 7/9] amlbian: Optimize kernel configuration for debian [1/1]
+
+PD#SWPL-125374
+
+Problem:
+Optimize kernel configuration for debian.
+
+Solution:
+Optimize kernel configuration for debian.
+
+Verify:
+local
+
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+Change-Id: If4327b0b9702ecda191bf504f21698fd9c12eb4a
+---
+ config/boards/amlogic/A311D-W400.conf   | 2 +-
+ config/boards/amlogic/S905D3-AC200.conf | 2 +-
+ config/boards/amlogic/T7-AN400.conf     | 2 +-
+ config/functions/build-linux            | 3 ++-
+ env/copy_k515_debs_from_yocto.sh        | 3 +--
+ 5 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/config/boards/amlogic/A311D-W400.conf b/config/boards/amlogic/A311D-W400.conf
+index 5e1454f..b5f12c2 100644
+--- a/config/boards/amlogic/A311D-W400.conf
++++ b/config/boards/amlogic/A311D-W400.conf
+@@ -25,7 +25,7 @@ case "$LINUX" in
+ 	5.15)
+ 		LINUX_DTB=(g12b_a311d_w400_debian.dtb)
+ 		LINUX_DTB_PATCH="/common_drivers"
+-		LINUX_DEFCONFIG="g12b-debian.cfg"
++		LINUX_DEFCONFIG="g12b.cfg"
+ 		SERIALCON="ttyS0"
+ 		GPU_VER="r37p0"
+ 		if [ "$DISTRIB_TYPE" != "server" ]; then
+diff --git a/config/boards/amlogic/S905D3-AC200.conf b/config/boards/amlogic/S905D3-AC200.conf
+index 6400b1e..081e6fe 100644
+--- a/config/boards/amlogic/S905D3-AC200.conf
++++ b/config/boards/amlogic/S905D3-AC200.conf
+@@ -25,7 +25,7 @@ case "$LINUX" in
+ 	5.15)
+ 		LINUX_DTB=(sm1_s905d3_ac200_debian.dtb)
+ 		LINUX_DTB_PATCH="/common_drivers"
+-		LINUX_DEFCONFIG="sm1-debian.cfg"
++		LINUX_DEFCONFIG="sm1.cfg"
+ 		SERIALCON="ttyS0"
+ 		GPU_VER="r37p0"
+ 		if [ "$DISTRIB_TYPE" != "server" ]; then
+diff --git a/config/boards/amlogic/T7-AN400.conf b/config/boards/amlogic/T7-AN400.conf
+index e2e70e0..abddba8 100644
+--- a/config/boards/amlogic/T7-AN400.conf
++++ b/config/boards/amlogic/T7-AN400.conf
+@@ -55,7 +55,7 @@ case "$LINUX" in
+ 		LINUX_DTB=(t7_a311d2_an400_debian.dtb t7c_a311d2_an400_debian.dtb)
+ 		LINUX_DTB_PATCH="/common_drivers"
+ 		#LINUX_DTB=(t7_a311d2_an400_drm_hdmitx_only_debian.dtb t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dtb)
+-		LINUX_DEFCONFIG="t7-debian.cfg"
++		LINUX_DEFCONFIG="t7.cfg"
+ 		SERIALCON="ttyS0"
+ 		GPU_VER="25p0"
+ 		if [ "$DISTRIB_TYPE" != "server" ]; then
+diff --git a/config/functions/build-linux b/config/functions/build-linux
+index 378862f..5595c01 100755
+--- a/config/functions/build-linux
++++ b/config/functions/build-linux
+@@ -22,7 +22,8 @@ prepare_linux_config() {
+ 		${LINUX_SRC_DIR}/common_drivers/arch/arm64/configs/amlogic_gki.debug \
+ 		${LINUX_SRC_DIR}/common_drivers/arch/arm64/configs/amlogic_gcc64_deconfig \
+ 		${KERNEL_CONFIG}/common.cfg \
+-		${KERNEL_CONFIG}/${LINUX_DEFCONFIG}
++		${KERNEL_CONFIG}/${LINUX_DEFCONFIG} \
++		${KERNEL_CONFIG}/amlbian.cfg
+ 
+ 	info_msg "[LINUX]prepare kernel config done..."
+ }
+diff --git a/env/copy_k515_debs_from_yocto.sh b/env/copy_k515_debs_from_yocto.sh
+index 91edfde..8cf239a 100755
+--- a/env/copy_k515_debs_from_yocto.sh
++++ b/env/copy_k515_debs_from_yocto.sh
+@@ -229,8 +229,7 @@ fi
+ KERNEL_CONFIG_DIR="meta-meson/recipes-kernel/linux/5.15"
+ KERNEL_CONFIG="amlbian/config/kernel-config"
+ mkdir -p $KERNEL_CONFIG
+-	cp -f ${KERNEL_CONFIG_DIR}/*-debian.cfg $KERNEL_CONFIG
+-	cp -f ${KERNEL_CONFIG_DIR}/common.cfg $KERNEL_CONFIG
++	cp -f ${KERNEL_CONFIG_DIR}/*.cfg $KERNEL_CONFIG
+ 
+ #copy modules needed by ramfs
+ RAMFS_MODUDLES_DIR=$BUILDDIR/tmp/work/$TARGET_BOARD/core-image-minimal/1.0-r0/rootfs
+-- 
+2.25.1
+

@@ -1,0 +1,38 @@
+From aef90e3c5e78aff058f95d4cceedfaafa4dbcef2 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Mon, 22 May 2023 19:42:17 +0800
+Subject: [PATCH 4/9] amlbian: add test script [2/5]
+
+PD#SWPL-124655
+
+Problem:
+Support GPU, CPU test, gstreamer pipeline, NN demo
+
+Solution:
+add script for easy to test
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I31d00b40c7dcd06ca83608cdb8f2993e3879a3fa
+---
+ archives/features/test/camera-test/usb-camera-recorder.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/archives/features/test/camera-test/usb-camera-recorder.sh b/archives/features/test/camera-test/usb-camera-recorder.sh
+index e59e5f0..dd1d445 100755
+--- a/archives/features/test/camera-test/usb-camera-recorder.sh
++++ b/archives/features/test/camera-test/usb-camera-recorder.sh
+@@ -8,7 +8,7 @@ if [ $# == 4 ];then
+     HEIGHT=$3
+     PARSE_TYPE=$4"parse"
+ else
+-    DEVICE="media0"
++    DEVICE="video0"
+     WIDTH=1920
+     HEIGHT=1080
+     PARSE_TYPE="h264parse"
+-- 
+2.25.1
+

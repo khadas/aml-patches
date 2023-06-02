@@ -1,0 +1,1950 @@
+From 0a87dc4d22397f8e8d5927ffb3814a32679371f9 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Fri, 19 May 2023 18:39:04 +0800
+Subject: [PATCH 3/9] amlbian: add test script [1/5]
+
+PD#SWPL-124655
+
+Problem:
+Support GPU, CPU test, gstreamer pipeline, NN demo
+
+Solution:
+add script for easy to test
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I6ae16e333d4cce9603961b7ba992f4ed3d33ffd6
+---
+ .../test/camera-test/mipi-camera-burning.sh   |  24 ++++++
+ .../test/camera-test/mipi-camera-capture.sh   |  60 +++++++++++++
+ .../test/camera-test/mipi-camera-nn.sh        |  45 ++++++++++
+ .../test/camera-test/mipi-camera-preview.sh   |  43 ++++++++++
+ .../test/camera-test/mipi-camera-recorder.sh  |  77 +++++++++++++++++
+ archives/features/test/camera-test/readme.txt |  66 +++++++++++++++
+ .../test/camera-test/usb-camera-burning.sh    |  24 ++++++
+ .../test/camera-test/usb-camera-capture.sh    |  60 +++++++++++++
+ .../test/camera-test/usb-camera-nn.sh         |  48 +++++++++++
+ .../test/camera-test/usb-camera-preview.sh    |  47 +++++++++++
+ .../test/camera-test/usb-camera-recorder.sh   |  71 ++++++++++++++++
+ .../test/gpu-test/glmark2-es2-wayland.sh      |   6 ++
+ .../gputest.sh => test/gpu-test/gpu-test.sh}  |   0
+ .../test/hdmirx-test/hdmirx-burning.sh        |  24 ++++++
+ .../test/hdmirx-test/hdmirx-capture.sh        |  57 +++++++++++++
+ .../hdmirx-test/hdmirx-preview-osdlayer.sh    |  41 +++++++++
+ .../hdmirx-test/hdmirx-preview-videolayer.sh  |  34 ++++++++
+ .../test/hdmirx-test/hdmirx-recorder.sh       |  79 ++++++++++++++++++
+ archives/features/test/hdmirx-test/readme.txt |  20 +++++
+ .../nntest.sh => test/nn-test/nn-test.sh}     |   0
+ .../nn-test}/nnsdk_test_case/224x224x3.jpeg   | Bin
+ .../nnsdk_test_case/inceptionv1_int8.adla     | Bin
+ .../nn-test}/nnsdk_test_case/libjpeg.so.9     | Bin
+ .../nn-test}/nnsdk_test_case/libnndemo.so     | Bin
+ .../nnsdk_test_case/mobilenet_v2_int8.adla    | Bin
+ .../nnsdk_test_case/mobilenetv1_int8.adla     | Bin
+ .../nn-test}/nnsdk_test_case/nnsdk_test.sh    |   0
+ .../nn-test}/nnsdk_test_case/readme.txt       |   0
+ .../sdk_classify_test_yocto_64                | Bin
+ .../{nntest => test/nn-test}/readme.txt       |   4 +-
+ .../test/performance/performance-info.sh      |  31 +++++++
+ .../test/performance/set-performance-mode.sh  |  72 ++++++++++++++++
+ .../test/playback-test/playback-test.sh       |  31 +++++++
+ .../test/screencapture-test/readme.txt        |  34 ++++++++
+ .../test/screencapture-test/screen-burning.sh |  24 ++++++
+ .../test/screencapture-test/screen-capture.sh |  61 ++++++++++++++
+ .../test/screencapture-test/screen-preview.sh |  47 +++++++++++
+ .../screencapture-test/screen-recorder.sh     |  74 ++++++++++++++++
+ config/config                                 |   6 ++
+ config/functions/build-desktop-deb            |  10 ++-
+ config/functions/build-rootfs                 |   3 +-
+ config/functions/features/build-nntest-deb    |  70 ----------------
+ .../{build-gputest-deb => build-test-deb}     |  31 +++----
+ config/functions/functions                    |   3 +-
+ docs/How_to_test_GPU.md                       |  56 -------------
+ docs/How_to_test_NPU.md                       |  56 -------------
+ docs/How_to_test_features.md                  |   3 +
+ scripts/chroot-scripts/POST_SCRIPT.sh         |  21 +++--
+ scripts/create_image.sh                       |   5 +-
+ 49 files changed, 1252 insertions(+), 216 deletions(-)
+ create mode 100755 archives/features/test/camera-test/mipi-camera-burning.sh
+ create mode 100755 archives/features/test/camera-test/mipi-camera-capture.sh
+ create mode 100755 archives/features/test/camera-test/mipi-camera-nn.sh
+ create mode 100755 archives/features/test/camera-test/mipi-camera-preview.sh
+ create mode 100755 archives/features/test/camera-test/mipi-camera-recorder.sh
+ create mode 100644 archives/features/test/camera-test/readme.txt
+ create mode 100755 archives/features/test/camera-test/usb-camera-burning.sh
+ create mode 100755 archives/features/test/camera-test/usb-camera-capture.sh
+ create mode 100755 archives/features/test/camera-test/usb-camera-nn.sh
+ create mode 100755 archives/features/test/camera-test/usb-camera-preview.sh
+ create mode 100755 archives/features/test/camera-test/usb-camera-recorder.sh
+ create mode 100755 archives/features/test/gpu-test/glmark2-es2-wayland.sh
+ rename archives/features/{gputest/gputest.sh => test/gpu-test/gpu-test.sh} (100%)
+ create mode 100755 archives/features/test/hdmirx-test/hdmirx-burning.sh
+ create mode 100755 archives/features/test/hdmirx-test/hdmirx-capture.sh
+ create mode 100755 archives/features/test/hdmirx-test/hdmirx-preview-osdlayer.sh
+ create mode 100755 archives/features/test/hdmirx-test/hdmirx-preview-videolayer.sh
+ create mode 100755 archives/features/test/hdmirx-test/hdmirx-recorder.sh
+ create mode 100644 archives/features/test/hdmirx-test/readme.txt
+ rename archives/features/{nntest/nntest.sh => test/nn-test/nn-test.sh} (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/224x224x3.jpeg (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/inceptionv1_int8.adla (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/libjpeg.so.9 (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/libnndemo.so (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/mobilenet_v2_int8.adla (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/mobilenetv1_int8.adla (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/nnsdk_test.sh (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/readme.txt (100%)
+ rename archives/features/{nntest => test/nn-test}/nnsdk_test_case/sdk_classify_test_yocto_64 (100%)
+ rename archives/features/{nntest => test/nn-test}/readme.txt (89%)
+ create mode 100755 archives/features/test/performance/performance-info.sh
+ create mode 100755 archives/features/test/performance/set-performance-mode.sh
+ create mode 100755 archives/features/test/playback-test/playback-test.sh
+ create mode 100644 archives/features/test/screencapture-test/readme.txt
+ create mode 100755 archives/features/test/screencapture-test/screen-burning.sh
+ create mode 100755 archives/features/test/screencapture-test/screen-capture.sh
+ create mode 100755 archives/features/test/screencapture-test/screen-preview.sh
+ create mode 100755 archives/features/test/screencapture-test/screen-recorder.sh
+ delete mode 100755 config/functions/features/build-nntest-deb
+ rename config/functions/features/{build-gputest-deb => build-test-deb} (60%)
+ delete mode 100755 docs/How_to_test_GPU.md
+ delete mode 100755 docs/How_to_test_NPU.md
+ create mode 100755 docs/How_to_test_features.md
+
+diff --git a/archives/features/test/camera-test/mipi-camera-burning.sh b/archives/features/test/camera-test/mipi-camera-burning.sh
+new file mode 100755
+index 0000000..2a20809
+--- /dev/null
++++ b/archives/features/test/camera-test/mipi-camera-burning.sh
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++
++
++if [ $# == 1 ];then
++    LOOP_CNT=$1
++else
++    LOOP_CNT=100
++fi
++
++
++i=1
++
++while [ $i -le  $LOOP_CNT ]
++do
++    echo "loop i="$i
++
++    ./mipi-camera-capture.sh 1920 1080
++    ./mipi-camera-recorder.sh 1920 1080 h264
++    ./mipi-camera-recorder.sh 1920 1080 h265
++
++    let i++
++done
++
+diff --git a/archives/features/test/camera-test/mipi-camera-capture.sh b/archives/features/test/camera-test/mipi-camera-capture.sh
+new file mode 100755
+index 0000000..f58eba5
+--- /dev/null
++++ b/archives/features/test/camera-test/mipi-camera-capture.sh
+@@ -0,0 +1,60 @@
++#!/bin/bash
++
++
++FILE_EXT="jpg"
++
++if [ $# == 3 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++else
++    DEVICE="media0"
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh media0 1920 1080
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE num-buffers=1 ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=RGB ! amljpegenc ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++gst-discoverer-1.0 $FULL_FILE_PATH
+diff --git a/archives/features/test/camera-test/mipi-camera-nn.sh b/archives/features/test/camera-test/mipi-camera-nn.sh
+new file mode 100755
+index 0000000..ef8243d
+--- /dev/null
++++ b/archives/features/test/camera-test/mipi-camera-nn.sh
+@@ -0,0 +1,45 @@
++#!/bin/bash
++
++
++if [ $# == 4 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++    DETECT_MODE=$4
++else
++    DEVICE="media0"
++    WIDTH=1920
++    HEIGHT=1080
++    DETECT_MODE="amlfd"
++fi
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh media0 1920 1080 amlfd
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=RGB ! amlnn detection-model=$DETECT_MODE ! amlnnoverlay ! $SINK"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/camera-test/mipi-camera-preview.sh b/archives/features/test/camera-test/mipi-camera-preview.sh
+new file mode 100755
+index 0000000..1bbde28
+--- /dev/null
++++ b/archives/features/test/camera-test/mipi-camera-preview.sh
+@@ -0,0 +1,43 @@
++#!/bin/bash
++
++
++if [ $# == 3 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++else
++    DEVICE="media0"
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh media0 1920 1080
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=RGB ! $SINK"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/camera-test/mipi-camera-recorder.sh b/archives/features/test/camera-test/mipi-camera-recorder.sh
+new file mode 100755
+index 0000000..76d52c7
+--- /dev/null
++++ b/archives/features/test/camera-test/mipi-camera-recorder.sh
+@@ -0,0 +1,77 @@
++#!/bin/bash
++
++FILE_EXT="mp4"
++
++if [ $# == 4 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++    PARSE_TYPE=$4"parse"
++else
++    DEVICE="media0"
++    WIDTH=1920
++    HEIGHT=1080
++    PARSE_TYPE="h264parse"
++fi
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh media0 1920 1080 h264
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++
++# 10s, 1920*1080 30fps
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE num-buffers=300 ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=RGB ! amlvenc ! $PARSE_TYPE ! qtmux ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++
++gst-discoverer-1.0 $FULL_FILE_PATH
++CMD="gst-play-1.0 --videosink=$SINK $FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++
+diff --git a/archives/features/test/camera-test/readme.txt b/archives/features/test/camera-test/readme.txt
+new file mode 100644
+index 0000000..086f205
+--- /dev/null
++++ b/archives/features/test/camera-test/readme.txt
+@@ -0,0 +1,66 @@
++For single camera test, you can use the script derectly,
++For multiple camera test, 
++
++You should check the device name. then start multiple instance.
++The 2 camera can use at the same time.
++
++
++[2 mipi camera preview]
++$ ls /dev/media*
++/dev/media0
++/dev/media2
++
++You can use the following command to preview 1st camera
++$./mipi-camera-preview.sh
++
++You can use the following command to preview 2nd camera
++$./mipi-camera-preview.sh media2
++
++
++
++[2 USB camera preview]
++$ ls /dev/video*
++/dev/video0
++/dev/video1
++
++You can use the following command to preview 1st camera
++$./usb-camera-preview.sh
++
++You can use the following command to preview 2nd camera
++$./usb-camera-preview.sh video1
++
++
++[example]:
++USB
++./usb-camera-capture.sh 1920 1080
++./usb-camera-capture.sh 1280 720
++./usb-camera-capture.sh 640 480 
++
++./usb-camera-preview.sh 1920 1080
++./usb-camera-preview.sh 1280 720
++./usb-camera-preview.sh 640 480
++
++./usb-camera-nn.sh 1280 720 amlfd
++./usb-camera-nn.sh 1280 720 yolov3
++
++./usb-camera-recorder.sh 1920 1080 h264
++./usb-camera-recorder.sh 1920 1080 h265
++
++
++MIPI
++./mipi-camera-capture.sh 1920 1080
++./mipi-camera-capture.sh 3840 2160
++
++./mipi-camera-preview.sh 1920 1080
++./mipi-camera-preview.sh 3840 2160
++
++./mipi-camera-nn.sh 1920 1080 amlfd
++./mipi-camera-nn.sh 1920 1080 yolov3
++./mipi-camera-nn.sh 3840 2160 amlfd
++./mipi-camera-nn.sh 3840 2160 yolov3
++
++./mipi-camera-recorder.sh 1920 1080 h264
++./mipi-camera-recorder.sh 1920 1080 h265
++./mipi-camera-recorder.sh 3840 2160 h264
++./mipi-camera-recorder.sh 3840 2160 h265
++
+diff --git a/archives/features/test/camera-test/usb-camera-burning.sh b/archives/features/test/camera-test/usb-camera-burning.sh
+new file mode 100755
+index 0000000..b0fb7d0
+--- /dev/null
++++ b/archives/features/test/camera-test/usb-camera-burning.sh
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++
++
++if [ $# == 1 ];then
++    LOOP_CNT=$1
++else
++    LOOP_CNT=100
++fi
++
++
++i=1
++
++while [ $i -le  $LOOP_CNT ]
++do
++    echo "loop i="$i
++
++    ./usb-camera-capture.sh 1920 1080
++    ./usb-camera-recorder.sh 1920 1080 h264
++    ./usb-camera-recorder.sh 1920 1080 h265
++
++    let i++
++done
++
+diff --git a/archives/features/test/camera-test/usb-camera-capture.sh b/archives/features/test/camera-test/usb-camera-capture.sh
+new file mode 100755
+index 0000000..1e76821
+--- /dev/null
++++ b/archives/features/test/camera-test/usb-camera-capture.sh
+@@ -0,0 +1,60 @@
++#!/bin/bash
++
++
++FILE_EXT="jpg"
++
++if [ $# == 3 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++else
++    DEVICE="video0"
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh video0 1920 1080
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE io-mode=mmap num-buffers=1 ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=YUY2 ! amljpegenc ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++gst-discoverer-1.0 $FULL_FILE_PATH
+diff --git a/archives/features/test/camera-test/usb-camera-nn.sh b/archives/features/test/camera-test/usb-camera-nn.sh
+new file mode 100755
+index 0000000..d13cd28
+--- /dev/null
++++ b/archives/features/test/camera-test/usb-camera-nn.sh
+@@ -0,0 +1,48 @@
++#!/bin/bash
++
++
++if [ $# == 4 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++    DETECT_MODE=$4
++else
++    DEVICE="video0"
++    WIDTH=1920
++    HEIGHT=1080
++    DETECT_MODE="amlfd"
++fi
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh video0 1920 1080 amlfd
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++if [ $# == 1 ];then  # use customer define camera
++    DEVICE=$1
++fi
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=YUY2 ! videoconvert ! amlnn detection-model=$DETECT_MODE ! amlnnoverlay ! $SINK"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/camera-test/usb-camera-preview.sh b/archives/features/test/camera-test/usb-camera-preview.sh
+new file mode 100755
+index 0000000..5441b33
+--- /dev/null
++++ b/archives/features/test/camera-test/usb-camera-preview.sh
+@@ -0,0 +1,47 @@
++#!/bin/bash
++
++
++if [ $# == 3 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++else
++    DEVICE="video0"
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh video0 1920 1080
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++if [ $# == 1 ];then  # use customer define camera
++    DEVICE=$1
++fi
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE ! video/x-raw,width=$WIDTH,height=$HEIGHT,format=YUY2 ! videoconvert  ! $SINK"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/camera-test/usb-camera-recorder.sh b/archives/features/test/camera-test/usb-camera-recorder.sh
+new file mode 100755
+index 0000000..e59e5f0
+--- /dev/null
++++ b/archives/features/test/camera-test/usb-camera-recorder.sh
+@@ -0,0 +1,71 @@
++#!/bin/bash
++
++FILE_EXT="mp4"
++
++if [ $# == 4 ];then
++    DEVICE=$1
++    WIDTH=$2
++    HEIGHT=$3
++    PARSE_TYPE=$4"parse"
++else
++    DEVICE="media0"
++    WIDTH=1920
++    HEIGHT=1080
++    PARSE_TYPE="h264parse"
++fi
++
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++    *.sh video0 1920 1080 h264
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++if [ $# == 1 ];then  # use customer define camera
++    DEVICE=$1
++fi
++
++# 10s, 1920*1080 30fps, USB camera output(MJPGE)
++CMD="gst-launch-1.0 v4l2src device=/dev/$DEVICE  num-buffers=300 ! jpegdec ! amlvenc ! $PARSE_TYPE ! qtmux ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++gst-discoverer-1.0 $FULL_FILE_PATH
++
++CMD="gst-play-1.0 --videosink=clutterautovideosink $FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/gpu-test/glmark2-es2-wayland.sh b/archives/features/test/gpu-test/glmark2-es2-wayland.sh
+new file mode 100755
+index 0000000..d09729c
+--- /dev/null
++++ b/archives/features/test/gpu-test/glmark2-es2-wayland.sh
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++echo "run glmark2-es2-wayland..."
++
++glmark2-es2-wayland
++
+diff --git a/archives/features/gputest/gputest.sh b/archives/features/test/gpu-test/gpu-test.sh
+similarity index 100%
+rename from archives/features/gputest/gputest.sh
+rename to archives/features/test/gpu-test/gpu-test.sh
+diff --git a/archives/features/test/hdmirx-test/hdmirx-burning.sh b/archives/features/test/hdmirx-test/hdmirx-burning.sh
+new file mode 100755
+index 0000000..59131fb
+--- /dev/null
++++ b/archives/features/test/hdmirx-test/hdmirx-burning.sh
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++
++
++if [ $# == 1 ];then
++    LOOP_CNT=$1
++else
++    LOOP_CNT=100
++fi
++
++
++i=1
++
++while [ $i -le  $LOOP_CNT ]
++do
++    echo "loop i="$i
++
++    ./hdmirx-capture.sh 1920 1080
++    ./hdmirx-recorder.sh 1920 1080 h264
++    ./hdmirx-recorder.sh 1920 1080 h265
++
++    let i++
++done
++
+diff --git a/archives/features/test/hdmirx-test/hdmirx-capture.sh b/archives/features/test/hdmirx-test/hdmirx-capture.sh
+new file mode 100755
+index 0000000..6e30f38
+--- /dev/null
++++ b/archives/features/test/hdmirx-test/hdmirx-capture.sh
+@@ -0,0 +1,57 @@
++#!/bin/bash
++
++
++DEVICE="video71"
++FILE_EXT="jpg"
++
++if [ $# == 2 ];then
++    WIDTH=$1
++    HEIGHT=$2
++else
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure plugin HDMI rx device
++
++    EXAMPLES:
++	*.sh 
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++CMD="gst-launch-1.0 -vvv v4l2src device=/dev/$DEVICE io-mode=dmabuf num-buffers=1 ! video/x-raw,format=NV12,width=$WIDTH,height=$HEIGHT,framerate=30/1 ! amljpegenc ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++gst-discoverer-1.0 $FULL_FILE_PATH
+diff --git a/archives/features/test/hdmirx-test/hdmirx-preview-osdlayer.sh b/archives/features/test/hdmirx-test/hdmirx-preview-osdlayer.sh
+new file mode 100755
+index 0000000..a7ba6bd
+--- /dev/null
++++ b/archives/features/test/hdmirx-test/hdmirx-preview-osdlayer.sh
+@@ -0,0 +1,41 @@
++#!/bin/bash
++
++
++DEVICE="video71"
++
++if [ $# == 2 ];then
++    WIDTH=$1
++    HEIGHT=$2
++else
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure plugin HDMI rx device
++
++    EXAMPLES:
++	*.sh 
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++CMD="gst-launch-1.0 -vvv v4l2src device=/dev/$DEVICE io-mode=dmabuf ! video/x-raw,format=NV12,width=$WIDTH,height=$HEIGHT,framerate=30/1 ! videoconvert ! $SINK"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/hdmirx-test/hdmirx-preview-videolayer.sh b/archives/features/test/hdmirx-test/hdmirx-preview-videolayer.sh
+new file mode 100755
+index 0000000..3f5f3af
+--- /dev/null
++++ b/archives/features/test/hdmirx-test/hdmirx-preview-videolayer.sh
+@@ -0,0 +1,34 @@
++#!/bin/bash
++
++
++DEVICE="video71"
++
++if [ $# == 2 ];then
++    WIDTH=$1
++    HEIGHT=$2
++else
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure plugin HDMI rx device
++
++    EXAMPLES:
++	*.sh 
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++/etc/init.d/gdm3 stop
++
++gst-launch-1.0 -vvv v4l2src device=/dev/$DEVICE io-mode=dmabuf ! video/x-raw,format=NV12,width=$WIDTH,height=$HEIGHT,framerate=30/1 ! videoconvert ! clutterautovideosink
++
++/etc/init.d/gdm3 start
+diff --git a/archives/features/test/hdmirx-test/hdmirx-recorder.sh b/archives/features/test/hdmirx-test/hdmirx-recorder.sh
+new file mode 100755
+index 0000000..64440bc
+--- /dev/null
++++ b/archives/features/test/hdmirx-test/hdmirx-recorder.sh
+@@ -0,0 +1,79 @@
++#!/bin/bash
++
++
++DEVICE="video71"
++FILE_EXT="mp4"
++
++if [ $# == 3 ];then
++    WIDTH=$1
++    HEIGHT=$2
++    PARSE_TYPE=$3"parse"
++else
++    WIDTH=1920
++    HEIGHT=1080
++    PARSE_TYPE="h264parse"
++fi
++
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure plugin HDMI rx device
++
++    EXAMPLES:
++	*.sh 
++	"
++
++    ls /dev/video*
++}
++
++display_help
++
++
++MEDIA_FILE=$1
++
++
++
++# 10s, 1920*1080 30fps
++CMD="gst-launch-1.0 -vvv v4l2src device=/dev/$DEVICE io-mode=dmabuf num-buffers=300 ! video/x-raw,format=NV12,width=$WIDTH,height=$HEIGHT,framerate=30/1 ! amlvenc ! $PARSE_TYPE ! qtmux ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++
++gst-discoverer-1.0 $FULL_FILE_PATH
++CMD="gst-play-1.0 --videosink=$SINK $FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/hdmirx-test/readme.txt b/archives/features/test/hdmirx-test/readme.txt
+new file mode 100644
+index 0000000..6cc5b80
+--- /dev/null
++++ b/archives/features/test/hdmirx-test/readme.txt
+@@ -0,0 +1,20 @@
++For HDMI RX capture and recorder.
++
++[example]:
++./hdmirx-capture.sh 1920 1080
++./hdmirx-capture.sh 3840 2160
++
++./hdmirx-preview-osdlayer.sh 1920 1080
++./hdmirx-preview-osdlayer.sh 3840 2160
++./hdmirx-preview-videolayer.sh 1920 1080
++./hdmirx-preview-videolayer.sh 3840 2160
++
++./hdmirx-recorder.sh 1920 1080 h264
++./hdmirx-recorder.sh 1920 1080 h265
++./hdmirx-recorder.sh 3840 2160 h264
++./hdmirx-recorder.sh 3840 2160 h265
++
++
++[about tvin-port]
++for HDMI RX using video71, the default  tvin-port is 0, 
++it's the 1st video layer. 
+diff --git a/archives/features/nntest/nntest.sh b/archives/features/test/nn-test/nn-test.sh
+similarity index 100%
+rename from archives/features/nntest/nntest.sh
+rename to archives/features/test/nn-test/nn-test.sh
+diff --git a/archives/features/nntest/nnsdk_test_case/224x224x3.jpeg b/archives/features/test/nn-test/nnsdk_test_case/224x224x3.jpeg
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/224x224x3.jpeg
+rename to archives/features/test/nn-test/nnsdk_test_case/224x224x3.jpeg
+diff --git a/archives/features/nntest/nnsdk_test_case/inceptionv1_int8.adla b/archives/features/test/nn-test/nnsdk_test_case/inceptionv1_int8.adla
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/inceptionv1_int8.adla
+rename to archives/features/test/nn-test/nnsdk_test_case/inceptionv1_int8.adla
+diff --git a/archives/features/nntest/nnsdk_test_case/libjpeg.so.9 b/archives/features/test/nn-test/nnsdk_test_case/libjpeg.so.9
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/libjpeg.so.9
+rename to archives/features/test/nn-test/nnsdk_test_case/libjpeg.so.9
+diff --git a/archives/features/nntest/nnsdk_test_case/libnndemo.so b/archives/features/test/nn-test/nnsdk_test_case/libnndemo.so
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/libnndemo.so
+rename to archives/features/test/nn-test/nnsdk_test_case/libnndemo.so
+diff --git a/archives/features/nntest/nnsdk_test_case/mobilenet_v2_int8.adla b/archives/features/test/nn-test/nnsdk_test_case/mobilenet_v2_int8.adla
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/mobilenet_v2_int8.adla
+rename to archives/features/test/nn-test/nnsdk_test_case/mobilenet_v2_int8.adla
+diff --git a/archives/features/nntest/nnsdk_test_case/mobilenetv1_int8.adla b/archives/features/test/nn-test/nnsdk_test_case/mobilenetv1_int8.adla
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/mobilenetv1_int8.adla
+rename to archives/features/test/nn-test/nnsdk_test_case/mobilenetv1_int8.adla
+diff --git a/archives/features/nntest/nnsdk_test_case/nnsdk_test.sh b/archives/features/test/nn-test/nnsdk_test_case/nnsdk_test.sh
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/nnsdk_test.sh
+rename to archives/features/test/nn-test/nnsdk_test_case/nnsdk_test.sh
+diff --git a/archives/features/nntest/nnsdk_test_case/readme.txt b/archives/features/test/nn-test/nnsdk_test_case/readme.txt
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/readme.txt
+rename to archives/features/test/nn-test/nnsdk_test_case/readme.txt
+diff --git a/archives/features/nntest/nnsdk_test_case/sdk_classify_test_yocto_64 b/archives/features/test/nn-test/nnsdk_test_case/sdk_classify_test_yocto_64
+similarity index 100%
+rename from archives/features/nntest/nnsdk_test_case/sdk_classify_test_yocto_64
+rename to archives/features/test/nn-test/nnsdk_test_case/sdk_classify_test_yocto_64
+diff --git a/archives/features/nntest/readme.txt b/archives/features/test/nn-test/readme.txt
+similarity index 89%
+rename from archives/features/nntest/readme.txt
+rename to archives/features/test/nn-test/readme.txt
+index 8fb25e0..05eb132 100644
+--- a/archives/features/nntest/readme.txt
++++ b/archives/features/test/nn-test/readme.txt
+@@ -2,8 +2,8 @@ nntest is for test amlogic NPU, just for reference test
+ please build amlbian project with BUILD_TYPE=develop
+ and then you can run the following device on the device:
+ 
+-cd ~
+-sudo ./nntest/nntest.sh
++cd ~/test/nn-test/
++sudo ./nntest.sh
+ 
+ 
+ This DEB relative codes is just for testing and development reference, 
+diff --git a/archives/features/test/performance/performance-info.sh b/archives/features/test/performance/performance-info.sh
+new file mode 100755
+index 0000000..b3ea494
+--- /dev/null
++++ b/archives/features/test/performance/performance-info.sh
+@@ -0,0 +1,31 @@
++#!/bin/bash
++
++./set-performance-mode.sh on
++
++datename=$(date +%Y%m%d)-$(date +%H%M%S)
++
++file_ext=
++
++if [ $# == 0 ];then # no parameters, 
++	file_ext=$datename
++else
++	file_ext=$1
++fi
++
++free > performance-free-$file_ext.txt
++
++cat /proc/meminfo > performance-meminfo-$file_ext.txt
++vmstat -s > performance-vmstat-$file_ext.txt
++
++ps aux --sort -rss > performance-ps-$file_ext.txt
++
++df -H > performance-df-H-$file_ext.txt
++
++top -b -n 5 > performance-top-$file_ext.txt
++top -b -H -n 5 > performance-top-H-$file_ext.txt
++
++ls -al 
++
++
++./set-performance-mode.sh off
++
+diff --git a/archives/features/test/performance/set-performance-mode.sh b/archives/features/test/performance/set-performance-mode.sh
+new file mode 100755
+index 0000000..782a1f3
+--- /dev/null
++++ b/archives/features/test/performance/set-performance-mode.sh
+@@ -0,0 +1,72 @@
++#!/bin/bash
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    set performance mode on/off
++
++    EXAMPLES:
++	*.sh on
++	*.sh ON
++	*.sh off
++	*.sh OFF
++	"
++}
++
++
++param=$1
++ON_OFF=${param,,}
++
++echo "Set Performance mode :"$ON_OFF
++
++#####################################################################################
++# CPU
++echo "before set performance mode, print CPU information:"
++cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
++cat /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies
++cat /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
++cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
++cat /sys/class/thermal/thermal_zone0/mode
++cat /proc/sys/kernel/printk
++
++if [[ $ON_OFF == "on"]]; then
++    # disable DVFS, use high performance mode
++    echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
++    # disable thermal control
++    echo disabled > /sys/class/thermal/thermal_zone0/mode
++    # disable kernel log
++    echo 0 >/proc/sys/kernel/printk
++elif [[ $ON_OFF == "off"]]; then
++    # disable DVFS, use high performance mode
++    echo conservative > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
++    # disable thermal control
++    echo enabled > /sys/class/thermal/thermal_zone0/mode
++    # disable kernel log
++    echo 4 >/proc/sys/kernel/printk
++else
++    display_help
++fi
++
++echo "after set performance mode, print CPU information:"
++cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
++cat /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies
++cat /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
++cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
++cat /sys/class/thermal/thermal_zone0/mode
++cat /proc/sys/kernel/printk
++#####################################################################################
++
++
++#####################################################################################
++# memory cache free
++# To free pagecache:
++echo 1 > /proc/sys/vm/drop_caches
++
++#To free reclaimable slab objects (includes dentries and inodes):
++echo 2 > /proc/sys/vm/drop_caches
++
++#To free slab objects and pagecache:
++echo 3 > /proc/sys/vm/drop_caches
++#####################################################################################
++
+diff --git a/archives/features/test/playback-test/playback-test.sh b/archives/features/test/playback-test/playback-test.sh
+new file mode 100755
+index 0000000..a4e617a
+--- /dev/null
++++ b/archives/features/test/playback-test/playback-test.sh
+@@ -0,0 +1,31 @@
++#!/bin/bash
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++	please run with a mediafile full path as parameters
++	*.sh full-file-path
++	"
++}
++
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++
++if [ $# == 0 ];then # no parameters
++	display_help
++else
++    MEDIA_FILE=$1
++
++    CMD="gst-play-1.0 --videosink=$SINK $MEDIA_FILE"
++	echo $CMD
++	eval $CMD
++fi
++
+diff --git a/archives/features/test/screencapture-test/readme.txt b/archives/features/test/screencapture-test/readme.txt
+new file mode 100644
+index 0000000..a199770
+--- /dev/null
++++ b/archives/features/test/screencapture-test/readme.txt
+@@ -0,0 +1,34 @@
++For screen capture and recorder.
++
++
++[example]:
++./screen-capture.sh 1920 1080
++./screen-capture.sh 3840 2160
++
++./screen-preview.sh 1920 1080
++./screen-preview.sh 3840 2160
++
++./screen-recorder.sh 1920 1080 h264parse
++./screen-recorder.sh 1920 1080 h265parse
++./screen-recorder.sh 3840 2160 h264parse
++./screen-recorder.sh 3840 2160 h265parse
++
++
++[about tvin-port]:
++$ gst-launch-1.0 -v v4l2src device=/dev/video12 io-mode=mmap ! video/x-raw,format=BGR,width=1920,height=1080,framerate=30000/1001 ! clutterautovideosink
++
++for screen recorder, you can get the screen data from video12, 
++
++for tvin-port, there are 4 types value.
++ tvin-port=0x11000000  //vpp0 video only; the main screen video only
++ tvin-port=0x11000001  //vpp0(osd+video); the main screen osd+video
++ tvin-port=0x11000002  //vpp1 video only; the sub screen video only
++ tvin-port=0x11000003  //vpp1(osd+video); the sub screen osd+video
++
++the default  tvin-port is 0x11000001, and only this is verified for every release. 
++you needn't set the propoty, if you use the main screen osd+video. 
++
++
++
++
++
+diff --git a/archives/features/test/screencapture-test/screen-burning.sh b/archives/features/test/screencapture-test/screen-burning.sh
+new file mode 100755
+index 0000000..f4ff8a6
+--- /dev/null
++++ b/archives/features/test/screencapture-test/screen-burning.sh
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++
++
++if [ $# == 1 ];then
++    LOOP_CNT=$1
++else
++    LOOP_CNT=100
++fi
++
++
++i=1
++
++while [ $i -le  $LOOP_CNT ]
++do
++    echo "loop i="$i
++
++    ./screen-capture.sh 1920 1080
++    ./screen-recorder.sh 1920 1080 h264
++    ./screen-recorder.sh 1920 1080 h265
++
++    let i++
++done
++
+diff --git a/archives/features/test/screencapture-test/screen-capture.sh b/archives/features/test/screencapture-test/screen-capture.sh
+new file mode 100755
+index 0000000..73bbef7
+--- /dev/null
++++ b/archives/features/test/screencapture-test/screen-capture.sh
+@@ -0,0 +1,61 @@
++#!/bin/bash
++
++
++DEVICE="video12"
++FILE_EXT="jpg"
++
++if [ $# == 2 ];then
++    WIDTH=$1
++    HEIGHT=$2
++else
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Screen recorder to a jpeg file
++
++    EXAMPLES:
++	*.sh 
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++CMD="gst-launch-1.0 -v v4l2src device=/dev/$DEVICE io-mode=mmap num-buffers=1 ! video/x-raw,format=BGR,width=$WIDTH,height=$HEIGHT,framerate=30000/1001 ! amljpegenc ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++
++gst-discoverer-1.0 $FULL_FILE_PATH
++
++
++
+diff --git a/archives/features/test/screencapture-test/screen-preview.sh b/archives/features/test/screencapture-test/screen-preview.sh
+new file mode 100755
+index 0000000..b9d6de7
+--- /dev/null
++++ b/archives/features/test/screencapture-test/screen-preview.sh
+@@ -0,0 +1,47 @@
++#!/bin/bash
++
++
++DEVICE="video12"
++
++if [ $# == 2 ];then
++    WIDTH=$1
++    HEIGHT=$2
++else
++    WIDTH=1920
++    HEIGHT=1080
++fi
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Please make sure the only one camera is plugin
++    if no parameters, $DEVICE will be act as the default camera
++
++    EXAMPLES:
++	*.sh 
++    *.sh $DEVICE 
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++if [ $# == 1 ];then  # use customer define camera
++    DEVICE="/dev/"$1
++fi
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++CMD="gst-launch-1.0 -v v4l2src device=/dev/$DEVICE io-mode=mmap ! video/x-raw,format=BGR,width=$WIDTH,height=$HEIGHT,framerate=30000/1001 ! $SINK"
++echo $CMD
++eval $CMD
++
+diff --git a/archives/features/test/screencapture-test/screen-recorder.sh b/archives/features/test/screencapture-test/screen-recorder.sh
+new file mode 100755
+index 0000000..0c823aa
+--- /dev/null
++++ b/archives/features/test/screencapture-test/screen-recorder.sh
+@@ -0,0 +1,74 @@
++#!/bin/bash
++
++DEVICE="video12"
++FILE_EXT="mp4"
++
++if [ $# == 3 ];then
++    WIDTH=$1
++    HEIGHT=$2
++    PARSE_TYPE=$3"parse"
++else
++    WIDTH=1920
++    HEIGHT=1080
++    PARSE_TYPE="h264parse"
++fi
++
++
++# fixed
++###############################################################
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++SHORT_FILE_PATH=$TEST_CASE_NAME.$FILE_EXT
++echo $SHORT_FILE_PATH
++
++FILE_PATH=~/test_result
++mkdir -p $FILE_PATH
++FULL_FILE_PATH=$FILE_PATH/$SHORT_FILE_PATH
++echo $FULL_FILE_PATH
++###############################################################
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP**************************
++    Screen recorder to a jpeg file
++
++    EXAMPLES:
++	*.sh 
++	"
++
++    ls /dev/media*
++    ls /dev/video*
++}
++
++display_help
++
++# 10s, 1920*1080 30fps
++
++CMD="gst-launch-1.0 -v v4l2src device=/dev/$DEVICE io-mode=mmap num-buffers=300 ! video/x-raw,format=BGR,width=$WIDTH,height=$HEIGHT,framerate=30000/1001 ! amlvenc ! $PARSE_TYPE ! qtmux ! filesink location=$FULL_FILE_PATH"
++echo $CMD
++eval $CMD
++
++if [ -s $FULL_FILE_PATH ]; then 
++        echo "$TEST_CASE_NAME test pass"
++        touch $FILE_PATH/$TEST_CASE_NAME.pass
++else
++        echo "$TEST_CASE_NAME test failed"
++        touch $FILE_PATH/$TEST_CASE_NAME.failed
++fi
++
++
++SINK=
++if [ -d /etc/gdm3 ]; then
++    # gnome
++    SINK=clutterautovideosink
++else
++    SINK=waylandsink
++fi
++
++
++gst-discoverer-1.0 $FULL_FILE_PATH
++CMD="gst-play-1.0 --videosink=$SINK $FULL_FILE_PATH"
++echo $CMD
++eval $CMD
+diff --git a/config/config b/config/config
+index 2cbc0dd..fa7166d 100755
+--- a/config/config
++++ b/config/config
+@@ -83,6 +83,12 @@ PKG_BUILD_CACHE="$DOWNLOAD_PKG_DIR/packages_cache"
+ TOOLCHAINS="$PKG_BUILD_CACHE/toolchains"
+ UTILS_DIR="$BUILD"/utils
+ 
++
++#set the default user name
++export DEFAULT_USER=amlbian
++export DEFAULT_PASSWORD=amlbian
++export DEFAULT_HOSTNAME=amlbian
++
+ sudo="sudo -E"
+ [ "$UID" = 0 -o "$USER" = "root" ] && sudo=
+ 
+diff --git a/config/functions/build-desktop-deb b/config/functions/build-desktop-deb
+index 04fc808..d2d76ba 100755
+--- a/config/functions/build-desktop-deb
++++ b/config/functions/build-desktop-deb
+@@ -83,10 +83,12 @@ build_desktop_deb() {
+ 		chown root:root /home/root/.local -R
+ 		chown root:root /home/
+ 
+-		[ -d /etc/skel/.config ] && cp -arf /etc/skel/.config /home/amlbian
+-		[ -d /etc/skel/.local ] && cp -arf /etc/skel/.local /home/amlbian
+-		chown amlbian:amlbian /home/amlbian/.config -R
+-		chown amlbian:amlbian /home/amlbian/.local -R
++		[ -d /etc/skel/.config ] && cp -arf /etc/skel/.config /home/$DEFAULT_USER
++		[ -d /etc/skel/.local ] && cp -arf /etc/skel/.local /home/$DEFAULT_USER
++
++		chown $DEFAULT_USER:$DEFAULT_USER /home/$DEFAULT_USER/.config -R
++		chown $DEFAULT_USER:$DEFAULT_USER /home/$DEFAULT_USER/.local -R
++		chown $DEFAULT_USER:$DEFAULT_USER /home/$DEFAULT_USER/
+ 	fi
+ 
+ 	systemctl --no-reload enable hdmi_resolution.service >/dev/null 2>&1
+diff --git a/config/functions/build-rootfs b/config/functions/build-rootfs
+index abc3f6c..6f13a78 100755
+--- a/config/functions/build-rootfs
++++ b/config/functions/build-rootfs
+@@ -79,8 +79,7 @@ install_common()
+     fi
+ 
+ 	#install feature debs
+-	install_nntest_deb
+-	install_gputest_deb
++	install_test_deb
+ 
+ 	# Install board deb in chroot
+ 	install_deb_chroot $BUILD_DEBS/$VERSION/$WORK_BOARD/${DISTRIBUTION}-${DISTRIB_RELEASE}/${LINUX_BOARD_DEB}_${VERSION}_${DISTRIB_ARCH}.deb
+diff --git a/config/functions/features/build-nntest-deb b/config/functions/features/build-nntest-deb
+deleted file mode 100755
+index 74dafb6..0000000
+--- a/config/functions/features/build-nntest-deb
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# Functions:
+-# build_nntest_deb
+-# install_nntest_deb
+-
+-
+-LINUX_NNTEST_DEB="linux-nntest-package-${DISTRIB_RELEASE,,}-${WORK_BOARD,,}"
+-
+-
+-## Build npu relative deb packages
+-build_nntest_deb() {
+-
+-	# for develop version only
+-	if [ "$BUILD_TYPE" != develop ]; then
+-		return 0
+-	fi
+-
+-	local pkgname="${LINUX_NNTEST_DEB}"
+-
+-	info_msg "build_nntest_deb start: $pkgname"
+-
+-	local pkgdir="$BUILD_IMAGES/.tmp/${pkgname}_${VERSION}_${DISTRIB_ARCH}"
+-	rm -rf $pkgdir
+-	mkdir -p $pkgdir/DEBIAN
+-
+-	cat <<-EOF > $pkgdir/DEBIAN/control
+-	Package: $pkgname
+-	Version: $VERSION
+-	Architecture: $DISTRIB_ARCH
+-	Maintainer: support <support@amlogic.com>
+-	Installed-Size: 1
+-	Replaces: 
+-	Section: kernel
+-	Priority: optional
+-	Recommends: 
+-	Depends: 
+-	Description: amlbian tweaks for ${DISTRIBUTION}-${DISTRIB_RELEASE} on $WORK_BOARD
+-	EOF
+-
+-	# Copy to pkgdir
+-	mkdir -p $pkgdir/test
+-	rsync -aI $ROOT/archives/features/nntest $pkgdir/test
+-
+-	# Create deb file
+-	info_msg "Building package: $pkgname.deb"
+-	tree $pkgdir
+-	fakeroot dpkg-deb -Zxz -b $pkgdir ${pkgdir}.deb
+-	mkdir -p $BUILD_DEBS/$VERSION/$WORK_BOARD/${DISTRIBUTION}-${DISTRIB_RELEASE}
+-	cp ${pkgdir}.deb $BUILD_DEBS/$VERSION/$WORK_BOARD/${DISTRIBUTION}-${DISTRIB_RELEASE}
+-
+-	# Cleanup
+-	rm -rf ${pkgdir}.deb
+-	rm -rf $pkgdir
+-
+-	info_msg "build_nntest_deb done: $pkgname"
+-}
+-
+-
+-## install npu relative deb packages
+-install_nntest_deb() {
+-
+-	# for develop version only
+-	if [ "$BUILD_TYPE" != develop ]; then
+-		return 0
+-	fi
+-
+-	info_msg "install_nntest_deb start: $LINUX_NNTEST_DEB"
+-	install_deb_chroot $BUILD_DEBS/$VERSION/$WORK_BOARD/${DISTRIBUTION}-${DISTRIB_RELEASE}/${LINUX_NNTEST_DEB}_${VERSION}_${DISTRIB_ARCH}.deb
+-
+-	info_msg "install_nntest_deb done: $LINUX_NNTEST_DEB"
+-}
+\ No newline at end of file
+diff --git a/config/functions/features/build-gputest-deb b/config/functions/features/build-test-deb
+similarity index 60%
+rename from config/functions/features/build-gputest-deb
+rename to config/functions/features/build-test-deb
+index 7beb297..d7ae973 100755
+--- a/config/functions/features/build-gputest-deb
++++ b/config/functions/features/build-test-deb
+@@ -1,22 +1,22 @@
+ # Functions:
+-# build_gputest_deb
+-# install_gputest_deb
++# build_test_deb
++# install_test_deb
+ 
+ 
+-LINUX_GPUTEST_DEB="linux-gputest-package-${DISTRIB_RELEASE,,}-${WORK_BOARD,,}"
++LINUX_TEST_DEB="linux-test-package-${DISTRIB_RELEASE,,}-${WORK_BOARD,,}"
+ 
+ 
+-## Build gpu relative deb packages
+-build_gputest_deb() {
++## Build test relative deb packages
++build_test_deb() {
+ 
+ 	# for develop version only
+ 	if [ "$BUILD_TYPE" != develop ]; then
+ 		return 0
+ 	fi
+ 
+-	local pkgname="${LINUX_GPUTEST_DEB}"
++	local pkgname="${LINUX_TEST_DEB}"
+ 
+-	info_msg "build_gputest_deb start: $pkgname"
++	info_msg "build_test_deb start: $pkgname"
+ 
+ 	local pkgdir="$BUILD_IMAGES/.tmp/${pkgname}_${VERSION}_${DISTRIB_ARCH}"
+ 	rm -rf $pkgdir
+@@ -37,8 +37,9 @@ build_gputest_deb() {
+ 	EOF
+ 
+ 	# Copy to pkgdir
+-	mkdir -p $pkgdir/test
+-	rsync -aI $ROOT/archives/features/gputest $pkgdir/test
++	mkdir -p $pkgdir/home/$DEFAULT_USER/test
++	chmod 777 $pkgdir/home/$DEFAULT_USER/test
++	rsync -aI $ROOT/archives/features/test/* $pkgdir/home/$DEFAULT_USER/test/
+ 
+ 	# Create deb file
+ 	info_msg "Building package: $pkgname.deb"
+@@ -51,20 +52,20 @@ build_gputest_deb() {
+ 	rm -rf ${pkgdir}.deb
+ 	rm -rf $pkgdir
+ 
+-	info_msg "build_gputest_deb done: $pkgname"
++	info_msg "build_test_deb done: $pkgname"
+ }
+ 
+ 
+-## install gpu relative deb packages
+-install_gputest_deb() {
++## install test relative deb packages
++install_test_deb() {
+ 
+ 	# for develop version only
+ 	if [ "$BUILD_TYPE" != develop ]; then
+ 		return 0
+ 	fi
+ 
+-	info_msg "install_gputest_deb start: $LINUX_GPUTEST_DEB"
+-	install_deb_chroot $BUILD_DEBS/$VERSION/$WORK_BOARD/${DISTRIBUTION}-${DISTRIB_RELEASE}/${LINUX_GPUTEST_DEB}_${VERSION}_${DISTRIB_ARCH}.deb
++	info_msg "install_test_deb start: $LINUX_TEST_DEB"
++	install_deb_chroot $BUILD_DEBS/$VERSION/$WORK_BOARD/${DISTRIBUTION}-${DISTRIB_RELEASE}/${LINUX_TEST_DEB}_${VERSION}_${DISTRIB_ARCH}.deb
+ 
+-	info_msg "install_gputest_deb done: $LINUX_GPUTEST_DEB"
++	info_msg "install_test_deb done: $LINUX_TEST_DEB"
+ }
+\ No newline at end of file
+diff --git a/config/functions/functions b/config/functions/functions
+index 6c572f2..fff946d 100755
+--- a/config/functions/functions
++++ b/config/functions/functions
+@@ -17,8 +17,7 @@ source config/functions/build-gstreamer
+ 
+ ## Festures
+ source config/functions/features/build-gnu-deb
+-source config/functions/features/build-nntest-deb
+-source config/functions/features/build-gputest-deb
++source config/functions/features/build-test-deb
+ 
+ 
+ ## Distribution special functions
+diff --git a/docs/How_to_test_GPU.md b/docs/How_to_test_GPU.md
+deleted file mode 100755
+index 01b04d3..0000000
+--- a/docs/How_to_test_GPU.md
++++ /dev/null
+@@ -1,56 +0,0 @@
+-## How to test NPU
+-
+-
+-
+-## Precondition
+-in config/config, set BUILD_TYPE=develop
+-It will build NNSDK test as a deb, and install to Debian system.
+-
+-## How to
+-After boot up the Debian system, the test script is installed to /aml_test/ folder. 
+-└── test
+-    └── nntest
+-        ├── adla_native_case
+-        │   ├── adla_compiler_v0.3.0
+-        │   │   ├── 200917_x4_v38_8bits_uint8_part_4conv.adla
+-        │   │   ├── 200917_x4_v38_8bits_uint8_part_4conv.bin
+-        │   │   ├── ALPR_eval_onnx_uint8.adla
+-        │   │   ├── ALPR_eval_onnx_uint8.bin
+-        │   │   ├── FPN.adla
+-        │   │   ├── FPN.bin
+-        │   │   ├── inceptionv3_uint8.adla
+-        │   │   ├── inceptionv3_uint8.bin
+-        │   │   ├── inceptionv4_uint8.adla
+-        │   │   ├── inceptionv4_uint8.bin
+-        │   │   ├── mobilenetv1_uint8.adla
+-        │   │   ├── mobilenetv1_uint8.bin
+-        │   │   ├── mobilenet_v2_1.0_224_quant_u8.adla
+-        │   │   ├── mobilenet_v2_1.0_224_quant_u8.bin
+-        │   │   ├── resnetv2_152_uint8.adla
+-        │   │   ├── resnetv2_152_uint8.bin
+-        │   │   └── vgg16_quant_u8_btrue.bin
+-        │   ├── adla_run.sh
+-        │   ├── input_0.bin
+-        │   ├── input_3th.bin
+-        │   ├── libdlib.so.19.15.0
+-        │   ├── readme.txt
+-        │   └── runtime64
+-        ├── nnsdk_test_case
+-        │   ├── 224x224x3.jpeg
+-        │   ├── inceptionv1_int8.adla
+-        │   ├── libjpeg.so.9
+-        │   ├── libnndemo.so
+-        │   ├── mobilenetv1_int8.adla
+-        │   ├── mobilenet_v2_int8.adla
+-        │   ├── nnsdk_test.sh
+-        │   ├── readme.txt
+-        │   └── sdk_classify_test_yocto_64
+-        ├── nntest.sh
+-        └── readme.txt
+-
+-you can check the detail information in readme.txt
+-
+-## More information
+-
+-./aml_test/nntest.sh
+-
+diff --git a/docs/How_to_test_NPU.md b/docs/How_to_test_NPU.md
+deleted file mode 100755
+index 01b04d3..0000000
+--- a/docs/How_to_test_NPU.md
++++ /dev/null
+@@ -1,56 +0,0 @@
+-## How to test NPU
+-
+-
+-
+-## Precondition
+-in config/config, set BUILD_TYPE=develop
+-It will build NNSDK test as a deb, and install to Debian system.
+-
+-## How to
+-After boot up the Debian system, the test script is installed to /aml_test/ folder. 
+-└── test
+-    └── nntest
+-        ├── adla_native_case
+-        │   ├── adla_compiler_v0.3.0
+-        │   │   ├── 200917_x4_v38_8bits_uint8_part_4conv.adla
+-        │   │   ├── 200917_x4_v38_8bits_uint8_part_4conv.bin
+-        │   │   ├── ALPR_eval_onnx_uint8.adla
+-        │   │   ├── ALPR_eval_onnx_uint8.bin
+-        │   │   ├── FPN.adla
+-        │   │   ├── FPN.bin
+-        │   │   ├── inceptionv3_uint8.adla
+-        │   │   ├── inceptionv3_uint8.bin
+-        │   │   ├── inceptionv4_uint8.adla
+-        │   │   ├── inceptionv4_uint8.bin
+-        │   │   ├── mobilenetv1_uint8.adla
+-        │   │   ├── mobilenetv1_uint8.bin
+-        │   │   ├── mobilenet_v2_1.0_224_quant_u8.adla
+-        │   │   ├── mobilenet_v2_1.0_224_quant_u8.bin
+-        │   │   ├── resnetv2_152_uint8.adla
+-        │   │   ├── resnetv2_152_uint8.bin
+-        │   │   └── vgg16_quant_u8_btrue.bin
+-        │   ├── adla_run.sh
+-        │   ├── input_0.bin
+-        │   ├── input_3th.bin
+-        │   ├── libdlib.so.19.15.0
+-        │   ├── readme.txt
+-        │   └── runtime64
+-        ├── nnsdk_test_case
+-        │   ├── 224x224x3.jpeg
+-        │   ├── inceptionv1_int8.adla
+-        │   ├── libjpeg.so.9
+-        │   ├── libnndemo.so
+-        │   ├── mobilenetv1_int8.adla
+-        │   ├── mobilenet_v2_int8.adla
+-        │   ├── nnsdk_test.sh
+-        │   ├── readme.txt
+-        │   └── sdk_classify_test_yocto_64
+-        ├── nntest.sh
+-        └── readme.txt
+-
+-you can check the detail information in readme.txt
+-
+-## More information
+-
+-./aml_test/nntest.sh
+-
+diff --git a/docs/How_to_test_features.md b/docs/How_to_test_features.md
+new file mode 100755
+index 0000000..b0fd4fe
+--- /dev/null
++++ b/docs/How_to_test_features.md
+@@ -0,0 +1,3 @@
++## How to test features
++Please see ~/test folder
++
+diff --git a/scripts/chroot-scripts/POST_SCRIPT.sh b/scripts/chroot-scripts/POST_SCRIPT.sh
+index 761e814..8040385 100755
+--- a/scripts/chroot-scripts/POST_SCRIPT.sh
++++ b/scripts/chroot-scripts/POST_SCRIPT.sh
+@@ -13,10 +13,10 @@ export LC_ALL=C
+ export LANG=C
+ 
+ # Default user name, password and hostname
+-USERNAME=amlbian
+-USER_PASSWORD=amlbian
+-ROOT_PASSWORD=amlbian
+-HOSTNAME=amlbian
++USERNAME=$DEFAULT_USER
++USER_PASSWORD=$DEFAULT_PASSWORD
++ROOT_PASSWORD=$DEFAULT_PASSWORD
++HOSTNAME=$DEFAULT_HOSTNAME
+ 
+ # Setup password for root user
+ echo root:$ROOT_PASSWORD | chpasswd
+@@ -26,9 +26,18 @@ USER_PASSWORD_ENCRYPTED=`perl -e 'printf("%s\n", crypt($ARGV[0], "password"))' "
+ useradd -m -p "$USER_PASSWORD_ENCRYPTED" -s /bin/bash $USERNAME
+ usermod -aG sudo,adm $USERNAME
+ 
++# Updata default configuration
++[ -d /etc/skel/.config ] && cp -arf /etc/skel/.config /home/$DEFAULT_USER
++[ -d /etc/skel/.local ] && cp -arf /etc/skel/.local /home/$DEFAULT_USER
++[ -f /etc/skel/.bashrc ] && cp -arf /etc/skel/.bashrc /home/$DEFAULT_USER
++[ -f /etc/skel/.bash_logout ] && cp -arf /etc/skel/.bash_logout /home/$DEFAULT_USER
++[ -f /etc/skel/.profile ] && cp -arf /etc/skel/.profile /home/$DEFAULT_USER
++
++chown $DEFAULT_USER:$DEFAULT_USER /home/$DEFAULT_USER/  -R
++
+ # Set default terminal
+-sed -i -e '$a\resize > /dev/null' /home/amlbian/.bashrc
+-sed -i '21 i\TERM=xterm' /home/amlbian/.bashrc
++sed -i -e '$a\resize > /dev/null' /home/$DEFAULT_USER/.bashrc
++sed -i '21 i\TERM=xterm' /home/$DEFAULT_USER/.bashrc
+ 
+ # Clean ssh keys
+ rm -f /etc/ssh/ssh_host*
+diff --git a/scripts/create_image.sh b/scripts/create_image.sh
+index 0c7acf0..c47d41c 100755
+--- a/scripts/create_image.sh
++++ b/scripts/create_image.sh
+@@ -62,8 +62,7 @@ build_debs() {
+ 	fi
+ 
+ 	#build feature debs
+-	build_nntest_deb
+-	build_gputest_deb
++	build_test_deb
+ 
+ 	# Build board deb
+ 	build_board_deb
+@@ -112,7 +111,7 @@ time_mesure "build_uboot"
+ time_mesure "build_linux"
+ 
+ build_gstreamer
+-
++time_mesure "build_gstreamer"
+ 
+ [ "$NO_BUILD_DEBS"  ] || build_debs
+ time_mesure "build_debs"
+-- 
+2.25.1
+

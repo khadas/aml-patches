@@ -1,0 +1,47 @@
+From 5e1de3653083e6eab5aed2477c892a34c3d0817f Mon Sep 17 00:00:00 2001
+From: Hao Shi <hao.shi@amlogic.com>
+Date: Fri, 12 May 2023 07:07:04 +0000
+Subject: [PATCH 2/3] v4l2: CB2 set dma alloc mask to 64bit [1/1]
+
+PD#SWPL-121122
+
+Problem:
+swiotlb size limit.
+
+Solution:
+set dma alloc mask to 64bit.
+
+Verify:
+t7c
+
+Change-Id: I95d4039d49860070ac6aa6f9d7dda31b226aa008
+Signed-off-by: Hao Shi <hao.shi@amlogic.com>
+---
+ drivers/amvdec_ports/aml_vcodec_dec.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/amvdec_ports/aml_vcodec_dec.c b/drivers/amvdec_ports/aml_vcodec_dec.c
+index 25a8c8aa9..c338b0e4a 100644
+--- a/drivers/amvdec_ports/aml_vcodec_dec.c
++++ b/drivers/amvdec_ports/aml_vcodec_dec.c
+@@ -3238,6 +3238,8 @@ static int vb2ops_vdec_queue_setup(struct vb2_queue *vq,
+ 
+ 			if (!V4L2_TYPE_IS_OUTPUT(vq->type))
+ 				alloc_devs[i] = v4l_get_dev_from_codec_mm();
++			else if (vq->memory == VB2_MEMORY_MMAP)
++				dma_coerce_mask_and_coherent(alloc_devs[i], DMA_BIT_MASK(64));
+ 		}
+ 	} else {
+ 		int dw_mode = VDEC_DW_NO_AFBC;
+@@ -3265,6 +3267,8 @@ static int vb2ops_vdec_queue_setup(struct vb2_queue *vq,
+ 
+ 			if (!V4L2_TYPE_IS_OUTPUT(vq->type))
+ 				alloc_devs[i] = v4l_get_dev_from_codec_mm();
++			else if (vq->memory == VB2_MEMORY_MMAP)
++				dma_coerce_mask_and_coherent(alloc_devs[i], DMA_BIT_MASK(64));
+ 		}
+ 	}
+ 
+-- 
+2.25.1
+

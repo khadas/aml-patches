@@ -1,0 +1,38 @@
+From b794e12a695c3bf4430114e1338548dc689b98b1 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Wed, 17 May 2023 18:34:41 +0800
+Subject: [PATCH 1/9] amlbian: Optimize gstreamer compilation  [2/2]
+
+PD#SWPL-114580
+
+Problem:
+amlbian gstreamer build, build failed,
+
+Solution:
+fix build gstreamer failed
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I162e38acf3486b432eae3c905fd7fafc82f2dc32
+---
+ config/functions/build-gstreamer | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/config/functions/build-gstreamer b/config/functions/build-gstreamer
+index 65f9370..23934dd 100755
+--- a/config/functions/build-gstreamer
++++ b/config/functions/build-gstreamer
+@@ -56,7 +56,7 @@ build_gstreamer() {
+ 
+     #amlbian gstreamer build need yocto .so file
+     info_msg "config the env first"
+-    if [ ! -f "/opt/gst-libs" && -d "$DEB_PACKAGES/gst-libs" ]; then
++    if [ ! -f "/opt/gst-libs" ] && [ -d "$DEB_PACKAGES/gst-libs" ]; then
+         echo "cp $DEB_PACKAGES/gst-libs" /opt
+         eval "cp -rf "$DEB_PACKAGES/gst-libs" /opt "
+     else
+-- 
+2.25.1
+

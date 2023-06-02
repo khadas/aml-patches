@@ -1,0 +1,95 @@
+From 48cf5ece1305431801a555b5304f2f7541661f85 Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Wed, 17 May 2023 15:06:56 +0800
+Subject: [PATCH] amlbian: Supports enter uboot by any key [1/1]
+
+PD#SWPL-124202
+
+Problem:
+Supports enter uboot by any key.
+
+Solution:
+Supports enter uboot by any key.
+
+Verify:
+local
+
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+Change-Id: I9ef693f336654bcbd95b4e8f0cf5d9c59896dc85
+---
+ board/amlogic/configs/g12a_u200_debian_v1.h | 10 ----------
+ board/amlogic/configs/g12b_w400_debian_v1.h | 16 +---------------
+ 2 files changed, 1 insertion(+), 25 deletions(-)
+
+diff --git a/board/amlogic/configs/g12a_u200_debian_v1.h b/board/amlogic/configs/g12a_u200_debian_v1.h
+index 76e2a6c507a..3378cea3a2a 100644
+--- a/board/amlogic/configs/g12a_u200_debian_v1.h
++++ b/board/amlogic/configs/g12a_u200_debian_v1.h
+@@ -764,9 +764,6 @@
+ 
+ //Autoboot options
+ #define CONFIG_AUTOBOOT				1
+-#define CONFIG_AUTOBOOT_KEYED		1
+-#define CONFIG_AUTOBOOT_DELAY_STR	"2"
+-#define CONFIG_AUTOBOOT_STOP_STR	" "
+ 
+ //support secure boot
+ #define CONFIG_AML_SECURE_UBOOT   1
+@@ -791,13 +788,6 @@
+ /* support bmp display */
+ #define CONFIG_SYS_VIDEO_LOGO_MAX_SIZE 8192000
+ #define CONFIG_VIDEO_BMP_GZIP 1
+-//#define CONFIG_CFB_CONSOLE 1
+-
+-//build with uboot auto test
+-//#define CONFIG_AML_UBOOT_AUTO_TEST 1
+-
+-//board customer ID
+-//#define CONFIG_CUSTOMER_ID  (0x6472616F624C4D41)
+ 
+ #if defined(CONFIG_CUSTOMER_ID)
+   #undef CONFIG_AML_CUSTOMER_ID
+diff --git a/board/amlogic/configs/g12b_w400_debian_v1.h b/board/amlogic/configs/g12b_w400_debian_v1.h
+index 8185b9f260f..7b1e6c4aff1 100644
+--- a/board/amlogic/configs/g12b_w400_debian_v1.h
++++ b/board/amlogic/configs/g12b_w400_debian_v1.h
+@@ -498,17 +498,7 @@
+ #define CONFIG_MTD_DEVICE y
+ /* mtd parts of ourown.*/
+ #define CONFIG_AML_MTDPART	1
+-/* mtd parts by env default way.*/
+-/*
+-#define MTDIDS_NAME_STR		"aml_nand.0"
+-#define MTDIDS_DEFAULT		"nand1=" MTDIDS_NAME_STR
+-#define MTDPARTS_DEFAULT	"mtdparts=" MTDIDS_NAME_STR ":" \
+-					"3M@8192K(logo),"	\
+-					"10M(recovery),"	\
+-					"8M(kernel),"	\
+-					"40M(rootfs),"	\
+-					"-(data)"
+-*/
++
+ #define CONFIG_CMD_UBI
+ #define CONFIG_CMD_UBIFS
+ #define CONFIG_RBTREE
+@@ -530,7 +520,6 @@
+ #endif
+ #define		CONFIG_PARTITIONS 1
+ #define		CONFIG_SYS_NO_FLASH  1
+-//#define	 CONFIG_AML_GPT
+ 
+ /* meson SPI */
+ #define CONFIG_AML_SPIFC
+@@ -755,9 +744,6 @@
+ 
+ //Autoboot options
+ #define CONFIG_AUTOBOOT				1
+-#define CONFIG_AUTOBOOT_KEYED		1
+-#define CONFIG_AUTOBOOT_DELAY_STR	"2"
+-#define CONFIG_AUTOBOOT_STOP_STR	" "
+ 
+ //support secure boot
+ #define CONFIG_AML_SECURE_UBOOT   1
+-- 
+2.25.1
+

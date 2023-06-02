@@ -1,4 +1,4 @@
-From a03fead3f214fcb1ad6c7ef8ff642b5b737d23a3 Mon Sep 17 00:00:00 2001
+From 42781a105dae845f32a931992d17bed9fade6bee Mon Sep 17 00:00:00 2001
 From: "yi.liu" <yi.liu@amlogic.com>
 Date: Fri, 17 Feb 2023 14:00:23 +0800
 Subject: [PATCH] amlbian: T7c/t7 support debian on kernel 5.15 [1/1]

@@ -1,0 +1,47 @@
+From 383e2432349a771909332c503ab6558042fae6bc Mon Sep 17 00:00:00 2001
+From: "xiaobo.wang" <xiaobo.wang@amlogic.com>
+Date: Mon, 22 May 2023 16:10:32 +0800
+Subject: [PATCH 6/6] Hdmirx: venc support 4k [1/1]
+
+PD#SWPL-124714
+
+Problem:
+support did not support 4k
+
+Solution:
+modify hdmirx driver to support 4k
+
+Verify:
+local
+
+Change-Id: I3760c6460787bc30bddd75f369e2ce6a24ebf3b9
+Signed-off-by: xiaobo.wang <xiaobo.wang@amlogic.com>
+---
+ drivers/media/vin/tvin/vdin/vdin_v4l2_if.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/vin/tvin/vdin/vdin_v4l2_if.c b/drivers/media/vin/tvin/vdin/vdin_v4l2_if.c
+index 8430113d..d26e33db 100644
+--- a/drivers/media/vin/tvin/vdin/vdin_v4l2_if.c
++++ b/drivers/media/vin/tvin/vdin/vdin_v4l2_if.c
+@@ -255,7 +255,7 @@ void vdin_fill_pix_format(struct vdin_dev_s *devp)
+ 			v4l2_fmt->fmt.pix_mp.plane_fmt[1].bytesperline =
+ 				v4l2_fmt->fmt.pix_mp.width;
+ 		} else if (v4l2_fmt->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_NV12M ||
+-				   v4l2_fmt->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_NV12M) {
++				   v4l2_fmt->fmt.pix_mp.pixelformat == V4L2_PIX_FMT_NV21M) {
+ 			v4l2_fmt->fmt.pix_mp.plane_fmt[0].sizeimage =
+ 				v4l2_fmt->fmt.pix_mp.width * v4l2_fmt->fmt.pix_mp.height;
+ 			v4l2_fmt->fmt.pix_mp.plane_fmt[1].sizeimage =
+@@ -1277,7 +1277,7 @@ static int vidioc_try_fmt_vid_cap_mplane(struct file *file, void *priv,
+ 			__func__, devp->index, f->type);
+ 		return -EINVAL;
+ 	}
+-	if (f->fmt.pix_mp.width > 4096 || f->fmt.pix_mp.width > 2160) {
++	if (f->fmt.pix_mp.width > 4096 || f->fmt.pix_mp.height > 2160) {
+ 		dprintk(0, "%s vdin%d v4l2 do not support w=%d,h=%d\n",
+ 			__func__, devp->index, f->fmt.pix_mp.width, f->fmt.pix_mp.height);
+ 		return -EINVAL;
+-- 
+2.25.1
+
