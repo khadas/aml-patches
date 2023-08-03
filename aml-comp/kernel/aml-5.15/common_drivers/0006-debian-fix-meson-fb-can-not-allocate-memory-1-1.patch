@@ -1,0 +1,52 @@
+From 70f3b93663895deef1a3ed0c35d914b806fdbc26 Mon Sep 17 00:00:00 2001
+From: "qiang.cheng" <qiang.cheng@amlogic.com>
+Date: Wed, 12 Jul 2023 11:15:51 +0800
+Subject: [PATCH 06/15] debian: fix meson-fb can not allocate memory [1/1]
+
+PD#SWPL-131625
+
+Problem:
+meson-fb can not allocate memory
+
+Solution:
+fix allocate address
+
+Verify:
+local
+
+Signed-off-by: qiang.cheng <qiang.cheng@amlogic.com>
+Change-Id: I0f9ec98bda6a35e06e358ae0f9d955c0eae6b110
+---
+ arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts  | 2 +-
+ arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts
+index b8531c05b..349559f8b 100644
+--- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_debian.dts
+@@ -79,7 +79,7 @@
+ 			reusable;
+ 			size = <0x0 0x800000>;
+ 			alignment = <0x0 0x400000>;
+-			alloc-ranges = <0x0 0x7f800000 0x0 0x800000>;
++			alloc-ranges = <0x0 0x3e800000 0x0 0x800000>;
+ 		};
+ 		ion_cma_reserved:linux,ion-dev {
+ 			compatible = "shared-dma-pool";
+diff --git a/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts b/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts
+index 016556664..86771c783 100644
+--- a/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts
+@@ -79,7 +79,7 @@
+ 			reusable;
+ 			size = <0x0 0x800000>;
+ 			alignment = <0x0 0x400000>;
+-			alloc-ranges = <0x0 0x7f800000 0x0 0x800000>;
++			alloc-ranges = <0x0 0x3e800000 0x0 0x800000>;
+ 		};
+ 		ion_cma_reserved:linux,ion-dev {
+ 			compatible = "shared-dma-pool";
+-- 
+2.25.1
+

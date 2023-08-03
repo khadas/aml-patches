@@ -1,0 +1,38 @@
+From fab2f63eb03edafc1c8c33121717b0855e49fbc1 Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Fri, 7 Jul 2023 14:15:29 +0800
+Subject: [PATCH 02/15] g12b: g12b fix meson-fb start addr [3/3]
+
+PD#SWPL-130114
+
+Problem:
+g12b /dev/fb0 is unusable.
+
+Solution:
+fix meson-fb start addr
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I162af6a84f400a18196c24a9c7e7428c7a31e59e
+---
+ arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts
+index 2bd7fd52a..c10f930e2 100644
+--- a/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts
++++ b/arch/arm64/boot/dts/amlogic/g12b_a311d_w400_linux.dts
+@@ -79,7 +79,7 @@
+ 			reusable;
+ 			size = <0x0 0x800000>;
+ 			alignment = <0x0 0x400000>;
+-			alloc-ranges = <0x0 0x7f800000 0x0 0x800000>;
++			alloc-ranges = <0x0 0x3e800000 0x0 0x800000>;
+ 		};
+ 		ion_cma_reserved:linux,ion-dev {
+ 			compatible = "shared-dma-pool";
+-- 
+2.25.1
+

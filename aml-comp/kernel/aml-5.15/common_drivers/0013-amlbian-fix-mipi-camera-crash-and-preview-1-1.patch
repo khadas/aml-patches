@@ -1,0 +1,169 @@
+From b942c163672bdc3f57a9b38ad4ccc7e0a35dc073 Mon Sep 17 00:00:00 2001
+From: "zhiwei.zhang" <zhiwei.zhang@amlogic.com>
+Date: Fri, 28 Jul 2023 14:50:45 +0800
+Subject: [PATCH 13/15] amlbian: fix mipi camera crash and preview [1/1]
+
+PD#SWPL-133805
+
+Problem:
+null pointer access in ov5640 close function;.
+
+Solution:
+increase vm0 for mipi camera.
+ov5640: no close if not open success;
+ov5640: open & close function - allow only 1 user;
+
+Verify:
+local
+
+Signed-off-by: zhiwei.zhang <zhiwei.zhang@amlogic.com>
+Change-Id: I4bfc6520e8beaa90580fa6f8407eec592675a6bf
+---
+ .../dts/amlogic/sm1_s905d3_ac200_debian.dts   |  2 +-
+ drivers/media/camera/common/cam_prober.c      |  5 ++
+ drivers/media/camera/ov5640.c                 | 53 ++++++++++++-------
+ drivers/media/camera/ov5640_firmware.h        |  2 +
+ 4 files changed, 42 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts b/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts
+index fe6bfddf6..989c82eb6 100644
+--- a/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/sm1_s905d3_ac200_debian.dts
+@@ -172,7 +172,7 @@
+ 		vm0_cma_reserved:linux,vm0_cma {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			size = <0x0 0x2000000>;
++			size = <0x0 0x4000000>;
+ 			alignment = <0x0 0x400000>;
+ 		};
+ 	};
+diff --git a/drivers/media/camera/common/cam_prober.c b/drivers/media/camera/common/cam_prober.c
+index 2b0a15c9f..0347924f4 100644
+--- a/drivers/media/camera/common/cam_prober.c
++++ b/drivers/media/camera/common/cam_prober.c
+@@ -68,6 +68,11 @@ static int aml_camera_read_buff(struct i2c_adapter *adapter,
+ 	return i2c_flag;
+ }
+ 
++struct aml_cam_info_s *get_aml_cam_info_s(void)
++{
++	return temp_cam;
++}
++
+ static int aml_camera_write_buff(struct i2c_adapter *adapter,
+ 				 unsigned short dev_addr, char *buf, int len)
+ {
+diff --git a/drivers/media/camera/ov5640.c b/drivers/media/camera/ov5640.c
+index b4624ce3f..f90f77054 100644
+--- a/drivers/media/camera/ov5640.c
++++ b/drivers/media/camera/ov5640.c
+@@ -17,6 +17,12 @@
+  *
+  */
+ 
++#ifdef pr_fmt
++#undef pr_fmt
++#endif
++
++#define pr_fmt(fmt) "[ov5640]:%s:%d: " fmt, __func__, __LINE__
++
+ #include <linux/sizes.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+@@ -3021,6 +3027,23 @@ static int ov5640_open(struct file *file)
+ 	struct ov5640_device *dev = video_drvdata(file);
+ 	struct ov5640_fh *fh = NULL;
+ 	int retval = 0;
++	struct aml_cam_info_s *temp_cam = NULL;
++
++	pr_info("tgid %d pid %d", current->tgid, current->pid);
++
++	mutex_lock(&dev->mutex);
++	dev->users++;
++	if (dev->users > 1) {
++		dev->users--;
++		mutex_unlock(&dev->mutex);
++		pr_err("pid %d error leave", current->pid);
++		return -EBUSY;
++	}
++
++	temp_cam = get_aml_cam_info_s();
++
++	if (temp_cam)
++		memcpy(&dev->cam_info, temp_cam, sizeof(struct aml_cam_info_s));
+ 
+ 	dev->vminfo.vdin_id = dev->cam_info.vdin_path;
+ 	dev->vminfo.bt_path_count = dev->cam_info.bt_path_count;
+@@ -3042,18 +3065,6 @@ static int ov5640_open(struct file *file)
+ 
+ 	msleep(20);
+ 
+-	mutex_lock(&dev->mutex);
+-	dev->users++;
+-	if (dev->users > 1) {
+-		dev->users--;
+-		mutex_unlock(&dev->mutex);
+-		return -EBUSY;
+-	}
+-
+-	dprintk(dev, 1, "open %s type=%s users=%d\n",
+-		video_device_node_name(dev->vdev),
+-		v4l2_type_names[V4L2_BUF_TYPE_VIDEO_CAPTURE], dev->users);
+-
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+ 	init_waitqueue_head(&dev->vidq.wq);
+ 	spin_lock_init(&dev->slock);
+@@ -3135,6 +3146,10 @@ static int ov5640_close(struct file *file)
+ 	struct video_device  *vdev = video_devdata(file);
+ 	unsigned int vdin_path;
+ 
++	if (!ov5640_have_opened) {
++		pr_err("not opened, skip close, users  %d ", dev->users);
++		return 0;
++	}
+ 	vdin_path = fh->dev->cam_info.vdin_path;
+ 	mutex_lock(&firmware_mutex);
+ 	ov5640_have_opened = 0;
+@@ -3152,13 +3167,6 @@ static int ov5640_close(struct file *file)
+ 
+ 	kfree(fh);
+ 
+-	mutex_lock(&dev->mutex);
+-	dev->users--;
+-	mutex_unlock(&dev->mutex);
+-
+-	dprintk(dev, 1, "close called (dev=%s, users=%d)\n",
+-		video_device_node_name(vdev), dev->users);
+-
+ 	ov5640_qctrl[4].default_value = 0;
+ 	ov5640_qctrl[5].default_value = 4;
+ 	ov5640_qctrl[6].default_value = 0;
+@@ -3177,6 +3185,13 @@ static int ov5640_close(struct file *file)
+ #ifdef CONFIG_CMA
+ 	vm_deinit_resource(&dev->vminfo);
+ #endif
++	mutex_lock(&dev->mutex);
++	dev->users--;
++	mutex_unlock(&dev->mutex);
++
++	pr_info("close called (dev=%s, users=%d)\n",
++		video_device_node_name(vdev), dev->users);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/camera/ov5640_firmware.h b/drivers/media/camera/ov5640_firmware.h
+index bb0e94634..5839e9f2d 100644
+--- a/drivers/media/camera/ov5640_firmware.h
++++ b/drivers/media/camera/ov5640_firmware.h
+@@ -4120,4 +4120,6 @@ struct aml_camera_i2c_fig_s OV5640_AF_firmware[] = {
+ 	{0xffff, 0xff}
+ };
+ 
++struct aml_cam_info_s *get_aml_cam_info_s(void);
++
+ #endif
+-- 
+2.25.1
+

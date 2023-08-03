@@ -1,0 +1,37 @@
+From 688dbf02ef295c02b3c825029d90641b6f3f6438 Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Thu, 27 Jul 2023 15:27:18 +0800
+Subject: [PATCH 10/10] sc2: add config of mediactrlsrc [1/1]
+
+PD#SWPL-133630
+
+Problem:
+Failure to record screen without specifying tvin port
+
+Solution:
+open config of mediactrlsrc
+
+Verify:
+sc2
+
+Change-Id: Ibb41cd6d5ba0b624aab6ad60c6b398aeacf358e4
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+---
+ conf/machine/mesonsc2-ah212-weston-5.15.config | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/conf/machine/mesonsc2-ah212-weston-5.15.config b/conf/machine/mesonsc2-ah212-weston-5.15.config
+index 7f0eb87e..8abb3539 100644
+--- a/conf/machine/mesonsc2-ah212-weston-5.15.config
++++ b/conf/machine/mesonsc2-ah212-weston-5.15.config
+@@ -69,6 +69,7 @@ DISTRO_FEATURES_append = " aml-libamvenc-264"
+ DISTRO_FEATURES_append = " aml-libamvenc-265"
+ DISTRO_FEATURES_append = " aml-libamvenc"
+ DISTRO_FEATURES_append = " gst-plugin-venc "
++DISTRO_FEATURES_append = " mediactrlsrc"
+ 
+ OVERRIDES .= ":ah212:sc2:onepass"
+ MACHINEOVERRIDES .= ":client"
+-- 
+2.25.1
+

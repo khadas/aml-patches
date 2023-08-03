@@ -1,0 +1,49 @@
+From 16274f7ad03b6c4033114ed9263529568a90a24e Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Mon, 17 Jul 2023 16:35:13 +0800
+Subject: [PATCH 04/15] amlbian: Vbyone only supprt 25hz [1/1]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+PD#SWPL-130526
+
+Problem:
+Vbyone only supprt refresh rate of 25hz.
+
+Solution:
+fr_adj_type(0xff):Fixed mode of refresh rate.
+pixel_clk：4400*2250*25(hz).
+
+Verify:
+local
+
+Change-Id: I858d5d0682356beb2da3ff005018c5a479bcdcc3
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+---
+ arch/arm64/boot/dts/amlogic/mesont7_an400-panel-debian.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/mesont7_an400-panel-debian.dtsi b/arch/arm64/boot/dts/amlogic/mesont7_an400-panel-debian.dtsi
+index 692eca0bf..f3f722e12 100644
+--- a/arch/arm64/boot/dts/amlogic/mesont7_an400-panel-debian.dtsi
++++ b/arch/arm64/boot/dts/amlogic/mesont7_an400-panel-debian.dtsi
+@@ -964,13 +964,13 @@
+ 				33 477 0   /*hs_width, hs_bp, hs_pol*/
+ 				6  65  0>; /*vs_width, vs_bp, vs_pol*/
+ 			clk_attr = <
+-				2 /*fr_adj_type
++				0xff /*fr_adj_type
+ 				   *(0=clk, 1=htotal, 2=vtotal, 3=auto_range,
+ 				   * 4=hdmi_mode)
+ 				   */
+ 				0 /*clk_ss_level*/
+ 				1 /*clk_auto_generate*/
+-				0>; /*pixel_clk(unit in Hz)*/
++				0xEC08CE0>; /*pixel_clk(unit in Hz)*/
+ 			vbyone_attr = <
+ 				8 /*lane_count*/
+ 				1 /*region_num*/
+-- 
+2.25.1
+

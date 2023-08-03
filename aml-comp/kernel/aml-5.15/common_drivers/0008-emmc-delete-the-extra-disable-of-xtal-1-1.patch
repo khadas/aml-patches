@@ -1,0 +1,46 @@
+From 4e13b04c0bc97cffcb88c2cf61c91a115dd540af Mon Sep 17 00:00:00 2001
+From: ziyi <ziyi.huang@amlogic.com>
+Date: Wed, 12 Jul 2023 16:03:03 +0800
+Subject: [PATCH 08/15] emmc: delete the extra disable of xtal [1/1]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+PD#SWPL-131720
+
+Problem:
+there is extra disable of xtal either at
+emmc supend(sd unplug) or resume(sd insert).
+
+Solution:
+1、set host->src_clk to null so that there's
+no extra disable of xtal at resume(sd insert);
+2、delete the extra disable of xtal at emmc
+supend(sd unplug);
+
+Verify:
+t3x
+
+Change-Id: I3f9bd3947b1ee1906a37a0820137f7e763b46d6c
+Signed-off-by: ziyi <ziyi.huang@amlogic.com>
+---
+ drivers/mmc/host/meson-gx-mmc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/host/meson-gx-mmc.c b/drivers/mmc/host/meson-gx-mmc.c
+index eae1d6089..a5509007a 100644
+--- a/drivers/mmc/host/meson-gx-mmc.c
++++ b/drivers/mmc/host/meson-gx-mmc.c
+@@ -591,8 +591,7 @@ static int no_pxp_clk_set(struct meson_host *host, struct mmc_ios *ios,
+ 				ret = clk_set_parent(host->mux[2], src_clk);
+ 			else
+ 				ret = clk_set_parent(host->mux[0], src_clk);
+-			host->src_clk = src_clk;
+-			clk_disable_unprepare(src_clk);
++			host->src_clk = NULL;
+ 			cfg |= CFG_AUTO_CLK;
+ 			writel(cfg, host->regs + SD_EMMC_CFG);
+ 			return ret;
+-- 
+2.25.1
+

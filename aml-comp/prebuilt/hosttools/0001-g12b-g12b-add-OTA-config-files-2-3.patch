@@ -1,0 +1,311 @@
+From 8e04672591eacf4d6ebaa6e0ce9d90497fe2294c Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Fri, 7 Jul 2023 14:10:05 +0800
+Subject: [PATCH 1/2] g12b: g12b add OTA config files [2/3]
+
+PD#SWPL-130114
+
+Problem:
+g12b don't support OTA feature.
+
+Solution:
+g12b add OTA config files to support OTA.
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I37b10595bd2ac467f9bb869c40cf71a1348a15e8
+---
+ .../g12b/aml_upgrade_package.conf             |  4 +-
+ .../g12b/aml_upgrade_package_ab.conf          | 25 ++++++
+ aml-swupdate/g12b/sw-description-emmc         | 43 ++++++++++
+ aml-swupdate/g12b/sw-description-emmc-avb     | 51 ++++++++++++
+ aml-swupdate/g12b/sw-description-nand         | 78 +++++++++++++++++++
+ aml-swupdate/g12b/sw-package-filelist-emmc    |  3 +
+ .../g12b/sw-package-filelist-emmc-avb         |  3 +
+ aml-swupdate/g12b/sw-package-filelist-nand    |  3 +
+ 8 files changed, 209 insertions(+), 1 deletion(-)
+ create mode 100644 aml-image-packer/g12b/aml_upgrade_package_ab.conf
+ create mode 100644 aml-swupdate/g12b/sw-description-emmc
+ create mode 100644 aml-swupdate/g12b/sw-description-emmc-avb
+ create mode 100644 aml-swupdate/g12b/sw-description-nand
+ create mode 100644 aml-swupdate/g12b/sw-package-filelist-emmc
+ create mode 100644 aml-swupdate/g12b/sw-package-filelist-emmc-avb
+ create mode 100644 aml-swupdate/g12b/sw-package-filelist-nand
+
+diff --git a/aml-image-packer/g12b/aml_upgrade_package.conf b/aml-image-packer/g12b/aml_upgrade_package.conf
+index 5ad5edb..614adfd 100644
+--- a/aml-image-packer/g12b/aml_upgrade_package.conf
++++ b/aml-image-packer/g12b/aml_upgrade_package.conf
+@@ -1,7 +1,7 @@
+ #This file define how pack aml_upgrade_package image
+ 
+ [LIST_NORMAL]
+-#partition images, don't need verfiy
++#partition images, don't need verify
+ file="u-boot.bin"                   main_type= "USB"            sub_type="DDR"
+ file="u-boot.bin"                   main_type= "USB"            sub_type="UBOOT"
+ file="u-boot.bin.sd.bin"                main_type="UBOOT"           sub_type="aml_sdc_burn"
+@@ -17,8 +17,10 @@ file="dtb.img"                           main_type="dtb"             sub_type="m
+ #file="userdata.img"     main_type="PARTITION"      sub_type="data"
+ 
+ file="logo.img"         main_type="PARTITION"      sub_type="logo"
++file="recovery.img"         main_type="PARTITION"      sub_type="recovery"
+ file="boot.img"         main_type="PARTITION"      sub_type="boot"
+ file="rootfs.ext4.img2simg" main_type="PARTITION"       sub_type="system"
++file="vendor-image-mesong12b-w400-5.15.ext4" main_type="PARTITION"       sub_type="vendor"
+ file="u-boot.bin"   main_type="PARTITION"      sub_type="bootloader"
+ file="dtb.img"           main_type="PARTITION"      sub_type="_aml_dtb"
+ 
+diff --git a/aml-image-packer/g12b/aml_upgrade_package_ab.conf b/aml-image-packer/g12b/aml_upgrade_package_ab.conf
+new file mode 100644
+index 0000000..170e35e
+--- /dev/null
++++ b/aml-image-packer/g12b/aml_upgrade_package_ab.conf
+@@ -0,0 +1,25 @@
++#This file define how pack aml_upgrade_package image
++
++[LIST_NORMAL]
++#partition images, don't need verify
++file="u-boot.bin"                   main_type= "USB"            sub_type="DDR"
++file="u-boot.bin"                   main_type= "USB"            sub_type="UBOOT"
++file="u-boot.bin.sd.bin"                main_type="UBOOT"           sub_type="aml_sdc_burn"
++file="platform.conf"                    main_type= "conf"           sub_type="platform"
++file="aml_sdc_burn.ini"                 main_type="ini"             sub_type="aml_sdc_burn"
++file="dtb.img"                           main_type="dtb"             sub_type="meson1"
++#file="manifest.xml"                    main_type="xml"             sub_type="manifest"
++
++[LIST_VERIFY]
++#partition images needed verify
++
++#if you want download userdata image, uncomment below line
++#file="userdata.img"     main_type="PARTITION"      sub_type="data"
++
++file="logo.img"         main_type="PARTITION"      sub_type="logo"
++file="recovery.img"         main_type="PARTITION"      sub_type="recovery"
++file="boot.img"         main_type="PARTITION"      sub_type="boot_a"
++file="rootfs.ext4.img2simg" main_type="PARTITION"       sub_type="system_a"
++file="vendor-image-mesong12b-w400-5.15.ext4" main_type="PARTITION"       sub_type="vendor_a"
++file="u-boot.bin"   main_type="PARTITION"      sub_type="bootloader"
++file="dtb.img"           main_type="PARTITION"      sub_type="_aml_dtb"
+diff --git a/aml-swupdate/g12b/sw-description-emmc b/aml-swupdate/g12b/sw-description-emmc
+new file mode 100644
+index 0000000..3316d82
+--- /dev/null
++++ b/aml-swupdate/g12b/sw-description-emmc
+@@ -0,0 +1,43 @@
++software =
++{
++	version = "1.0.1";
++	hardware-compatibility: [ "1.0" ];
++	boardname = {
++		images: (
++			{
++				filename = "rootfs.ext4.img2simg";
++				device = "/dev/system";
++				type = "ext4";
++			},
++			{
++				filename = "dtb.img";
++				device = "/dev/dtb";
++			},
++			{
++				filename = "boot.img";
++				device = "/dev/boot";
++			},
++			{
++				filename = "recovery.img";
++				device = "/dev/recovery";
++			},
++			{
++				filename = "vendor.ext4.img2simg";
++				device = "/dev/vendor";
++				type = "ext4";
++			}
++		);
++	}
++	scripts: (
++		{
++			filename = "update.sh";
++			type = "shellscript";
++		}
++	);
++	uboot: (
++		{
++			name = "upgrade_step";
++			value = "1";
++		}
++	);
++}
+diff --git a/aml-swupdate/g12b/sw-description-emmc-avb b/aml-swupdate/g12b/sw-description-emmc-avb
+new file mode 100644
+index 0000000..aed23d5
+--- /dev/null
++++ b/aml-swupdate/g12b/sw-description-emmc-avb
+@@ -0,0 +1,51 @@
++software =
++{
++	version = "1.0.1";
++	hardware-compatibility: [ "1.0" ];
++	boardname = {
++		images: (
++			{
++				filename = "rootfs.ext4.img2simg";
++				device = "/dev/system";
++				type = "ext4";
++			},
++			{
++				filename = "dtb.img";
++				device = "/dev/dtb";
++			},
++			{
++				filename = "boot.img";
++				device = "/dev/boot";
++			},
++			{
++				filename = "u-boot.bin.signed";
++				device = "/dev/bootloader";
++			},
++			{
++				filename = "recovery.img";
++				device = "/dev/recovery";
++			},
++			{
++				filename = "vendor-image-mesong12b-w400-5.15.ext4";
++				device = "/dev/vendor";
++				type = "ext4";
++			},
++			{
++				filename = "vbmeta.img";
++				device = "/dev/vbmeta";
++			}
++		);
++	}
++	scripts: (
++		{
++			filename = "update.sh";
++			type = "shellscript";
++		}
++	);
++	uboot: (
++		{
++			name = "upgrade_step";
++			value = "1";
++		}
++	);
++}
+diff --git a/aml-swupdate/g12b/sw-description-nand b/aml-swupdate/g12b/sw-description-nand
+new file mode 100644
+index 0000000..ee4e17f
+--- /dev/null
++++ b/aml-swupdate/g12b/sw-description-nand
+@@ -0,0 +1,78 @@
++software =
++{
++	version = "1.0.1";
++	hardware-compatibility: [ "1.0" ];
++	images: (
++		{
++			filename = "rootfs.ubifs";
++			volume = "rootfs";
++		},
++		{
++			filename = "dtb.img";
++			device = "/dev/dtb";
++		},
++		{
++			filename = "boot.img";
++			device = "/dev/mtd5";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.bl2";
++			device = "/dev/mtd0";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.bl2";
++			device = "/dev/mtd0";
++			offset = "512K";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.bl2";
++			device = "/dev/mtd0";
++			offset = "1024K";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.bl2";
++			device = "/dev/mtd0";
++			offset = "1536K";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.tpl";
++			device = "/dev/mtd1";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.tpl";
++			device = "/dev/mtd1";
++			offset = "2M";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.tpl";
++			device = "/dev/mtd1";
++			offset = "4M";
++			type = "flash";
++		},
++		{
++			filename = "u-boot.bin.usb.tpl";
++			device = "/dev/mtd1";
++			offset = "6M";
++			type = "flash";
++		}
++	);
++	scripts: (
++		{
++			filename = "update.sh";
++			type = "shellscript";
++		}
++	);
++	uboot: (
++		{
++			name = "upgrade_step";
++			value = "1";
++		}
++	);
++}
+diff --git a/aml-swupdate/g12b/sw-package-filelist-emmc b/aml-swupdate/g12b/sw-package-filelist-emmc
+new file mode 100644
+index 0000000..3326d38
+--- /dev/null
++++ b/aml-swupdate/g12b/sw-package-filelist-emmc
+@@ -0,0 +1,3 @@
++# ota package file list for emmc
++HASH_FILES="dtb.img boot.img rootfs.ext4.img2simg recovery.img vendor.ext4.img2simg update.sh"
++FILES="sw-description sw-description.sig dtb.img boot.img rootfs.ext4.img2simg recovery.img vendor.ext4.img2simg update.sh"
+diff --git a/aml-swupdate/g12b/sw-package-filelist-emmc-avb b/aml-swupdate/g12b/sw-package-filelist-emmc-avb
+new file mode 100644
+index 0000000..73d3d85
+--- /dev/null
++++ b/aml-swupdate/g12b/sw-package-filelist-emmc-avb
+@@ -0,0 +1,3 @@
++# ota package file list for emmc
++HASH_FILES="u-boot.bin.signed dtb.img boot.img rootfs.ext4.img2simg recovery.img vendor-image-mesong12b-w400-5.15.ext4 vbmeta.img update.sh"
++FILES="sw-description sw-description.sig u-boot.bin.signed dtb.img boot.img rootfs.ext4.img2simg recovery.img vendor-image-mesong12b-w400-5.15.ext4 vbmeta.img update.sh"
+diff --git a/aml-swupdate/g12b/sw-package-filelist-nand b/aml-swupdate/g12b/sw-package-filelist-nand
+new file mode 100644
+index 0000000..9bfcfd0
+--- /dev/null
++++ b/aml-swupdate/g12b/sw-package-filelist-nand
+@@ -0,0 +1,3 @@
++# ota package file list for nand
++HASH_FILES="u-boot.bin.usb.bl2 u-boot.bin.usb.tpl dtb.img boot.img rootfs.ubifs update.sh"
++FILES="sw-description sw-description.sig u-boot.bin.usb.bl2 u-boot.bin.usb.tpl dtb.img boot.img rootfs.ubifs update.sh"
+-- 
+2.25.1
+

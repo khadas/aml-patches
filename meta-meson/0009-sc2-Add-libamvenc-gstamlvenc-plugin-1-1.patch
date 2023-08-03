@@ -1,0 +1,55 @@
+From 14c69d7cf73734537f437fb0adb85a262e37c926 Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Mon, 24 Jul 2023 19:01:57 +0800
+Subject: [PATCH 09/10] sc2: Add libamvenc, gstamlvenc plugin [1/1]
+
+PD#SWPL-132585
+
+Problem:
+Add encoderhal
+
+Solution:
+Add libamvenc, gstamlvenc plugin
+
+Verify:
+sc2
+
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+Change-Id: Ia8ae62799372934a5d573b7e6ecc234212994db0
+---
+ conf/machine/mesonsc2-ah212-weston-5.15.config     | 5 +++--
+ recipes-kernel/media_modules/media-modules_5.15.bb | 2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/conf/machine/mesonsc2-ah212-weston-5.15.config b/conf/machine/mesonsc2-ah212-weston-5.15.config
+index e32c8191..7f0eb87e 100644
+--- a/conf/machine/mesonsc2-ah212-weston-5.15.config
++++ b/conf/machine/mesonsc2-ah212-weston-5.15.config
+@@ -65,8 +65,9 @@ DISTRO_FEATURES_append = " aml-dtv "
+ #DISTRO_FEATURES_append = " recovery "
+ #DISTRO_FEATURES_append = " swupdate "
+ DISTRO_FEATURES_append = " aml-libjpeg "
+-DISTRO_FEATURES_append = " aml-libvpcodec "
+-DISTRO_FEATURES_append = " aml-libvphevcodec "
++DISTRO_FEATURES_append = " aml-libamvenc-264"
++DISTRO_FEATURES_append = " aml-libamvenc-265"
++DISTRO_FEATURES_append = " aml-libamvenc"
+ DISTRO_FEATURES_append = " gst-plugin-venc "
+ 
+ OVERRIDES .= ":ah212:sc2:onepass"
+diff --git a/recipes-kernel/media_modules/media-modules_5.15.bb b/recipes-kernel/media_modules/media-modules_5.15.bb
+index a0250fa3..3a458182 100644
+--- a/recipes-kernel/media_modules/media-modules_5.15.bb
++++ b/recipes-kernel/media_modules/media-modules_5.15.bb
+@@ -125,7 +125,7 @@ KERNEL_MODULE_AUTOLOAD += "amvdec_ports"
+ 
+ KERNEL_MODULE_AUTOLOAD_append_t3 = " encoder amlogic-jpegenc amlogic-multienc"
+ KERNEL_MODULE_AUTOLOAD_append_t7 = " encoder amlogic-jpegenc amlogic-multienc"
+-KERNEL_MODULE_AUTOLOAD_append_sc2 = " encoder jpegenc vpu"
++KERNEL_MODULE_AUTOLOAD_append_sc2 = " amlogic-encoder amlogic-jpegenc amlogic-vpu"
+ KERNEL_MODULE_AUTOLOAD_append_g12b = " amlogic-encoder amlogic-jpegenc amlogic-vpu"
+ KERNEL_MODULE_AUTOLOAD_append_sm1 = " amlogic-encoder amlogic-jpegenc amlogic-vpu"
+ 
+-- 
+2.25.1
+

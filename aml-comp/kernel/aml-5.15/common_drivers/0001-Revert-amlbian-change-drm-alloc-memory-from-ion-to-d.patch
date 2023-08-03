@@ -1,0 +1,114 @@
+From 7f5f47a44dfb01f286a2b196c90b7d8727ce2ef4 Mon Sep 17 00:00:00 2001
+From: Kirk Wang <kirk.wang@amlogic.com>
+Date: Mon, 10 Jul 2023 00:32:59 -0700
+Subject: [PATCH 01/15] Revert "amlbian: change drm alloc memory from ion to
+ dmaheap [1/1]"
+
+This reverts commit 6c4b251c01f9c4e7eeb71a778b62c664433b9fb7.
+
+Change-Id: Ib68c65bc044056e7c5a8a465a771a8694b8f9859
+---
+ arch/arm64/boot/dts/amlogic/t7_a311d2_an400_debian.dts       | 2 +-
+ arch/arm64/boot/dts/amlogic/t7_a311d2_an400_linux.dts        | 5 +++--
+ arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_debian.dts      | 2 +-
+ arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux.dts       | 5 +++--
+ .../t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts        | 4 ++--
+ 5 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_debian.dts b/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_debian.dts
+index e42f3c258..65d534a46 100644
+--- a/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_debian.dts
+@@ -187,7 +187,7 @@
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+ 			/* 1920x1080x4x6+3840x2160x4x3 round up 4M align */
+-			size = <0x0 0x0>;
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 			alloc-ranges = <0x0 0x0 0x0 0xe0000000>;
+ 		};
+diff --git a/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_linux.dts b/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_linux.dts
+index e1b5bb439..7e8381189 100644
+--- a/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_linux.dts
++++ b/arch/arm64/boot/dts/amlogic/t7_a311d2_an400_linux.dts
+@@ -186,7 +186,8 @@
+ 		ion_fb_reserved:linux,ion-fb {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			size = <0x0 0x0>;
++			/* 1920x1080x4x6+3840x2160x4x3 round up 4M align */
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 			alloc-ranges = <0x0 0x0 0x0 0xe0000000>;
+ 		};
+@@ -202,7 +203,7 @@
+ 		dmaheap_cma_reserved:heap-gfx {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			size = <0x0 0x10000000>;
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 		};
+ 		dmaheap_fb_reserved:heap-fb {
+diff --git a/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_debian.dts b/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_debian.dts
+index 869015836..221f35987 100644
+--- a/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_debian.dts
+@@ -177,7 +177,7 @@
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+ 			/* 1920x1080x4x6+3840x2160x4x3 round up 4M align */
+-			size = <0x0 0x0>;
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 			alloc-ranges = <0x0 0x0 0x0 0xe0000000>;
+ 		};
+diff --git a/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux.dts b/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux.dts
+index 239f8287b..4975ffe81 100644
+--- a/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux.dts
++++ b/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux.dts
+@@ -175,7 +175,8 @@
+ 		ion_fb_reserved:linux,ion-fb {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			size = <0x0 0x0>;
++			/* 1920x1080x4x6+3840x2160x4x3 round up 4M align */
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 			alloc-ranges = <0x0 0x0 0x0 0xe0000000>;
+ 		};
+@@ -197,7 +198,7 @@
+ 		dmaheap_cma_reserved:heap-gfx {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			size = <0x0 0x10000000>;
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 		};
+ 		dmaheap_fb_reserved:heap-fb {
+diff --git a/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts b/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts
+index 82a1bdafb..cc23d0439 100644
+--- a/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts
++++ b/arch/arm64/boot/dts/amlogic/t7c_a311d2_an400_linux_drm_hdmitx_only_debian.dts
+@@ -178,7 +178,7 @@
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+ 			/* 1920x1080x4x6+3840x2160x4x3 round up 4M align */
+-			size = <0x0 0x0>;
++			size = <0x0 0xa000000>;
+ 			alignment = <0x0 0x400000>;
+ 			alloc-ranges = <0x0 0x0 0x0 0xe0000000>;
+ 		};
+@@ -193,7 +193,7 @@
+ 		dmaheap_cma_reserved:heap-gfx {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			size = <0x0 0x20000000>;
++			size = <0x0 0x10000000>;
+ 			alignment = <0x0 0x400000>;
+ 		};
+ 		dmaheap_fb_reserved:heap-fb {
+-- 
+2.25.1
+

@@ -1,0 +1,54 @@
+From a8d9fc95145d926cc7f717a8b7c29fd8cec36f3a Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Mon, 10 Jul 2023 19:36:10 +0800
+Subject: [PATCH 04/10] yocto: install extra_modules_install.sh in do_configure
+  [1/1]
+
+PD#SWPL-130736
+
+Problem:
+install extra_modules_install.sh should after kernel-source link created
+
+Solution:
+install extra_modules_install.sh in do_configure
+
+Verify:
+t7
+
+Change-Id: I3f1bede43325a334483c3af748c91f22606ae1d7
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+---
+ recipes-kernel/linux/linux-meson_5.15.bb | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/recipes-kernel/linux/linux-meson_5.15.bb b/recipes-kernel/linux/linux-meson_5.15.bb
+index b9dcb9c9..bb815338 100644
+--- a/recipes-kernel/linux/linux-meson_5.15.bb
++++ b/recipes-kernel/linux/linux-meson_5.15.bb
+@@ -63,7 +63,6 @@ do_install_append () {
+    NAND_FLAG="${@bb.utils.contains('DISTRO_FEATURES', 'nand', "true", "false", d)}";
+    CHIP=${MACHINE}
+    echo "MACHINE:  ${MACHINE}"
+-   install -m 755 ${WORKDIR}/extra_modules_install.sh ${STAGING_KERNEL_DIR}/
+    bash ${WORKDIR}/modules_install.sh ${D} ${STAGING_KERNEL_DIR}/common_drivers/ ${KERNEL_VERSION} ${NAND_FLAG} ${CHIP}
+ }
+ 
+@@ -79,6 +78,7 @@ do_compile_prepend () {
+ 
+ do_configure_prepend () {
+     export COMMON_DRIVERS_DIR=./common_drivers
++    install -m 755 ${WORKDIR}/extra_modules_install.sh ${STAGING_KERNEL_DIR}/
+ }
+ 
+ do_kernel_configme_prepend () {
+@@ -93,6 +93,7 @@ do_kernel_metadata_prepend () {
+ 
+ do_compile_kernelmodules_prepend () {
+     export COMMON_DRIVERS_DIR=./common_drivers
++    export MODULES_STAGING_DIR=${D}
+ }
+ 
+ do_compile_kernelmodules_append () {
+-- 
+2.25.1
+

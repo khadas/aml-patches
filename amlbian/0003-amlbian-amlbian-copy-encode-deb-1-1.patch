@@ -1,0 +1,55 @@
+From bbc332470be391d0e140c8ca3631829c53b3a507 Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Fri, 21 Jul 2023 13:52:00 +0800
+Subject: [PATCH 3/5] amlbian: amlbian copy encode deb  [1/1]
+
+PD#SWPL-132854
+
+Problem:
+encode have been modify,need to sync to amlbian.
+
+Solution:
+modify the amlbian copy shell.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: Ifd99db84040bc2735decfcd0b0b18ae3e8de130e
+---
+ env/copy_debs_from_yocto.sh | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/env/copy_debs_from_yocto.sh b/env/copy_debs_from_yocto.sh
+index 8842e08..217d661 100755
+--- a/env/copy_debs_from_yocto.sh
++++ b/env/copy_debs_from_yocto.sh
+@@ -170,19 +170,19 @@ KERNEL_DEBS_DIR=$BUILDDIR/tmp/work/$TARGET_BOARD
+ # set SOC special information and packages
+ case "$TARGET_BOARD" in
+ 	mesont7_an400_debian_5.15-poky-linux)	# T7/A311D2
+-		packages_arr+=( libmultienc gst-plugin-venc-multienc \
+-			           libgles-eabihf-gondul-wayland-drm mediactrlsrc)
++		packages_arr+=( libamvenc libmultienc gst-plugin-venc-amlvenc \
++			        libgles-eabihf-gondul-wayland-drm mediactrlsrc)
+ 		kernel_mod_arr+=( adla gondul isp)
+ 		package_status_append+=( kernel-module-amlogic-pm-5.15.78_5.15.78+git999-r2_arm64.deb)
+ 		;;
+ 	mesong12b_w400_debian_5.15-poky-linux) # A311D
+-		packages_arr+=( libvpcodec h264bitstream libvphevcodec gst-plugin-venc-h265 gst-plugin-venc-h264 \
+-						libgles-eabihf-gondul-wayland-drm mediactrlsrc)
++		packages_arr+=( libamvenc libamvenc-264 libamvenc-265 h264bitstream gst-plugin-venc-amlvenc \
++				libgles-eabihf-gondul-wayland-drm mediactrlsrc)
+ 		kernel_mod_arr+=( npu gondul isp)
+ 		;;
+ 	mesonsm1_ac200_debian_5.15-poky-linux) # S905D3
+-		packages_arr+=( libvpcodec h264bitstream libvphevcodec gst-plugin-venc-h265 gst-plugin-venc-h264 \
+-						libgles-eabihf-dvalin-wayland-drm mediactrlsrc)
++        	packages_arr+=( libamvenc libamvenc-264 libamvenc-265 h264bitstream gst-plugin-venc-amlvenc \
++				libgles-eabihf-dvalin-wayland-drm mediactrlsrc)
+ 		kernel_mod_arr+=( npu dvalin)
+ 		;;
+ esac
+-- 
+2.25.1
+

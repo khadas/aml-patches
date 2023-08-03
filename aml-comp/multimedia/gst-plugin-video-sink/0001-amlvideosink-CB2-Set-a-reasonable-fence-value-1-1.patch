@@ -1,0 +1,96 @@
+From f0a6dbad45d9bba28c6b4ea0b9cadc5cfb5ada3a Mon Sep 17 00:00:00 2001
+From: "hanghang.luo" <hanghang.luo@amlogic.com>
+Date: Tue, 11 Jul 2023 09:00:01 +0000
+Subject: [PATCH] amlvideosink: CB2 Set a reasonable fence value [1/1]
+
+PD#SWPL-129180
+
+Problem:
+What the fence default value should be set to?
+
+Solution:
+The value of the fence is obtained by the decoder by sending the event
+
+Verify:
+AM301
+
+Change-Id: If058b3c43d3f03d9e90fae024dc99d74929ae4f5
+Signed-off-by: hanghang.luo <hanghang.luo@amlogic.com>
+---
+ src/gstamlvideosink.c | 22 +++++++++++++++++++---
+ src/gstamlvideosink.h |  1 +
+ 2 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/src/gstamlvideosink.c b/src/gstamlvideosink.c
+index b3c0768..1121044 100644
+--- a/src/gstamlvideosink.c
++++ b/src/gstamlvideosink.c
+@@ -135,8 +135,8 @@ enum
+ #define DRMBP_EXTRA_BUF_SZIE_FOR_DISPLAY 1
+ #define DRMBP_LIMIT_MAX_BUFSIZE_TO_BUFSIZE 1
+ #define DRMBP_UNLIMIT_MAX_BUFSIZE 0
+-#define GST_AML_WAIT_FENCE 8
+ #define GST_AML_WAIT_TIME  5000
++#define GST_AML_DEFAULT_FENCE_NUM 99 // disable fence_num if set 99;
+ 
+ typedef struct _GstAmlVideoSinkWindowSet
+ {
+@@ -389,6 +389,7 @@ static void gst_aml_video_sink_init(GstAmlVideoSink *sink)
+     sink->secure_mode = FALSE;
+     sink->eos_detect_thread_handle = NULL;
+     sink->quit_eos_detect_thread = FALSE;
++    sink->fence_num = GST_AML_DEFAULT_FENCE_NUM;
+     g_mutex_init(&sink->eos_lock);
+     g_cond_init(&sink->eos_cond);
+ 
+@@ -975,11 +976,12 @@ static void gst_aml_video_sink_wait_fence (GstAmlVideoSink *sink)
+     q_num = sink->queued;
+     dq_num = sink->dequeued;
+     GST_OBJECT_UNLOCK(sink);
++    GST_DEBUG_OBJECT(sink, "q_num %d , dq_num %d ,sink->fence_num %d",q_num , dq_num,sink->fence_num);
+ 
+-    while ((q_num - dq_num > GST_AML_WAIT_FENCE) && sink->video_playing)
++    while ((q_num >= sink->fence_num + dq_num) && sink->video_playing)
+     {
+         g_usleep(GST_AML_WAIT_TIME);
+-        GST_TRACE_OBJECT(sink, "wait fence condition update: q_num %d , dq_num %d",q_num , dq_num);
++        GST_DEBUG_OBJECT(sink, "waiting render_lib release buff......");
+         GST_OBJECT_LOCK(sink);
+         q_num = sink->queued;
+         dq_num = sink->dequeued;
+@@ -1186,6 +1188,20 @@ static gboolean gst_aml_video_sink_pad_event (GstBaseSink *basesink, GstEvent *e
+             sink->secure_mode = TRUE;
+             GST_OBJECT_UNLOCK(sink);
+         }
++
++        if (gst_event_has_name(event, "video_fence"))
++        {
++            guint fence_num;
++            GST_OBJECT_LOCK(sink);
++            GST_DEBUG_OBJECT(sink, "Got video_fence Event");
++            const GstStructure *s = gst_event_get_structure(event);
++            if (s)
++            {
++                gst_structure_get_uint(s,"fence_num",&fence_num);
++                sink->fence_num = fence_num;
++            }
++            GST_OBJECT_UNLOCK(sink);
++        }
+         gst_event_unref(event);
+         return result;
+     }
+diff --git a/src/gstamlvideosink.h b/src/gstamlvideosink.h
+index bc8da5c..f4478c7 100644
+--- a/src/gstamlvideosink.h
++++ b/src/gstamlvideosink.h
+@@ -68,6 +68,7 @@ struct _GstAmlVideoSink
+   gboolean video_playing;
+ 
+   gboolean secure_mode;
++  guint fence_num;
+ 
+   GstAmlVideoSinkPrivate *priv;
+ };
+-- 
+2.25.1
+

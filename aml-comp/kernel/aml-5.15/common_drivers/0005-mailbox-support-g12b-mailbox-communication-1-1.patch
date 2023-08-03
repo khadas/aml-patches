@@ -1,0 +1,49 @@
+From 7e7d746a3e348aff597d0016a1ef622e583ea919 Mon Sep 17 00:00:00 2001
+From: Yao Jie <jie.yao@amlogic.com>
+Date: Tue, 28 Feb 2023 20:40:40 +0800
+Subject: [PATCH 05/15] mailbox: support g12b mailbox communication [1/1]
+
+PD#SWPL-131641
+
+Problem:
+Mailbox to AOCPU transfer fail on G12B
+
+Solution:
+Modify g12b mailbox configuration in dtsi
+
+Verify:
+G12B-W400
+
+Change-Id: Iad70243d0c4f7520831c409d31ea4a09f0c8cf54
+Signed-off-by: Yao Jie <jie.yao@amlogic.com>
+---
+ arch/arm64/boot/dts/amlogic/mesong12b.dtsi | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/mesong12b.dtsi b/arch/arm64/boot/dts/amlogic/mesong12b.dtsi
+index f85a06411..8beed04b7 100644
+--- a/arch/arm64/boot/dts/amlogic/mesong12b.dtsi
++++ b/arch/arm64/boot/dts/amlogic/mesong12b.dtsi
+@@ -303,10 +303,16 @@
+ 		reg = <0x0 0xff63c400 0x0 0x4c>,   /* MHU registers */
+ 		      <0x0 0xfffe7000 0x0 0x800>;   /* Payload area */
+ 		interrupts = <0 209 1>,   /* low priority interrupt */
+-			     <0 210 1>;   /* high priority interrupt */
++			     <0 210 1>,   /* bl4 receive interrupt */
++			     <0 213 1>;   /* bl4 send interrupt */
+ 		#mbox-cells = <1>;
+-		mbox-names = "cpu_to_scp_low", "cpu_to_scp_high";
+-		mboxes = <&mailbox 0 &mailbox 1>;
++		mbox-names = "cpu_to_scp_low", "bl4_to_cpu", "cpu_to_bl4";
++		mboxes = <&mailbox 0 &mailbox 1 &mailbox 2>;
++		num-chans-to-scp = <1>;  /*number of chans to send m3*/
++		send-isr-bits = <5>;     /*BIT(idx) of isr listen when ap send*/
++		ack-isr-bits = <4>;      /*BIT(idx) of ack isr*/
++		m4-isr-bits = <6>;       /*BIT(idx) of m4 isr*/
++		mbox-chans = <3>;        /*chan number*/
+ 	};
+ 
+ 	cpu_iomap {
+-- 
+2.25.1
+

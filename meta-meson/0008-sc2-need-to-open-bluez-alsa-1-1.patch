@@ -1,0 +1,58 @@
+From 3b24764ac6f50b62001c4f43e90f65f1bc2c3ece Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Mon, 24 Jul 2023 16:38:33 +0800
+Subject: [PATCH 08/10] sc2: need to open bluez-alsa [1/1]
+
+PD#SWPL-132603
+
+Problem:
+Don't have bluez-alsa.sh
+
+Solution:
+open bluez-alsa config
+
+Verify:
+local
+
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+Change-Id: Ib92815b25cc1264ec7cfeeb0215bcc5f14259d88
+---
+ conf/machine/mesonsc2-ah212-weston-5.15.config | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/conf/machine/mesonsc2-ah212-weston-5.15.config b/conf/machine/mesonsc2-ah212-weston-5.15.config
+index 85c81b70..e32c8191 100644
+--- a/conf/machine/mesonsc2-ah212-weston-5.15.config
++++ b/conf/machine/mesonsc2-ah212-weston-5.15.config
+@@ -26,6 +26,7 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += " \
+ CHIPSET_NAME = "S905X4"
+ PREFERRED_VERSION_qca6174 = "5.15"
+ RDEPENDS_packagegroup-amlogic-baserootfs_remove = "aml-subtitleserver"
++RDEPENDS_packagegroup-amlogic-baserootfs_remove = " gst-aml-drm-plugins"
+ RDEPENDS_packagegroup-amlogic-baserootfs_remove = " fuse-exfat"
+ KERNEL_DEVICETREE = "sc2_s905x4_ah212_linux.dtb"
+ UBOOT_MACHINE = "sc2_ah212_config"
+@@ -47,10 +48,10 @@ DISTRO_FEATURES_append = " kernel_515"
+ 
+ #DISTRO_FEATURES_append = " onepass"
+ DISTRO_FEATURES_append = " secure-u-boot optee "
+-DISTRO_FEATURES_append = " widevine "
+-DISTRO_FEATURES_append = " playready "
++#DISTRO_FEATURES_append = " widevine "
++#DISTRO_FEATURES_append = " playready "
+ #DISTRO_FEATURES_append = " amlogic-tv "
+-DISTRO_FEATURES_append = " amlogic-dvb "
++#DISTRO_FEATURES_append = " amlogic-dvb "
+ #DISTRO_FEATURES_remove = " alsa "
+ DISTRO_FEATURES_append = " alsa "
+ DISTRO_FEATURES_append = " pam"
+@@ -73,5 +74,6 @@ MACHINEOVERRIDES .= ":client"
+ 
+ DISTRO_FEATURES_append = " bluetooth bluez5 "
+ EXTRA_BLUETOOTH_STUFF := "${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', bb.utils.contains('DISTRO_FEATURES', 'bluez5', ' bluez5', ' bluez4', d), '', d)}"
++EXTRA_BLUETOOTH_STUFF += " bluez-alsa"
+ DISTRO_FEATURES_append = "${EXTRA_BLUETOOTH_STUFF}"
+ 
+-- 
+2.25.1
+

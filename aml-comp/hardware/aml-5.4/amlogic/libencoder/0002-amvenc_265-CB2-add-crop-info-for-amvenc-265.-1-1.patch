@@ -1,0 +1,3374 @@
+From 0c96ce75203894c1c3782b1a645f4078e6295617 Mon Sep 17 00:00:00 2001
+From: "xiaoqian.zhang" <xiaoqian.zhang@amlogic.com>
+Date: Tue, 4 Jul 2023 15:21:47 +0800
+Subject: [PATCH 2/4] amvenc_265: CB2 add crop info for amvenc 265. [1/1]
+
+PD#SWPL-121955
+
+Problem:
+cts test EncoderProfileLevelTest failed.
+
+Solution:
+add crop function.
+
+Verify:
+adt4
+
+Change-Id: I2390c327dbba4401502df3fe321663d96633c628
+Signed-off-by: xiaoqian.zhang <xiaoqian.zhang@amlogic.com>
+---
+ .../EncoderAPI-HEVC/hevc_enc/Android.mk       |    3 +-
+ .../EncoderAPI-HEVC/hevc_enc/h265bitstream.c  | 2037 +++++++++++++++++
+ .../hevc_enc/include/AML_HEVCEncoder.h        |    5 +
+ .../EncoderAPI-HEVC/hevc_enc/include/bs.h     |  383 ++++
+ .../hevc_enc/include/h265bitstream.h          |  659 ++++++
+ .../hevc_enc/libvp_hevc_codec.cpp             |  146 ++
+ .../hevc_enc/vp_hevc_codec_1_0.h              |    9 +
+ 7 files changed, 3241 insertions(+), 1 deletion(-)
+ create mode 100644 amvenc_265/EncoderAPI-HEVC/hevc_enc/h265bitstream.c
+ create mode 100644 amvenc_265/EncoderAPI-HEVC/hevc_enc/include/bs.h
+ create mode 100644 amvenc_265/EncoderAPI-HEVC/hevc_enc/include/h265bitstream.h
+
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/Android.mk b/amvenc_265/EncoderAPI-HEVC/hevc_enc/Android.mk
+index 7d9c3b9..07f6bc9 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/Android.mk
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/Android.mk
+@@ -15,7 +15,8 @@ LOCAL_SRC_FILES := \
+     vpuapi/vdi_osal.c \
+     vpuapi/vpuapi.c \
+     vpuapi/vpuapifunc.c \
+-    vpuapi/wave4.c
++    vpuapi/wave4.c \
++    h265bitstream.c
+ 
+ #define MAKEANDROID
+ 
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/h265bitstream.c b/amvenc_265/EncoderAPI-HEVC/hevc_enc/h265bitstream.c
+new file mode 100644
+index 0000000..6556d64
+--- /dev/null
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/h265bitstream.c
+@@ -0,0 +1,2037 @@
++/**
++ * @h265_stream.c
++ * reading bitstream of H.265
++ * @author hanyi <13141211944@163.com>
++ */
++
++#include <stdint.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <math.h>
++
++#include "./include/bs.h"
++#include "./include/h265bitstream.h"
++#if defined(__ANDROID__)
++#include <utils/Log.h>
++#define LOGCAT
++#endif
++
++#define ZEROBYTES_SHORTSTARTCODE 2 //indicates the number of zero bytes in the short start-code prefix
++
++FILE* h265_dbgfile = NULL;
++#define min(x, y)       ((x) < (y) ? (x) : (y))
++
++#define printf(...) fprintf((h265_dbgfile == NULL ? stdout : h265_dbgfile), __VA_ARGS__)
++int more_rbsp_trailing_data(h265_stream_t* h, bs_t* b) { return !bs_eof(b); }
++
++int RBSPtoEBSP(unsigned char *streamBuffer, int begin_bytepos, int end_bytepos, int min_num_bytes)
++{
++  int i, j, count;
++  char NAL_Payload_buffer[1024] = {0};
++  for (i = begin_bytepos; i < end_bytepos; i++)
++  NAL_Payload_buffer[i] = streamBuffer[i];
++
++  count = 0;
++  j = begin_bytepos;
++  for (i = begin_bytepos; i < end_bytepos; i++)
++  {
++    if (count == ZEROBYTES_SHORTSTARTCODE && !(NAL_Payload_buffer[i] & 0xFC))
++    {
++        streamBuffer[j] = 0x03;
++        j++;
++        count = 0;
++    }
++    streamBuffer[j] = NAL_Payload_buffer[i];
++    if (NAL_Payload_buffer[i] == 0x00)
++      count++;
++    else
++      count = 0;
++    j++;
++    }
++    while (j < begin_bytepos+min_num_bytes) {
++      streamBuffer[j] = 0x00; // cabac stuffing word
++      streamBuffer[j+1] = 0x00;
++      streamBuffer[j+2] = 0x03;
++      j += 3;
++    }
++    return j;
++}
++
++int EBSPtoRBSP(unsigned char *streamBuffer, int begin_bytepos, int end_bytepos) {
++    int i, j, count;
++    count = 0;
++
++    if (end_bytepos < begin_bytepos)
++        return end_bytepos;
++
++    j = begin_bytepos;
++
++    for (i = begin_bytepos; i < end_bytepos; i++)
++    { //starting from begin_bytepos to avoid header information
++    if (count == ZEROBYTES_SHORTSTARTCODE && streamBuffer[i] == 0x03)
++    {
++        i++;
++        count = 0;
++        }
++        streamBuffer[j] = streamBuffer[i];
++        if (streamBuffer[i] == 0x00)
++          count++;
++        else
++          count = 0;
++        j++;
++    }
++		    return j;
++}
++
++h265_stream_t *h265bitstream_init()
++{
++    h265_stream_t *pstream_handle = (h265_stream_t *)malloc(sizeof(h265_stream_t));
++    if (NULL == pstream_handle)
++        return NULL;
++    pstream_handle->nal = (nal_t *)malloc(sizeof(nal_t));
++    memset(pstream_handle->nal,0,sizeof(nal_t));
++    pstream_handle->vps = (vps_t *)malloc(sizeof(vps_t));
++    memset(pstream_handle->vps,0,sizeof(vps_t));
++    pstream_handle->sps = (sps_h265_t *)malloc(sizeof(sps_h265_t));
++    memset(pstream_handle->sps,0,sizeof(sps_h265_t));
++    pstream_handle->pps = (pps_h265_t *)malloc(sizeof(pps_h265_t));
++    memset(pstream_handle->pps,0,sizeof(pps_h265_t));
++    //pstream_handle->strps = (st_ref_pic_set_t *)malloc(sizeof(st_ref_pic_set_t));
++    pstream_handle->ptl = (profile_tier_level_t *)malloc(sizeof(profile_tier_level_t));
++    memset(pstream_handle->ptl,0,sizeof(profile_tier_level_t));
++    pstream_handle->vui = (vui_t *)malloc(sizeof(vui_t));
++    memset(pstream_handle->vui,0,sizeof(vui_t));
++    pstream_handle->hrd = (hrd_h265_t *)malloc(sizeof(hrd_h265_t));
++    memset(pstream_handle->hrd,0,sizeof(hrd_h265_t));
++    pstream_handle->sld = (scaling_list_data_t *)malloc(sizeof(scaling_list_data_t));
++    memset(pstream_handle->sld,0,sizeof(scaling_list_data_t));
++    pstream_handle->ssh = (slice_segment_header_t *)malloc(sizeof(slice_segment_header_t));
++    memset(pstream_handle->ssh,0,sizeof(slice_segment_header_t));
++    pstream_handle->slice_data = (slice_data_rbsp_t *)malloc(sizeof(slice_data_rbsp_t));
++    memset(pstream_handle->slice_data,0,sizeof(slice_data_rbsp_t));
++    return pstream_handle;
++}
++void h265_free(h265_stream_t* h)
++{
++    if (NULL == h)
++        return;
++    if (NULL != h->nal) {
++        free(h->nal);
++        h->nal = NULL;
++    }
++    if (NULL != h->vps) {
++        free(h->vps);
++        h->vps = NULL;
++    }
++    if (NULL != h->sps) {
++        free(h->sps);
++        h->sps = NULL;
++    }
++    if (NULL != h->pps) {
++        free(h->pps);
++        h->pps = NULL;
++    }/*
++    if (NULL != h->strps) {
++        free(h->strps);
++        h->strps = NULL;
++    }*/
++    if (NULL != h->ptl) {
++        free(h->ptl);
++        h->ptl = NULL;
++    }
++    if (NULL != h->vui) {
++        free(h->vui);
++        h->vui = NULL;
++    }
++    if (NULL != h->hrd) {
++        free(h->hrd);
++        h->hrd = NULL;
++    }
++    if (NULL != h->sld) {
++        free(h->sld);
++        h->sld = NULL;
++    }
++    if (NULL != h->ssh) {
++        free(h->ssh);
++        h->ssh = NULL;
++    }
++    if (NULL != h->slice_data) {
++        free(h->slice_data);
++        h->slice_data = NULL;
++    }
++    free(h);
++    h = NULL;
++}
++//7.3.2.1 VPS
++void read_debug_video_parameter_set_rbsp(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    int j = 0;
++    vps_t* vps = h->vps;
++    if (1)
++    {
++        memset(vps, 0, sizeof(vps_t));
++    }
++    vps->vps_video_parameter_set_id = bs_read_u(b, 4);
++    vps->vps_base_layer_internal_flag = bs_read_u1(b);
++    vps->vps_base_layer_available_flag = bs_read_u1(b);
++    vps->vps_max_layers_minus1 = bs_read_u(b, 6);
++    vps->vps_max_sub_layers_minus1 = bs_read_u(b, 3);
++    vps->vps_temporal_id_nesting_flag = bs_read_u1(b);
++    vps->vps_reserved_0xffff_16bits = bs_read_u(b,16);
++    read_profile_tier_level(h, b, 1, vps->vps_max_sub_layers_minus1);
++    vps->vps_sub_layer_ordering_info_present_flag = bs_read_u1(b);
++    for (i = (vps->vps_sub_layer_ordering_info_present_flag ? 0 : vps->vps_max_sub_layers_minus1);i <= vps->vps_max_sub_layers_minus1;i++)
++    {
++        vps->vps_max_dec_pic_buffering_minus1[i] = bs_read_ue(b);
++        vps->vps_max_num_reorder_pics[i] = bs_read_ue(b);
++        vps->vps_max_latency_increase_plus1[i] = bs_read_ue(b);
++    }
++    vps->vps_max_layer_id = bs_read_u(b, 6);
++    vps->vps_num_layer_sets_minus1 = bs_read_ue(b);
++    for (i=1;i<= vps->vps_num_layer_sets_minus1;i++)
++        for (j = 0;j <= vps->vps_max_layer_id;j++)
++        {
++            vps->layer_id_included_flag[i][j] = bs_read_u1(b);
++        }
++    vps->vps_timing_info_present_flag = bs_read_u1(b);
++    /*
++    if (vps->vps_timing_info_present_flag)
++    {
++        vps->vps_num_units_in_tick = bs_read_u(b, 32);
++        vps->vps_time_scale = bs_read_u(b, 32);
++        vps->vps_poc_proportional_to_timing_flag = bs_read_u1(b);
++        if (vps->vps_poc_proportional_to_timing_flag)
++        {
++            vps->vps_num_ticks_poc_diff_one_minus1 = bs_read_ue(b);
++        }
++        vps->vps_num_hrd_parameters = bs_read_ue(b);
++        for (i = 0;i < vps->vps_num_hrd_parameters;i++)
++        {
++            vps->hrd_layer_set_idx[i] = bs_read_ue(b);
++            if (i > 0)
++            {
++                vps->cprms_present_flag[i] = bs_read_u1(b);
++            }
++            //TODO: hrd-parameters()
++        }
++    }
++    vps->vps_extension_flag = bs_read_u1(b);
++    if (vps->vps_extension_flag)
++    {
++        while (more_rbsp_trailing_data(h, b))
++        {
++            vps->vps_extension_data_flag = bs_read_u1(b);
++        }
++    }
++    read_debug_rbsp_trailing_bits(h, b);
++    */
++}
++static void read_decode_sublayer_hrd(bs_t* b, h265_stream_t* h, unsigned int nb_cpb,
++                                int subpic_params_present)
++{
++    int i;
++    hrd_h265_t *hrd = h->hrd;
++    for (i = 0; i < nb_cpb; i++) {
++        hrd->bit_rate_value_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb); // bit_rate_value_minus1
++        hrd->cpb_size_value_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb); // cpb_size_value_minus1
++
++        if (subpic_params_present) {
++            hrd->cpb_size_du_value_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb); // cpb_size_du_value_minus1
++            hrd->bit_rate_du_value_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb); // bit_rate_du_value_minus1
++        }
++        hrd->cbr_flag[i] = bs_read_u1(b);//skip_bits1(gb); // cbr_flag
++    }
++}
++
++static void write_decode_sublayer_hrd(bs_t* b, h265_stream_t* h, unsigned int nb_cpb,
++                                int subpic_params_present)
++{
++    int i;
++    hrd_h265_t *hrd = h->hrd;
++    for (i = 0; i < nb_cpb; i++) {
++        bs_write_ue(b,hrd->bit_rate_value_minus1[i]);
++        bs_write_ue(b,hrd->cpb_size_value_minus1[i]);
++
++        if (subpic_params_present) {
++            bs_write_ue(b,hrd->cpb_size_du_value_minus1[i]);
++            bs_write_ue(b,hrd->bit_rate_du_value_minus1[i]);
++        }
++        bs_write_u1(b,hrd->cbr_flag[i]);
++    }
++}
++
++static int read_decode_hrd(bs_t* b, h265_stream_t* h, int common_inf_present, int max_sublayers)
++{
++    int nal_params_present = 0, vcl_params_present = 0;
++    int subpic_params_present = 0;
++    int i;
++    hrd_h265_t *hrd = h->hrd;
++    if (1)
++    {
++        memset(hrd,0,sizeof(hrd_h265_t));
++    }
++
++    if (common_inf_present) {
++        hrd->nal_hrd_parameters_present_flag = bs_read_u1(b);//get_bits1(gb);
++        hrd->vcl_hrd_parameters_present_flag = bs_read_u1(b);//get_bits1(gb);
++        if (hrd->nal_hrd_parameters_present_flag || hrd->vcl_hrd_parameters_present_flag) {
++            hrd->sub_pic_hrd_params_present_flag = bs_read_u1(b);//get_bits1(gb);
++
++            if (hrd->sub_pic_hrd_params_present_flag) {
++                hrd->tick_divisor_minus2 = bs_read_u(b,8);//skip_bits(gb, 8); // tick_divisor_minus2
++                hrd->du_cpb_removal_delay_increment_length_minus1 = bs_read_u(b,5);//skip_bits(gb, 5); // du_cpb_removal_delay_increment_length_minus1
++                hrd->sub_pic_cpb_params_in_pic_timing_sei_flag = bs_read_u1(b);//skip_bits(gb, 1); // sub_pic_cpb_params_in_pic_timing_sei_flag
++                hrd->dpb_output_delay_du_length_minus1 = bs_read_u(b,5);//skip_bits(gb, 5); // dpb_output_delay_du_length_minus1
++            }
++
++            hrd->bit_rate_scale = bs_read_u(b,4);//skip_bits(gb, 4); // bit_rate_scale
++            hrd->cpb_size_scale = bs_read_u(b,4);//skip_bits(gb, 4); // cpb_size_scale
++
++            if (hrd->sub_pic_hrd_params_present_flag)
++                hrd->cpb_size_du_scale = bs_read_u(b,4);//skip_bits(gb, 4);  // cpb_size_du_scale
++
++            hrd->initial_cpb_removal_delay_length_minus1 = bs_read_u(b,5);//skip_bits(gb, 5); // initial_cpb_removal_delay_length_minus1
++            hrd->au_cpb_removal_delay_length_minus1 = bs_read_u(b,5);//skip_bits(gb, 5); // au_cpb_removal_delay_length_minus1
++            hrd->dpb_output_delay_length_minus1 = bs_read_u(b,5);//skip_bits(gb, 5); // dpb_output_delay_length_minus1
++        }
++    }
++
++    for (i = 0; i < max_sublayers; i++) {
++        hrd->fixed_pic_rate_general_flag[i] = bs_read_u1(b);//get_bits1(gb);
++
++        if (!hrd->fixed_pic_rate_general_flag[i])
++            hrd->fixed_pic_rate_within_cvs_flag[i] = bs_read_u1(b);//get_bits1(gb);
++
++        if (hrd->fixed_pic_rate_within_cvs_flag[i])
++            hrd->elemental_duration_in_tc_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb);  // elemental_duration_in_tc_minus1
++        else
++            hrd->low_delay_hrd_flag[i] = bs_read_u1(b);//get_bits1(gb);
++
++        if (! hrd->low_delay_hrd_flag[i]) {
++            hrd->cpb_cnt_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb) + 1;
++        }
++
++        if (hrd->nal_hrd_parameters_present_flag)
++            read_decode_sublayer_hrd(b, h, i, hrd->sub_pic_hrd_params_present_flag);
++        if (hrd->vcl_hrd_parameters_present_flag)
++            read_decode_sublayer_hrd(b, h, i, hrd->sub_pic_hrd_params_present_flag);
++    }
++    return 0;
++}
++
++static int write_decode_hrd(bs_t* b, h265_stream_t* h, int common_inf_present, int max_sublayers)
++{
++    int nal_params_present = 0, vcl_params_present = 0;
++    int subpic_params_present = 0;
++    int i;
++    hrd_h265_t *hrd = h->hrd;
++
++    if (common_inf_present) {
++        bs_write_u1(b,hrd->nal_hrd_parameters_present_flag);
++        bs_write_u1(b,hrd->vcl_hrd_parameters_present_flag);
++        if (hrd->nal_hrd_parameters_present_flag || hrd->vcl_hrd_parameters_present_flag) {
++            bs_write_u1(b,hrd->sub_pic_hrd_params_present_flag);
++
++            if (hrd->sub_pic_hrd_params_present_flag) {
++                bs_write_u(b,8,hrd->tick_divisor_minus2);
++                bs_write_u(b,5,hrd->du_cpb_removal_delay_increment_length_minus1);
++                bs_write_u1(b,hrd->sub_pic_cpb_params_in_pic_timing_sei_flag);
++                bs_write_u(b,5,hrd->dpb_output_delay_du_length_minus1);
++            }
++
++            bs_write_u(b,4,hrd->bit_rate_scale);
++            bs_write_u(b,4,hrd->cpb_size_scale);
++
++            if (hrd->sub_pic_hrd_params_present_flag)
++                bs_write_u(b,4,hrd->cpb_size_du_scale);
++
++            bs_write_u(b,5,hrd->initial_cpb_removal_delay_length_minus1);
++            bs_write_u(b,5,hrd->au_cpb_removal_delay_length_minus1);
++            bs_write_u(b,5,hrd->dpb_output_delay_length_minus1);
++        }
++    }
++
++    for (i = 0; i < max_sublayers; i++) {
++        bs_write_u1(b,hrd->fixed_pic_rate_general_flag[i]);
++        if (!hrd->fixed_pic_rate_general_flag[i])
++            bs_write_u1(b,hrd->fixed_pic_rate_within_cvs_flag[i]);
++
++        if (hrd->fixed_pic_rate_within_cvs_flag[i])
++            bs_write_ue(b,hrd->elemental_duration_in_tc_minus1[i]);
++        else
++            bs_write_u1(b,hrd->low_delay_hrd_flag[i]);
++
++        if (! hrd->low_delay_hrd_flag[i]) {
++            bs_write_ue(b,hrd->cpb_cnt_minus1[i]);
++        }
++
++        if (hrd->nal_hrd_parameters_present_flag)
++            write_decode_sublayer_hrd(b, h, i, hrd->sub_pic_hrd_params_present_flag);
++        if (hrd->vcl_hrd_parameters_present_flag)
++            write_decode_sublayer_hrd(b, h, i, hrd->sub_pic_hrd_params_present_flag);
++    }
++    return 0;
++}
++
++
++static void write_vui(h265_stream_t* h, bs_t* b)
++{
++    sps_h265_t *sps = h->sps;
++    vui_t *vui = h->vui;
++    //GetBitContext backup;
++    int sar_present, alt = 0;
++    //ALOGE("vui->video_signal_type_present_flag:%d",vui->video_signal_type_present_flag);
++    //av_log(avctx, AV_LOG_DEBUG, "Decoding VUI\n");
++
++    bs_write_u1(b,vui->aspect_ratio_info_present_flag);
++    if (vui->aspect_ratio_info_present_flag) {
++        bs_write_u(b,8,vui->aspect_ratio_idc);
++        if (vui->aspect_ratio_idc == SAR_Extended) {
++            bs_write_u(b,16,vui->sar_width);
++            bs_write_u(b,16,vui->sar_height);
++        }
++    }
++    bs_write_u1(b,vui->overscan_info_present_flag);
++    if (vui->overscan_info_present_flag)
++        bs_write_u1(b,vui->overscan_appropriate_flag);
++
++    bs_write_u1(b,vui->video_signal_type_present_flag);
++    if (vui->video_signal_type_present_flag) {
++        bs_write_u(b,3,vui->video_format);
++        bs_write_u1(b,vui->video_full_range_flag);
++        bs_write_u1(b,vui->colour_description_present_flag);
++        if (vui->colour_description_present_flag) {
++            bs_write_u(b,8,vui->colour_primaries);
++            bs_write_u(b,8,vui->transfer_characteristics);
++            bs_write_u(b,8,vui->matrix_coeffs);
++        }
++    }
++
++    bs_write_u1(b,vui->chroma_loc_info_present_flag);
++    if (vui->chroma_loc_info_present_flag) {
++        bs_write_ue(b,vui->chroma_sample_loc_type_top_field);
++        bs_write_ue(b,vui->chroma_sample_loc_type_bottom_field);
++    }
++
++    bs_write_u1(b,vui->neutral_chroma_indication_flag);
++    bs_write_u1(b,vui->field_seq_flag);
++    bs_write_u1(b,vui->frame_field_info_present_flag);
++
++    bs_write_u1(b,vui->default_display_window_flag);
++
++    if (vui->default_display_window_flag) {
++        bs_write_ue(b,vui->def_disp_win_left_offset);
++        bs_write_ue(b,vui->def_disp_win_right_offset);
++        bs_write_ue(b,vui->def_disp_win_top_offset);
++        bs_write_ue(b,vui->def_disp_win_bottom_offset);
++    }
++
++    bs_write_u1(b,vui->vui_timing_info_present_flag);
++
++    if (vui->vui_timing_info_present_flag) {
++        bs_write_u(b,32,vui->vui_num_units_in_tick);
++        bs_write_u(b,32,vui->vui_time_scale);
++        bs_write_u1(b,vui->vui_poc_proportional_to_timing_flag);
++        if (vui->vui_poc_proportional_to_timing_flag)
++            bs_write_ue(b,vui->vui_num_ticks_poc_diff_one_minus1);
++        bs_write_u1(b,vui->vui_hrd_parameters_present_flag);
++        if (vui->vui_hrd_parameters_present_flag)
++            write_decode_hrd(b, h, 1, sps->sps_max_sub_layers_minus1);
++    }
++    bs_write_u1(b,vui->bitstream_restriction_flag);
++    if (vui->bitstream_restriction_flag) {
++        bs_write_u1(b,vui->tiles_fixed_structure_flag);
++        bs_write_u1(b,vui->motion_vectors_over_pic_boundaries_flag);
++        bs_write_u1(b,vui->restricted_ref_pic_lists_flag);
++        bs_write_u1(b,vui->min_spatial_segmentation_idc);
++        bs_write_u1(b,vui->max_bytes_per_pic_denom);
++        bs_write_u1(b,vui->max_bits_per_min_cu_denom);
++        bs_write_u1(b,vui->log2_max_mv_length_horizontal);
++        bs_write_u1(b,vui->log2_max_mv_length_vertical);
++    }
++}
++
++static void read_vui(h265_stream_t* h, bs_t* b)
++{
++    sps_h265_t *sps = h->sps;
++    vui_t *vui = h->vui;
++    //GetBitContext backup;
++    int sar_present, alt = 0;
++
++    if (1) {
++        memset(vui,0,sizeof(vui_t));
++    }
++    //av_log(avctx, AV_LOG_DEBUG, "Decoding VUI\n");
++
++    vui->aspect_ratio_info_present_flag = bs_read_u1(b);//get_bits1(gb);
++    if (/*sar_present*/vui->aspect_ratio_info_present_flag) {
++        //uint8_t sar_idx = get_bits(gb, 8);
++        vui->aspect_ratio_idc = bs_read_u(b,8);
++        if (vui->aspect_ratio_idc == SAR_Extended) {
++            vui->sar_width = bs_read_u(b,16);//get_bits(gb, 16);
++            vui->sar_height = bs_read_u(b,16);//get_bits(gb, 16);
++        } /*else
++            av_log(avctx, AV_LOG_WARNING,
++                   "Unknown SAR index: %u.\n", sar_idx);*/
++    }
++
++    vui->overscan_info_present_flag = bs_read_u1(b);//get_bits1(gb);
++    if (vui->overscan_info_present_flag)
++        vui->overscan_appropriate_flag = bs_read_u1(b);//get_bits1(gb);
++
++    vui->video_signal_type_present_flag = bs_read_u1(b);//get_bits1(gb);
++    if (vui->video_signal_type_present_flag) {
++        vui->video_format                    = bs_read_u(b,3);//get_bits(gb, 3);
++        vui->video_full_range_flag           = bs_read_u1(b);//get_bits1(gb);
++        vui->colour_description_present_flag = bs_read_u1(b);//get_bits1(gb);
++        if (vui->colour_description_present_flag) {
++            vui->colour_primaries        = bs_read_u(b,8);//get_bits(gb, 8);
++            vui->transfer_characteristics = bs_read_u(b,8);//get_bits(gb, 8);
++            vui->matrix_coeffs           = bs_read_u(b,8);//get_bits(gb, 8);
++        }
++    }
++
++    vui->chroma_loc_info_present_flag = bs_read_u1(b);//get_bits1(gb);
++    if (vui->chroma_loc_info_present_flag) {
++        vui->chroma_sample_loc_type_top_field    = bs_read_ue(b);//get_ue_golomb_long(gb);
++        vui->chroma_sample_loc_type_bottom_field = bs_read_ue(b);//get_ue_golomb_long(gb);
++    }
++
++    vui->neutral_chroma_indication_flag = bs_read_u1(b);//get_bits1(gb);
++    vui->field_seq_flag                = bs_read_u1(b);//get_bits1(gb);
++    vui->frame_field_info_present_flag = bs_read_u1(b);//get_bits1(gb);
++
++    vui->default_display_window_flag = bs_read_u1(b);//get_bits1(gb);
++
++    if (vui->default_display_window_flag) {
++        //int vert_mult  = hevc_sub_height_c[sps->chroma_format_idc];
++        //int horiz_mult = hevc_sub_width_c[sps->chroma_format_idc];
++        vui->def_disp_win_left_offset   = bs_read_ue(b);//get_ue_golomb_long(gb) * horiz_mult;
++        vui->def_disp_win_right_offset  = bs_read_ue(b);//get_ue_golomb_long(gb) * horiz_mult;
++        vui->def_disp_win_top_offset    = bs_read_ue(b);//get_ue_golomb_long(gb) *  vert_mult;
++        vui->def_disp_win_bottom_offset = bs_read_ue(b);//get_ue_golomb_long(gb) *  vert_mult;
++    }
++
++    vui->vui_timing_info_present_flag = bs_read_u1(b);//get_bits1(gb);
++
++    if (vui->vui_timing_info_present_flag) {
++        vui->vui_num_units_in_tick               = bs_read_u(b,32);//get_bits_long(gb, 32);
++        vui->vui_time_scale                      = bs_read_u(b,32);//get_bits_long(gb, 32);
++        vui->vui_poc_proportional_to_timing_flag = bs_read_u1(b);//get_bits1(gb);
++        if (vui->vui_poc_proportional_to_timing_flag)
++            vui->vui_num_ticks_poc_diff_one_minus1 = bs_read_ue(b);//get_ue_golomb_long(gb);
++        vui->vui_hrd_parameters_present_flag = bs_read_u1(b);//get_bits1(gb);
++        if (vui->vui_hrd_parameters_present_flag)
++            read_decode_hrd(b, h, 1, sps->sps_max_sub_layers_minus1);
++    }
++
++    vui->bitstream_restriction_flag = bs_read_u1(b);//get_bits1(gb);
++    if (vui->bitstream_restriction_flag) {
++        vui->tiles_fixed_structure_flag              = bs_read_u1(b);//get_bits1(gb);
++        vui->motion_vectors_over_pic_boundaries_flag = bs_read_u1(b);//get_bits1(gb);
++        vui->restricted_ref_pic_lists_flag           = bs_read_u1(b);//get_bits1(gb);
++        vui->min_spatial_segmentation_idc            = bs_read_ue(b);//get_ue_golomb_long(gb);
++        vui->max_bytes_per_pic_denom                 = bs_read_ue(b);//get_ue_golomb_long(gb);
++        vui->max_bits_per_min_cu_denom               = bs_read_ue(b);//get_ue_golomb_long(gb);
++        vui->log2_max_mv_length_horizontal           = bs_read_ue(b);//get_ue_golomb_long(gb);
++        vui->log2_max_mv_length_vertical             = bs_read_ue(b);//get_ue_golomb_long(gb);
++    }
++}
++
++void read_sps_range_extension(h265_stream_t* h, bs_t* b)
++{
++    sps_h265_t *sps = h->sps;
++    if (1)
++    {
++        memset((uint8_t *)&sps->sps_range_extension,0,sizeof(sps->sps_range_extension));
++    }
++    sps->sps_range_extension.transform_skip_rotation_enabled_flag = bs_read_u1(b);//get_bits1(gb);
++    sps->sps_range_extension.transform_skip_context_enabled_flag  = bs_read_u1(b);//get_bits1(gb);
++    sps->sps_range_extension.implicit_rdpcm_enabled_flag = bs_read_u1(b);//get_bits1(gb);
++
++    sps->sps_range_extension.explicit_rdpcm_enabled_flag = bs_read_u1(b);//get_bits1(gb);
++
++    sps->sps_range_extension.extended_precision_processing_flag = bs_read_u1(b);//get_bits1(gb);
++
++    sps->sps_range_extension.intra_smoothing_disabled_flag       = bs_read_u1(b);//get_bits1(gb);
++    sps->sps_range_extension.high_precision_offsets_enabled_flag = bs_read_u1(b);//get_bits1(gb);
++
++    sps->sps_range_extension.persistent_rice_adaptation_enabled_flag = bs_read_u1(b);//get_bits1(gb);
++
++    sps->sps_range_extension.cabac_bypass_alignment_enabled_flag  = bs_read_u1(b);//get_bits1(gb);
++}
++
++void write_sps_range_extension(h265_stream_t* h, bs_t* b)
++{
++    sps_h265_t *sps = h->sps;
++    bs_write_u1(b,sps->sps_range_extension.transform_skip_rotation_enabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.transform_skip_context_enabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.implicit_rdpcm_enabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.explicit_rdpcm_enabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.extended_precision_processing_flag);
++    bs_write_u1(b,sps->sps_range_extension.intra_smoothing_disabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.high_precision_offsets_enabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.persistent_rice_adaptation_enabled_flag);
++    bs_write_u1(b,sps->sps_range_extension.cabac_bypass_alignment_enabled_flag);
++}
++
++void read_sps_3d_extension(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    sps_h265_t *sps = h->sps;
++    if (1)
++    {
++        memset((uint8_t *)&sps->sps_3d_extension,0,sizeof(sps->sps_3d_extension));
++    }
++    for (i = 0;i <= 1;i++)
++    {
++        sps->sps_3d_extension.iv_di_mc_enabled_flag[i] = bs_read_u1(b);
++        sps->sps_3d_extension.iv_mv_scal_enabled_flag[i] = bs_read_u1(b);
++        if (i == 0)
++        {
++            sps->sps_3d_extension.log2_ivmc_sub_pb_size_minus3[i] = bs_read_ue(b);
++            sps->sps_3d_extension.iv_res_pred_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.depth_ref_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.vsp_mc_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.dbbp_enabled_flag[i] = bs_read_u1(b);
++        }
++        else {
++            sps->sps_3d_extension.tex_mc_enabled_flag[i] = bs_read_ue(b);
++            sps->sps_3d_extension.log2_texmc_sub_pb_size_minus3[i] = bs_read_u1(b);
++            sps->sps_3d_extension.intra_contour_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.intra_dc_only_wedge_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.cqt_cu_part_pred_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.inter_dc_only_enabled_flag[i] = bs_read_u1(b);
++            sps->sps_3d_extension.skip_intra_enabled_flag[i] = bs_read_u1(b);
++        }
++    }
++}
++
++void write_sps_3d_extension(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    sps_h265_t *sps = h->sps;
++    for (i = 0;i <= 1;i++)
++    {
++        bs_write_u1(b,sps->sps_3d_extension.iv_di_mc_enabled_flag[i]);
++        bs_write_u1(b,sps->sps_3d_extension.iv_mv_scal_enabled_flag[i]);
++        if (i == 0)
++        {
++            bs_write_ue(b,sps->sps_3d_extension.log2_ivmc_sub_pb_size_minus3[i]);
++            bs_write_u1(b,sps->sps_3d_extension.iv_res_pred_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.depth_ref_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.vsp_mc_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.dbbp_enabled_flag[i]);
++        }
++        else {
++            bs_write_ue(b,sps->sps_3d_extension.tex_mc_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.log2_texmc_sub_pb_size_minus3[i]);
++            bs_write_u1(b,sps->sps_3d_extension.intra_contour_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.intra_dc_only_wedge_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.cqt_cu_part_pred_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.inter_dc_only_enabled_flag[i]);
++            bs_write_u1(b,sps->sps_3d_extension.skip_intra_enabled_flag[i]);
++        }
++    }
++}
++
++
++int write_hevc_decode_short_term_rps(bs_t*b, h265_stream_t* h/*const HEVCSPS *sps*/, int  stRpsIdx)
++{
++    int delta_poc;
++    int i;
++    sps_h265_t* sps = h->sps;
++    st_ref_pic_set_t* strps = &h->strps[stRpsIdx];
++
++    if (stRpsIdx != 0)
++        //rps_predict = get_bits1(gb);
++        bs_write_u1(b,strps->inter_ref_pic_set_prediction_flag);
++
++    if (strps->inter_ref_pic_set_prediction_flag) {
++        if (stRpsIdx == sps->num_short_term_ref_pic_sets)
++            bs_write_ue(b,strps->delta_idx_minus1);
++        bs_write_u1(b,strps->delta_rps_sign);
++        bs_write_ue(b,strps->abs_delta_rps_minus1);
++
++        const ShortTermRPS *rps_ridx;
++
++        rps_ridx = &h->st_rps[stRpsIdx];
++
++        for (i = 0; i <= rps_ridx->num_delta_pocs; i++) {
++            bs_write_u1(b, strps->used_by_curr_pic_flag[i]);
++
++            if (!strps->used_by_curr_pic_flag[i]) {
++                bs_write_u1(b,strps->use_delta_flag[i]);
++            }
++        }
++    } else {
++        unsigned int prev, nb_positive_pics;
++        bs_write_ue(b,strps->num_negative_pics);
++        bs_write_ue(b,strps->num_positive_pics);
++        for (i = 0; i < strps->num_negative_pics; i++) {
++            bs_write_ue(b,strps->delta_poc_s0_minus1[i]);
++            bs_write_u1(b,strps->used_by_curr_pic_s0_flag[i]);
++        }
++        for (i = 0; i < strps->num_positive_pics; i++) {
++            bs_write_ue(b,strps->delta_poc_s1_minus1[i]);
++            bs_write_u1(b,strps->used_by_curr_pic_s1_flag[i]);
++        }
++    }
++    return 0;
++}
++
++
++int hevc_decode_short_term_rps(bs_t*b, h265_stream_t* h/*const HEVCSPS *sps*/, int  stRpsIdx)
++{
++    int i;
++    sps_h265_t* sps = h->sps;
++    st_ref_pic_set_t* strps = &h->strps[stRpsIdx];
++    if (1)
++    {
++        memset(strps,0,sizeof(st_ref_pic_set_t));
++    }
++
++    if (stRpsIdx != 0)
++        //rps_predict = get_bits1(gb);
++        strps->inter_ref_pic_set_prediction_flag = bs_read_u1(b);
++
++    if (strps->inter_ref_pic_set_prediction_flag) {
++        const ShortTermRPS *rps_ridx;
++        if (stRpsIdx == sps->num_short_term_ref_pic_sets)
++            strps->delta_idx_minus1 = bs_read_ue(b);
++
++        rps_ridx = &h->st_rps[stRpsIdx];
++
++        strps->delta_rps_sign = bs_read_u1(b);//get_bits1(gb);
++        strps->abs_delta_rps_minus1  = bs_read_ue(b);//get_ue_golomb_long(gb) + 1;
++        for (i = 0; i <= rps_ridx->num_delta_pocs; i++) {
++
++            strps->used_by_curr_pic_flag[i] = bs_read_u1(b);//get_bits1(gb);
++
++            if (!strps->used_by_curr_pic_flag[i]) {
++                strps->use_delta_flag[i] = bs_read_u1(b);//get_bits1(gb);
++            }
++        }
++    } else {
++        strps->num_negative_pics = bs_read_ue(b);//get_ue_golomb_long(gb);
++        strps->num_positive_pics       = bs_read_ue(b);//get_ue_golomb_long(gb);
++
++        for (i = 0; i < strps->num_negative_pics; i++) {
++            strps->delta_poc_s0_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb) + 1;
++            strps->used_by_curr_pic_s0_flag[i] = bs_read_u1(b);//get_bits1(gb);
++        }
++        for (i = 0; i < strps->num_positive_pics; i++) {
++            strps->delta_poc_s1_minus1[i] = bs_read_ue(b);//get_ue_golomb_long(gb) + 1;
++            strps->used_by_curr_pic_s1_flag[i]      = bs_read_u1(b);//get_bits1(gb);
++        }
++    }
++    return 0;
++}
++
++
++void write_debug_seq_parameter_set_rbsp(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    sps_h265_t *sps = h->sps;
++    if (0)
++    {
++        memset(sps, 0, sizeof(sps_h265_t));
++        sps->chroma_format_idc = 1;
++    }
++    bs_write_u(b, 4, sps->sps_video_parameter_set_id);
++    bs_write_u(b, 3, sps->sps_max_sub_layers_minus1);
++    bs_write_u1(b, sps->sps_temporal_id_nesting_flag);
++    write_profile_tier_level(h,b,1,sps->sps_max_sub_layers_minus1);
++
++    bs_write_ue(b, sps->sps_seq_parameter_set_id);
++    bs_write_ue(b, sps->chroma_format_idc);
++    if (sps->chroma_format_idc == 3)
++        bs_write_u1(b, sps->separate_colour_plane_flag);
++    bs_write_ue(b, sps->pic_width_in_luma_samples);
++    bs_write_ue(b, sps->pic_height_in_luma_samples);
++    bs_write_u1(b, sps->conformance_window_flag);
++    if (sps->conformance_window_flag)
++    {
++        bs_write_ue(b, sps->conf_win_left_offset);
++        bs_write_ue(b, sps->conf_win_right_offset);
++        bs_write_ue(b, sps->conf_win_top_offse);
++        bs_write_ue(b, sps->conf_win_bottom_offset);
++    }
++    bs_write_ue(b, sps->bit_depth_luma_minus8);
++    bs_write_ue(b, sps->bit_depth_chroma_minus8);
++    bs_write_ue(b, sps->log2_max_pic_order_cnt_lsb_minus4);
++    bs_write_u1(b, sps->sps_sub_layer_ordering_info_present_flag);
++    for (i = (sps->sps_sub_layer_ordering_info_present_flag ? 0 : sps->sps_max_sub_layers_minus1);i <= sps->sps_max_sub_layers_minus1;i++)
++    {
++        bs_write_ue(b, sps->sps_max_dec_pic_buffering_minus1[i]);
++        bs_write_ue(b, sps->sps_max_num_reorder_pics[i]);
++        bs_write_ue(b, sps->sps_max_latency_increase_plus1[i]);
++    }
++    bs_write_ue(b, sps->log2_min_luma_coding_block_size_minus3);
++    bs_write_ue(b, sps->log2_diff_max_min_luma_coding_block_size);
++    bs_write_ue(b, sps->log2_min_luma_transform_block_size_minus2);
++    bs_write_ue(b, sps->log2_diff_max_min_luma_transform_block_size);
++    bs_write_ue(b, sps->max_transform_hierarchy_depth_inter);
++    bs_write_ue(b, sps->max_transform_hierarchy_depth_intra);
++    bs_write_u1(b, sps->scaling_list_enabled_flag);
++    if (sps->scaling_list_enabled_flag)
++    {
++        bs_write_u1(b, sps->sps_scaling_list_data_present_flag);
++        if (sps->sps_scaling_list_data_present_flag)
++        {
++            //TODO: scaling_list_data()
++            write_scaling_list_data(h, b);
++        }
++    }
++    bs_write_u1(b, sps->amp_enabled_flag);
++    bs_write_u1(b, sps->sample_adaptive_offset_enabled_flag);
++    bs_write_u1(b, sps->pcm_enabled_flag);
++    if (sps->pcm_enabled_flag)
++    {
++        bs_write_u(b,4,sps->pcm_sample_bit_depth_luma_minus1);
++        bs_write_u(b,4,sps->pcm_sample_bit_depth_chroma_minus1);
++        bs_write_ue(b,sps->log2_min_pcm_luma_coding_block_size_minus3);
++        bs_write_ue(b,sps->log2_diff_max_min_pcm_luma_coding_block_size);
++        bs_write_u1(b,sps->pcm_loop_filter_disabled_flag);
++    }
++    bs_write_ue(b,sps->num_short_term_ref_pic_sets);
++    for (i = 0;i < sps->num_short_term_ref_pic_sets;i++)
++    {
++        write_hevc_decode_short_term_rps(b,h,i);
++        //TODO: st_ref_pic_set(i)
++    }
++
++    bs_write_u1(b,sps->long_term_ref_pics_present_flag);
++    if (sps->long_term_ref_pics_present_flag)
++    {
++        bs_write_ue(b,sps->num_long_term_ref_pics_sps);
++        for (i = 0;i < sps->num_long_term_ref_pics_sps;i++)
++        {
++            bs_write_u(b,sps->log2_max_pic_order_cnt_lsb_minus4 + 4,sps->lt_ref_pic_poc_lsb_sps[i]);
++            bs_write_u1(b,sps->used_by_curr_pic_lt_sps_flag[i]);
++        }
++    }
++    bs_write_u1(b,sps->sps_temporal_mvp_enabled_flag);
++    bs_write_u1(b,sps->strong_intra_smoothing_enabled_flag);
++    bs_write_u1(b,sps->vui_parameters_present_flag);
++    //ALOGE("vui_parameters_present_flag:%d",sps->vui_parameters_present_flag);
++    if (sps->vui_parameters_present_flag)
++    {
++        //TODO: vui_parameters()
++        write_vui(h,b);
++    }
++    bs_write_u1(b,sps->sps_extension_present_flag);
++    if (sps->sps_extension_present_flag)
++    {
++        bs_write_u1(b,sps->sps_range_extension_flag);
++        bs_write_u1(b,sps->sps_multilayer_extension_flag);
++        bs_write_u1(b,sps->sps_3d_extension_flag);
++        bs_write_u(b,5,sps->sps_extension_5bits);
++    }
++    if (sps->sps_range_extension_flag)
++    {
++        write_sps_range_extension(h,b);
++        //TODO: sps_range_extension()
++    }
++    if (sps->sps_multilayer_extension_flag)
++    {
++        bs_write_u1(b,sps->sps_multilayer_extension.inter_view_mv_vert_constraint_flag);
++        //TODO: sps_multilayer_extension()
++    }
++    if (sps->sps_3d_extension_flag)
++    {
++        write_sps_3d_extension(h,b);
++        //TODO: sps_3d_extension()
++    }
++    /*
++    if (sps->sps_scc_extension_flag)
++    {
++        //TODO: sps_scc_extension()
++    }*/
++    /*
++    if (sps->sps_extension_5bits)
++    {
++        while (more_rbsp_trailing_data(h, b))
++        {
++            sps->sps_extension_data_flag = bs_read_u1(b);
++        }
++    }
++    read_debug_rbsp_trailing_bits(h, b);
++    */
++
++}
++
++
++//7.3.2.2 SPS
++void read_debug_seq_parameter_set_rbsp(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    sps_h265_t* sps = h->sps;
++    if (1)
++    {
++        memset(sps, 0, sizeof(sps_h265_t));
++        sps->chroma_format_idc = 1;
++    }
++    sps->sps_video_parameter_set_id = bs_read_u(b, 4);
++    sps->sps_max_sub_layers_minus1 = bs_read_u(b, 3);
++    sps->sps_temporal_id_nesting_flag = bs_read_u1(b);
++    //TODO: PTL
++    read_profile_tier_level(h, b, 1, sps->sps_max_sub_layers_minus1);
++
++    sps->sps_seq_parameter_set_id = bs_read_ue(b);
++    sps->chroma_format_idc = bs_read_ue(b);
++    if (sps->chroma_format_idc == 3)
++        sps->separate_colour_plane_flag = bs_read_u1(b);
++    sps->pic_width_in_luma_samples = bs_read_ue(b);
++    sps->pic_height_in_luma_samples = bs_read_ue(b);
++    sps->conformance_window_flag = bs_read_u1(b);
++    if (sps->conformance_window_flag)
++    {
++        sps->conf_win_left_offset = bs_read_ue(b);
++        sps->conf_win_right_offset = bs_read_ue(b);
++        sps->conf_win_top_offse = bs_read_ue(b);
++        sps->conf_win_bottom_offset = bs_read_ue(b);
++    }
++    sps->bit_depth_luma_minus8 = bs_read_ue(b);
++    sps->bit_depth_chroma_minus8 = bs_read_ue(b);
++    sps->log2_max_pic_order_cnt_lsb_minus4 = bs_read_ue(b);
++    sps->sps_sub_layer_ordering_info_present_flag = bs_read_u1(b);
++    for (i = (sps->sps_sub_layer_ordering_info_present_flag ? 0 : sps->sps_max_sub_layers_minus1);i <= sps->sps_max_sub_layers_minus1;i++)
++    {
++        sps->sps_max_dec_pic_buffering_minus1[i] = bs_read_ue(b);
++        sps->sps_max_num_reorder_pics[i] = bs_read_ue(b);
++        sps->sps_max_latency_increase_plus1[i] = bs_read_ue(b);
++    }
++    sps->log2_min_luma_coding_block_size_minus3 = bs_read_ue(b);
++    sps->log2_diff_max_min_luma_coding_block_size = bs_read_ue(b);
++    sps->log2_min_luma_transform_block_size_minus2 = bs_read_ue(b);
++    sps->log2_diff_max_min_luma_transform_block_size = bs_read_ue(b);
++    sps->max_transform_hierarchy_depth_inter = bs_read_ue(b);
++    sps->max_transform_hierarchy_depth_intra = bs_read_ue(b);
++    sps->scaling_list_enabled_flag = bs_read_u1(b);
++    if (sps->scaling_list_enabled_flag)
++    {
++        sps->sps_scaling_list_data_present_flag = bs_read_u1(b);
++        if (sps->sps_scaling_list_data_present_flag)
++        {
++            //TODO: scaling_list_data()
++            read_scaling_list_data(h, b);
++        }
++    }
++    sps->amp_enabled_flag = bs_read_u1(b);
++    sps->sample_adaptive_offset_enabled_flag = bs_read_u1(b);
++    sps->pcm_enabled_flag = bs_read_u1(b);
++    if (sps->pcm_enabled_flag)
++    {
++        sps->pcm_sample_bit_depth_luma_minus1 = bs_read_u(b, 4);
++        sps->pcm_sample_bit_depth_chroma_minus1 = bs_read_u(b, 4);
++        sps->log2_min_pcm_luma_coding_block_size_minus3 = bs_read_ue(b);
++        sps->log2_diff_max_min_pcm_luma_coding_block_size = bs_read_ue(b);
++        sps->pcm_loop_filter_disabled_flag = bs_read_u1(b);
++    }
++    sps->num_short_term_ref_pic_sets = bs_read_ue(b);
++
++    for (i = 0;i < sps->num_short_term_ref_pic_sets;i++)
++    {
++        hevc_decode_short_term_rps(b,h,i);
++        //TODO: st_ref_pic_set(i)
++    }
++
++    sps->long_term_ref_pics_present_flag = bs_read_u1(b);
++    if (sps->long_term_ref_pics_present_flag)
++    {
++        sps->num_long_term_ref_pics_sps = bs_read_ue(b);
++        for (i = 0;i < sps->num_long_term_ref_pics_sps;i++)
++        {
++            sps->lt_ref_pic_poc_lsb_sps[i] = bs_read_u(b, sps->log2_max_pic_order_cnt_lsb_minus4 + 4);
++            sps->used_by_curr_pic_lt_sps_flag[i] = bs_read_u1(b);
++        }
++    }
++    sps->sps_temporal_mvp_enabled_flag = bs_read_u1(b);
++    sps->strong_intra_smoothing_enabled_flag = bs_read_u1(b);
++    sps->vui_parameters_present_flag = bs_read_u1(b);
++    if (sps->vui_parameters_present_flag)
++    {
++        //TODO: vui_parameters()
++        read_vui(h,b);
++    }
++    sps->sps_extension_present_flag = bs_read_u1(b);
++    if (sps->sps_extension_present_flag)
++    {
++        sps->sps_range_extension_flag = bs_read_u1(b);
++        sps->sps_multilayer_extension_flag = bs_read_u1(b);
++        sps->sps_3d_extension_flag = bs_read_u1(b);
++        //sps->sps_scc_extension_flag = bs_read_u1(b);
++        sps->sps_extension_5bits = bs_read_u(b, 5);
++    }
++    if (sps->sps_range_extension_flag)
++    {
++        read_sps_range_extension(h,b);
++        //TODO: sps_range_extension()
++    }
++    if (sps->sps_multilayer_extension_flag)
++    {
++        sps->sps_multilayer_extension.inter_view_mv_vert_constraint_flag = bs_read_u1(b);
++        //TODO: sps_multilayer_extension()
++    }
++    if (sps->sps_3d_extension_flag)
++    {
++        read_sps_3d_extension(h,b);
++        //TODO: sps_3d_extension()
++    }
++    /*
++    if (sps->sps_scc_extension_flag)
++    {
++        //TODO: sps_scc_extension()
++    }*/
++    if (sps->sps_extension_5bits)
++    {
++        while (more_rbsp_trailing_data(h, b))
++        {
++            sps->sps_extension_data_flag = bs_read_u1(b);
++        }
++    }
++    //read_debug_rbsp_trailing_bits(h, b);
++}
++
++
++
++//7.3.2.3 PPS
++void read_debug_pic_parameter_set_rbsp(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    pps_h265_t* pps = h->pps;
++    if (1)
++    {
++        memset(pps, 0, sizeof(pps_h265_t));
++    }
++    pps->pps_pic_parameter_set_id = bs_read_ue(b);
++    pps->pps_seq_parameter_set_id = bs_read_ue(b);
++    pps->dependent_slice_segments_enabled_flag = bs_read_u1(b);
++    pps->output_flag_present_flag = bs_read_u1(b);
++    pps->num_extra_slice_header_bits = bs_read_u(b,3);
++    pps->sign_data_hiding_enabled_flag = bs_read_u1(b);
++    pps->cabac_init_present_flag = bs_read_u1(b);
++    pps->num_ref_idx_l0_default_active_minus1 = bs_read_ue(b);
++    pps->num_ref_idx_l1_default_active_minus1 = bs_read_ue(b);
++    pps->init_qp_minus26 = bs_read_se(b);
++    pps->constrained_intra_pred_flag = bs_read_u1(b);
++    pps->transform_skip_enabled_flag = bs_read_u1(b);
++    pps->cu_qp_delta_enabled_flag = bs_read_u1(b);
++    if (pps->cu_qp_delta_enabled_flag)
++    {
++        pps->diff_cu_qp_delta_depth = bs_read_ue(b);
++    }
++    pps->pps_cb_qp_offset = bs_read_se(b);
++    pps->pps_cr_qp_offset = bs_read_se(b);
++    pps->pps_slice_chroma_qp_offsets_present_flag = bs_read_u1(b);
++    pps->weighted_pred_flag = bs_read_u1(b);
++    pps->weighted_bipred_flag = bs_read_u1(b);
++    pps->transquant_bypass_enabled_flag = bs_read_u1(b);
++    pps->tiles_enabled_flag = bs_read_u1(b);
++    pps->entropy_coding_sync_enabled_flag = bs_read_u1(b);
++    if (pps->tiles_enabled_flag)
++    {
++        pps->num_tile_columns_minus1 = bs_read_ue(b);
++        pps->num_tile_rows_minus1 = bs_read_ue(b);
++        //FIXME
++        pps->column_width_minus1 = (int*)malloc(sizeof(int) * pps->num_tile_columns_minus1);
++        pps->row_height_minus1 = (int*)malloc(sizeof(int) * pps->num_tile_rows_minus1);
++        pps->uniform_spacing_flag = bs_read_u1(b);
++        if (!pps->uniform_spacing_flag)
++        {
++            for (i = 0;i < pps->num_tile_columns_minus1;i++)
++            {
++                pps->column_width_minus1[i] = bs_read_ue(b);
++            }
++            for (i = 0;i < pps->num_tile_rows_minus1;i++)
++            {
++                pps->row_height_minus1[i] = bs_read_ue(b);
++            }
++        }
++        pps->loop_filter_across_tiles_enabled_flag = bs_read_u1(b);
++    }
++    pps->pps_loop_filter_across_slices_enabled_flag = bs_read_u1(b);
++    pps->deblocking_filter_control_present_flag = bs_read_u1(b);
++    if (pps->deblocking_filter_control_present_flag)
++    {
++        pps->deblocking_filter_override_enabled_flag = bs_read_u1(b);
++        pps->pps_deblocking_filter_disabled_flag = bs_read_u1(b);
++        if (!pps->pps_deblocking_filter_disabled_flag)
++        {
++            pps->pps_beta_offset_div2 = bs_read_se(b);
++            pps->pps_tc_offset_div2 = bs_read_se(b);
++        }
++    }
++    pps->pps_scaling_list_data_present_flag = bs_read_u1(b);
++
++    if (pps->pps_scaling_list_data_present_flag)
++    {
++        read_scaling_list_data(h, b);
++    }
++    pps->lists_modification_present_flag = bs_read_u1(b);
++    pps->log2_parallel_merge_level_minus2 = bs_read_ue(b);
++    pps->slice_segment_header_extension_present_flag = bs_read_u1(b);
++    pps->pps_extension_present_flag = bs_read_u1(b);
++    if (pps->pps_extension_present_flag)
++    {
++        pps->pps_range_extension_flag = bs_read_u1(b);
++        pps->pps_multilayer_extension_flag = bs_read_u1(b);
++        pps->pps_3d_extension_flag = bs_read_u1(b);
++        pps->pps_scc_extension_flag = bs_read_u1(b);
++        pps->pps_extension_4bits = bs_read_u(b,4);
++    }
++    if (pps->pps_range_extension_flag)
++    {
++        //FIXME pps_range_extension
++    }
++    if (pps->pps_multilayer_extension_flag)
++    {
++
++    }
++    if (pps->pps_3d_extension_flag)
++    {
++        //FIXME pps_multilayer_extension
++    }
++    if (pps->pps_scc_extension_flag)
++    {
++        //FIXME pps_scc_extension
++    }
++    if (pps->pps_extension_4bits)
++    {
++        //FIXME
++    }
++}
++void read_debug_vui_parameters(h265_stream_t* h, bs_t* b)
++{}
++void read_debug_hrd_parameters(h265_stream_t* h, bs_t* b)
++{}
++
++void read_access_unit_delimiter_rbsp(h265_stream_t* h, bs_t* b)
++{}
++
++
++//7.3.7  Short-term reference picture set syntax
++void read_st_ref_pic_set(h265_stream_t* h, bs_t* b,int  stRpsIdx)
++{
++    int i = 0;
++    int j = 0;
++    int RefRpsIdx = 0;
++    st_ref_pic_set_t* strps = h->strps;
++    sps_h265_t* sps = h->sps;
++//    NumDeltaPocs[ stRpsIdx ] = NumNegativePics[ stRpsIdx ] + NumPositivePics[ stRpsIdx ]
++    if (1)
++    {
++        memset(strps, 0, sizeof(st_ref_pic_set_t));
++    }
++    if (stRpsIdx != 0)
++    {
++        strps->inter_ref_pic_set_prediction_flag = bs_read_u1(b);
++    }
++    if (strps->inter_ref_pic_set_prediction_flag)
++    {
++        if (stRpsIdx == sps->num_short_term_ref_pic_sets)
++        {
++            strps->delta_idx_minus1 = bs_read_ue(b);
++            RefRpsIdx = stRpsIdx - (strps->delta_idx_minus1 + 1);
++        }
++        strps->delta_rps_sign = bs_read_u1(b);
++        strps->abs_delta_rps_minus1 = bs_read_ue(b);
++        //for (j = 0;i <= sps->)
++        //FIXME
++    }
++    else {
++        strps->num_negative_pics = bs_read_ue(b);
++        strps->num_positive_pics = bs_read_ue(b);
++        for (i = 0;i < strps->num_negative_pics;i++)
++        {
++            strps->delta_poc_s0_minus1[i] = bs_read_ue(b);
++            strps->used_by_curr_pic_s0_flag[i] = bs_read_u1(b);
++        }
++        for (i = 0;i < strps->num_positive_pics;i++)
++        {
++            strps->delta_poc_s1_minus1[i] = bs_read_ue(b);
++            strps->used_by_curr_pic_s1_flag[i] = bs_read_u1(b);
++        }
++    }
++}
++
++//7.3.6.2 Reference picture list modification syntax
++//ref_pic_list_modification()
++void read_ref_pic_lists_modification(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    slice_segment_header_t* ssh = h->ssh;
++    ssh->rplm.ref_pic_list_modification_flag_l0 = bs_read_u1(b);
++    if (ssh->rplm.ref_pic_list_modification_flag_l0)
++    {
++        for (i = 0;i <= ssh->num_ref_idx_l0_active_minus1;i++)
++        {
++            //FIXME
++        }
++    }
++}
++//7.3.3
++void read_profile_tier_level(h265_stream_t* h, bs_t* b, int profilePresentFlag, int maxNumSubLayersMinus1)
++{
++    int i = 0;
++    int j = 0;
++    profile_tier_level_t* ptl = h->ptl;
++    if (1)
++    {
++        memset(ptl, 0, sizeof(profile_tier_level_t));
++    }
++    if (profilePresentFlag)
++    {
++        ptl->general_profile_space = bs_read_u(b, 2);
++        ptl->general_tier_flag = bs_read_u1(b);
++        ptl->general_profile_idc = bs_read_u(b,5);
++        for (j = 0;j < 32;j++)
++        {
++            ptl->general_profile_compatibility_flag[j] = bs_read_u1(b);
++        }
++        ptl->general_progressive_source_flag = bs_read_u1(b);
++        ptl->general_interlaced_source_flag = bs_read_u1(b);
++        ptl->general_non_packed_constraint_flag = bs_read_u1(b);
++        ptl->general_frame_only_constraint_flag = bs_read_u1(b);
++        if ((ptl->general_profile_idc == 4) || (ptl->general_profile_idc == 5) || (ptl->general_profile_idc == 6) ||
++            (ptl->general_profile_idc == 7) || /*(ptl->general_profile_idc == 8) || (ptl->general_profile_idc == 9) ||
++            (ptl->general_profile_idc == 10) || */ptl->general_profile_compatibility_flag[4] ||
++            ptl->general_profile_compatibility_flag[5] || ptl->general_profile_compatibility_flag[6] ||
++            ptl->general_profile_compatibility_flag[7]/* || ptl->general_profile_compatibility_flag[8] ||
++            ptl->general_profile_compatibility_flag[9] || ptl->general_profile_compatibility_flag[10]*/)
++        {
++            ptl->general_max_12bit_constraint_flag = bs_read_u1(b);
++            ptl->general_max_10bit_constraint_flag = bs_read_u1(b);
++            ptl->general_max_8bit_constraint_flag = bs_read_u1(b);
++            ptl->general_max_422chroma_constraint_flag = bs_read_u1(b);
++            ptl->general_max_420chroma_constraint_flag = bs_read_u1(b);
++            ptl->general_max_monochrome_constraint_flag = bs_read_u1(b);
++            ptl->general_intra_constraint_flag = bs_read_u1(b);
++            ptl->general_one_picture_only_constraint_flag = bs_read_u1(b);
++            ptl->general_lower_bit_rate_constraint_flag = bs_read_u1(b);
++            ptl->general_reserved_zero_34bits = bs_read_u(b, 34);
++        }
++        else {
++            ptl->general_reserved_zero_43bits = bs_read_u(b, 43);
++        }/*
++            if ((ptl->general_profile_idc == 5) || (ptl->general_profile_idc == 9) || (ptl->general_profile_idc == 10) ||
++                ptl->general_profile_compatibility_flag[5] || ptl->general_profile_compatibility_flag[9] ||
++                ptl->general_profile_compatibility_flag[10])
++            {
++                ptl->general_max_14bit_constraint_flag = bs_read_u1(b);
++                ptl->general_reserved_zero_33bits = bs_read_u(b,33);
++            }
++            else {
++                ptl->general_reserved_zero_34bits = bs_read_u(b, 34);
++            }
++        }
++        else if ((ptl->general_profile_idc == 2) || ptl->general_profile_compatibility_flag[2])
++        {
++            ptl->general_reserved_zero_7bits = bs_read_u(b, 7);
++            ptl->general_one_picture_only_constraint_flag = bs_read_u1(b);
++            ptl->general_reserved_zero_35bits = bs_read_u(b, 35);
++        }
++        else {
++            ptl->general_reserved_zero_43bits = bs_read_u(b, 43);
++        }*/
++        if (((ptl->general_profile_idc >= 1) && (ptl->general_profile_idc <= 5)) || (ptl->general_profile_idc == 9) ||
++            ptl->general_profile_compatibility_flag[1] || ptl->general_profile_compatibility_flag[2] ||
++            ptl->general_profile_compatibility_flag[3] || ptl->general_profile_compatibility_flag[4] ||
++            ptl->general_profile_compatibility_flag[5] || ptl->general_profile_compatibility_flag[9])
++        {
++            ptl->general_inbld_flag = bs_read_u1(b);
++        }
++        else {
++            ptl->general_reserved_zero_bit = bs_read_u1(b);
++        }
++    }
++    ptl->general_level_idc = bs_read_u8(b);
++    for (i = 0;i < maxNumSubLayersMinus1;i++)
++    {
++        ptl->sub_layer_profile_present_flag[i] = bs_read_u1(b);
++        ptl->sub_layer_level_present_flag[i] = bs_read_u1(b);
++    }
++    if (maxNumSubLayersMinus1 > 0)
++    {
++        for (i = maxNumSubLayersMinus1;i < 8;i++)
++        {
++            ptl->reserved_zero_2bits[i] = bs_read_u(b,2);
++        }
++    }
++    for (i = 0;i < maxNumSubLayersMinus1;i++)
++    {
++        if (ptl->sub_layer_profile_present_flag[i])
++        {
++            ptl->sub_layer_profile_space[i] = bs_read_u(b, 2);
++            ptl->sub_layer_tier_flag[i] = bs_read_u1(b);
++            ptl->sub_layer_profile_idc[i] = bs_read_u(b, 5);
++            for (j = 0;j < 32;j++)
++            {
++                ptl->sub_layer_profile_compatibility_flag[i][j] = bs_read_u1(b);
++            }
++            ptl->sub_layer_progressive_source_flag[i] = bs_read_u1(b);
++            ptl->sub_layer_interlaced_source_flag[i] = bs_read_u1(b);
++            ptl->sub_layer_non_packed_constraint_flag[i] = bs_read_u1(b);
++            ptl->sub_layer_frame_only_constraint_flag[i] = bs_read_u1(b);
++            if (ptl->sub_layer_profile_idc[i] == 4 || ptl->sub_layer_profile_compatibility_flag[i][4] ||
++                ptl->sub_layer_profile_idc[i] == 5 || ptl->sub_layer_profile_compatibility_flag[i][5] ||
++                ptl->sub_layer_profile_idc[i] == 6 || ptl->sub_layer_profile_compatibility_flag[i][6] ||
++                ptl->sub_layer_profile_idc[i] == 7 || ptl->sub_layer_profile_compatibility_flag[i][7]/* ||
++                ptl->sub_layer_profile_idc[i] == 8 || ptl->sub_layer_profile_compatibility_flag[i][8] ||
++                ptl->sub_layer_profile_idc[i] == 9 || ptl->sub_layer_profile_compatibility_flag[i][9] ||
++                ptl->sub_layer_profile_idc[i] == 10 || ptl->sub_layer_profile_compatibility_flag[i][10]*/)
++            {
++                ptl->sub_layer_max_12bit_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_max_10bit_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_max_8bit_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_max_422chroma_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_max_420chroma_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_max_monochrome_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_intra_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_one_picture_only_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_lower_bit_rate_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_reserved_zero_34bits[i] = bs_read_u(b, 34);
++            }
++            else {
++                ptl->sub_layer_reserved_zero_43bits[i] = bs_read_u(b, 43);
++            }/*
++                if (ptl->sub_layer_profile_idc[i] == 5 || ptl->sub_layer_profile_compatibility_flag[i][5])
++                {
++                    ptl->sub_layer_max_14bit_constraint_flag[i] = bs_read_u1(b);
++                    ptl->sub_layer_reserved_zero_33bits[i] = bs_read_u(b, 33);
++                }
++                else {
++                    ptl->sub_layer_reserved_zero_34bits[i] = bs_read_u(b, 34);
++                }
++            }
++            else if (ptl->sub_layer_profile_idc[i] == 2 || ptl->sub_layer_profile_compatibility_flag[i][2])
++            {
++                ptl->sub_layer_reserved_zero_7bits[i] = bs_read_u(b, 7);
++                ptl->sub_layer_one_picture_only_constraint_flag[i] = bs_read_u1(b);
++                ptl->sub_layer_reserved_zero_35bits[i] = bs_read_u(b, 35);
++            }
++            else {
++                ptl->sub_layer_reserved_zero_43bits[i] = bs_read_u(b, 43);
++            }*/
++            if ((ptl->sub_layer_profile_idc[i] >= 1 && ptl->sub_layer_profile_idc[i] <= 5) ||
++                /*ptl->sub_layer_profile_idc[i] == 9 ||*/
++                ptl->sub_layer_profile_compatibility_flag[1] ||
++                ptl->sub_layer_profile_compatibility_flag[2] ||
++                ptl->sub_layer_profile_compatibility_flag[3] ||
++                ptl->sub_layer_profile_compatibility_flag[4] ||
++                ptl->sub_layer_profile_compatibility_flag[5]/* ||
++                ptl->sub_layer_profile_compatibility_flag[9]*/)
++            {
++                ptl->sub_layer_inbld_flag[i] = bs_read_u1(b);
++            }
++            else {
++                ptl->sub_layer_reserved_zero_bit[i] = bs_read_u1(b);
++            }
++        }
++        if (ptl->sub_layer_level_present_flag[i])
++        {
++            ptl->sub_layer_level_idc[i] = bs_read_u8(b);
++        }
++    }
++}
++
++void write_profile_tier_level(h265_stream_t* h, bs_t* b, int profilePresentFlag, int maxNumSubLayersMinus1)
++{
++    int i = 0;
++    int j = 0;
++    profile_tier_level_t* ptl = h->ptl;
++    if (0)
++    {
++        memset(ptl, 0, sizeof(profile_tier_level_t));
++    }
++    if (profilePresentFlag)
++    {
++        bs_write_u(b,2,ptl->general_profile_space);
++        bs_write_u1(b,ptl->general_tier_flag);
++        bs_write_u(b,5,ptl->general_profile_idc);
++
++        for (j = 0;j < 32;j++)
++        {
++            bs_write_u1(b,ptl->general_profile_compatibility_flag[j]);
++            //ptl->general_profile_compatibility_flag[j] = bs_read_u1(b);
++        }
++        bs_write_u1(b,ptl->general_progressive_source_flag);
++        bs_write_u1(b,ptl->general_interlaced_source_flag);
++        bs_write_u1(b,ptl->general_non_packed_constraint_flag);
++        bs_write_u1(b,ptl->general_frame_only_constraint_flag);
++
++        if ((ptl->general_profile_idc == 4) || (ptl->general_profile_idc == 5) || (ptl->general_profile_idc == 6) ||
++            (ptl->general_profile_idc == 7) || /*(ptl->general_profile_idc == 8) || (ptl->general_profile_idc == 9) ||
++            (ptl->general_profile_idc == 10) || */ptl->general_profile_compatibility_flag[4] ||
++            ptl->general_profile_compatibility_flag[5] || ptl->general_profile_compatibility_flag[6] ||
++            ptl->general_profile_compatibility_flag[7]/* || ptl->general_profile_compatibility_flag[8] ||
++            ptl->general_profile_compatibility_flag[9] || ptl->general_profile_compatibility_flag[10]*/)
++			{
++            bs_write_u1(b,ptl->general_max_12bit_constraint_flag);
++            bs_write_u1(b,ptl->general_max_10bit_constraint_flag);
++            bs_write_u1(b,ptl->general_max_8bit_constraint_flag);
++            bs_write_u1(b,ptl->general_max_422chroma_constraint_flag);
++            bs_write_u1(b,ptl->general_max_420chroma_constraint_flag);
++            bs_write_u1(b,ptl->general_max_monochrome_constraint_flag);
++            bs_write_u1(b,ptl->general_intra_constraint_flag);
++            bs_write_u1(b,ptl->general_one_picture_only_constraint_flag);
++            bs_write_u1(b,ptl->general_lower_bit_rate_constraint_flag);
++            bs_write_u(b,34,ptl->general_reserved_zero_34bits);
++			}
++			else {
++				bs_write_u(b,43,ptl->general_reserved_zero_43bits);
++				}
++				/*
++            if ((ptl->general_profile_idc == 5) || (ptl->general_profile_idc == 9) || (ptl->general_profile_idc == 10) ||
++                ptl->general_profile_compatibility_flag[5] || ptl->general_profile_compatibility_flag[9] ||
++                ptl->general_profile_compatibility_flag[10])
++            {
++                bs_write_u1(b,ptl->general_max_14bit_constraint_flag);
++                bs_write_u(b,33,ptl->general_reserved_zero_33bits);
++            }
++            else {
++                bs_write_u(b,34,ptl->general_reserved_zero_34bits);
++            }
++        }
++        else if ((ptl->general_profile_idc == 2) || ptl->general_profile_compatibility_flag[2])
++        {
++            bs_write_u(b,7,ptl->general_reserved_zero_7bits);
++            bs_write_u1(b,ptl->general_one_picture_only_constraint_flag);
++            bs_write_u(b,35,ptl->general_reserved_zero_35bits);
++        }
++        else {
++            bs_write_u(b,43,ptl->general_reserved_zero_43bits);
++        }*/
++        if (((ptl->general_profile_idc >= 1) && (ptl->general_profile_idc <= 5)) /*|| (ptl->general_profile_idc == 9) */||
++            ptl->general_profile_compatibility_flag[1] || ptl->general_profile_compatibility_flag[2] ||
++            ptl->general_profile_compatibility_flag[3] || ptl->general_profile_compatibility_flag[4] ||
++            ptl->general_profile_compatibility_flag[5]/* || ptl->general_profile_compatibility_flag[9]*/)
++        {
++            bs_write_u1(b,ptl->general_inbld_flag);
++        }
++        else {
++            bs_write_u1(b,ptl->general_reserved_zero_bit);
++        }
++    }
++    bs_write_u8(b,ptl->general_level_idc);
++    for (i = 0;i < maxNumSubLayersMinus1;i++)
++    {
++        bs_write_u1(b,ptl->sub_layer_profile_present_flag[i]);
++        bs_write_u1(b,ptl->sub_layer_level_present_flag[i]);
++    }
++    if (maxNumSubLayersMinus1 > 0)
++    {
++        for (i = maxNumSubLayersMinus1;i < 8;i++)
++        {
++            bs_write_u(b,2,ptl->reserved_zero_2bits[i]);
++        }
++    }
++    for (i = 0;i < maxNumSubLayersMinus1;i++)
++    {
++        if (ptl->sub_layer_profile_present_flag[i])
++        {
++            bs_write_u(b,2,ptl->sub_layer_profile_space[i]);
++            bs_write_u1(b,ptl->sub_layer_tier_flag[i]);
++            bs_write_u(b,5,ptl->sub_layer_profile_idc[i]);
++            for (j = 0;j < 32;j++)
++            {
++                bs_write_u1(b,ptl->sub_layer_profile_compatibility_flag[i][j]);
++            }
++            bs_write_u1(b,ptl->sub_layer_progressive_source_flag[i]);
++            bs_write_u1(b,ptl->sub_layer_interlaced_source_flag[i]);
++            bs_write_u1(b,ptl->sub_layer_non_packed_constraint_flag[i]);
++            bs_write_u1(b,ptl->sub_layer_frame_only_constraint_flag[i]);
++
++            if (ptl->sub_layer_profile_idc[i] == 4 || ptl->sub_layer_profile_compatibility_flag[i][4] ||
++                ptl->sub_layer_profile_idc[i] == 5 || ptl->sub_layer_profile_compatibility_flag[i][5] ||
++                ptl->sub_layer_profile_idc[i] == 6 || ptl->sub_layer_profile_compatibility_flag[i][6] ||
++                ptl->sub_layer_profile_idc[i] == 7 || ptl->sub_layer_profile_compatibility_flag[i][7]/* ||
++                ptl->sub_layer_profile_idc[i] == 8 || ptl->sub_layer_profile_compatibility_flag[i][8] ||
++                ptl->sub_layer_profile_idc[i] == 9 || ptl->sub_layer_profile_compatibility_flag[i][9] ||
++                ptl->sub_layer_profile_idc[i] == 10 || ptl->sub_layer_profile_compatibility_flag[i][10]*/)
++            {
++                bs_write_u1(b,ptl->sub_layer_max_12bit_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_max_10bit_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_max_8bit_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_max_422chroma_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_max_420chroma_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_max_monochrome_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_intra_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_one_picture_only_constraint_flag[i]);
++                bs_write_u1(b,ptl->sub_layer_lower_bit_rate_constraint_flag[i]);
++                bs_write_u(b,34,ptl->sub_layer_reserved_zero_34bits[i]);
++            }
++            else {
++                bs_write_u(b,43,ptl->sub_layer_reserved_zero_43bits[i]);
++            }
++/*
++                if (ptl->sub_layer_profile_idc[i] == 5 || ptl->sub_layer_profile_compatibility_flag[i][5])
++                {
++                    bs_write_u1(b,ptl->sub_layer_max_14bit_constraint_flag[i]);
++                    bs_write_u(b,34,ptl->sub_layer_reserved_zero_33bits[i]);
++                }
++                else {
++                    bs_write_u(b,34,ptl->sub_layer_reserved_zero_34bits[i]);
++                }
++            }
++            else if (ptl->sub_layer_profile_idc[i] == 2 || ptl->sub_layer_profile_compatibility_flag[i][2])
++            {
++                bs_write_u(b,7,ptl->sub_layer_reserved_zero_7bits[i]);
++                bs_write_u1(b,ptl->sub_layer_one_picture_only_constraint_flag[i]);
++                bs_write_u(b,35,ptl->sub_layer_reserved_zero_35bits[i]);
++            }
++            else {
++                bs_write_u(b,43,ptl->sub_layer_reserved_zero_43bits[i]);
++            }*/
++            if ((ptl->sub_layer_profile_idc[i] >= 1 && ptl->sub_layer_profile_idc[i] <= 5)/* ||
++                ptl->sub_layer_profile_idc[i] == 9 */||
++                ptl->sub_layer_profile_compatibility_flag[1] ||
++                ptl->sub_layer_profile_compatibility_flag[2] ||
++                ptl->sub_layer_profile_compatibility_flag[3] ||
++                ptl->sub_layer_profile_compatibility_flag[4] ||
++                ptl->sub_layer_profile_compatibility_flag[5]/* ||
++                ptl->sub_layer_profile_compatibility_flag[9]*/)
++            {
++                bs_write_u1(b,ptl->sub_layer_inbld_flag[i]);
++            }
++            else {
++                bs_write_u1(b,ptl->sub_layer_reserved_zero_bit[i]);
++            }
++        }
++        if (ptl->sub_layer_level_present_flag[i])
++        {
++            bs_write_u8(b,ptl->sub_layer_level_idc[i]);
++        }
++    }
++}
++
++//7.3.4
++void read_scaling_list_data(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    int sizeId = 0;
++    int matrixId = 0;
++    int nextCoef = 0;
++    int coefNum = 0;
++    scaling_list_data_t* sld = h->sld;
++    if (1)
++    {
++        memset(sld, 0, sizeof(scaling_list_data_t));
++    }
++    for (sizeId=0;sizeId<4;sizeId++)
++        for (matrixId = 0;matrixId < 6;matrixId += ((sizeId == 3) ? 3 : 1))
++        {
++            sld->scaling_list_pred_mode_flag[sizeId][matrixId] = bs_read_u1(b);
++            if (!sld->scaling_list_pred_mode_flag[sizeId][matrixId])
++            {
++                sld->scaling_list_pred_matrix_id_delta[sizeId][matrixId] = bs_read_ue(b);
++            }else{
++                nextCoef = 8;
++                coefNum = min(64, (1 << (4 + (sizeId << 1))));
++                if (sizeId > 1)
++                {
++                    sld->scaling_list_dc_coef_minus8[sizeId - 2][matrixId] = bs_read_se(b);
++                    nextCoef = sld->scaling_list_dc_coef_minus8[sizeId - 2][matrixId] + 8;
++                }
++                for (i = 0;i < coefNum;i++)
++                {
++                    sld->scaling_list_delta_coef = bs_read_se(b);
++                    nextCoef = (nextCoef + sld->scaling_list_delta_coef + 256) % 256;
++                    //FIXME
++                    //ScalingList[ sizeId ][ matrixId ][ i ] = nextCoef
++                }
++            }
++        }
++}
++
++void write_scaling_list_data(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    int sizeId = 0;
++    int matrixId = 0;
++    int nextCoef = 0;
++    int coefNum = 0;
++    scaling_list_data_t* sld = h->sld;
++    if (0)
++    {
++        memset(sld, 0, sizeof(scaling_list_data_t));
++    }
++    for (sizeId=0;sizeId<4;sizeId++)
++        for (matrixId = 0;matrixId < 6;matrixId += ((sizeId == 3) ? 3 : 1))
++        {
++            bs_write_u1(b,sld->scaling_list_pred_mode_flag[sizeId][matrixId]);
++            if (!sld->scaling_list_pred_mode_flag[sizeId][matrixId])
++            {
++                bs_write_ue(b,sld->scaling_list_pred_matrix_id_delta[sizeId][matrixId]);
++            }else{
++                nextCoef = 8;
++                coefNum = min(64, (1 << (4 + (sizeId << 1))));
++                if (sizeId > 1)
++                {
++                    bs_write_se(b,sld->scaling_list_dc_coef_minus8[sizeId - 2][matrixId]);
++                    nextCoef = sld->scaling_list_dc_coef_minus8[sizeId - 2][matrixId] + 8;
++                }
++                for (i = 0;i < coefNum;i++)
++                {
++                    bs_write_se(b,sld->scaling_list_delta_coef);
++                    sld->scaling_list_delta_coef = bs_read_se(b);
++                    nextCoef = (nextCoef + sld->scaling_list_delta_coef + 256) % 256;
++                    //FIXME
++                    //ScalingList[ sizeId ][ matrixId ][ i ] = nextCoef
++                }
++            }
++        }
++}
++//7.3.2.10 RBSP slice trailing bits syntax rbsp_slice_segment_trailing_bits( )
++void read_debug_rbsp_slice_trailing_bits(h265_stream_t* h, bs_t* b)
++{
++    read_debug_rbsp_trailing_bits(h, b);
++    while (more_rbsp_trailing_data(h, b))
++    {
++        printf("%d.%d: ", b->p - b->start, b->bits_left); int cabac_zero_word = bs_read_u(b, 16); printf("cabac_zero_word: %d \n", cabac_zero_word);
++    }
++}
++
++//7.3.2.11 RBSP trailing bits syntax rbsp_trailing_bits( )
++void read_debug_rbsp_trailing_bits(h265_stream_t* h, bs_t* b)
++{
++    printf("%d.%d: ", b->p - b->start, b->bits_left); int rbsp_stop_one_bit = bs_read_u(b, 1); printf("rbsp_stop_one_bit: %d \n", rbsp_stop_one_bit);
++
++    while (!bs_byte_aligned(b))
++    {
++        printf("%d.%d: ", b->p - b->start, b->bits_left); int rbsp_alignment_zero_bit = bs_read_u(b, 1); printf("rbsp_alignment_zero_bit: %d \n", rbsp_alignment_zero_bit);
++    }
++}
++
++
++//7.3.2.11 RBSP trailing bits syntax
++void write_debug_rbsp_trailing_bits(bs_t* b)
++{
++    /* rbsp_stop_one_bit */ bs_write_u(b, 1, 1);
++
++    while ( !bs_byte_aligned(b) )
++    {
++        /* rbsp_alignment_zero_bit */ bs_write_u(b, 1, 0);
++    }
++}
++
++
++
++//7.3.6.1 slice_segment_header()
++#if 0
++void read_slice_segment_header(h265_stream_t* h, bs_t* b)
++{
++    int i = 0;
++    slice_segment_header_t* ssh = h->ssh;
++    nal_t* nal = h->nal;
++    pps_h265_t* pps = h->pps;
++    sps_h265_t* sps = h->sps;
++    int MinCbLog2SizeY = sps->log2_min_luma_coding_block_size_minus3 + 3; //7-10
++    int CtbLog2SizeY = MinCbLog2SizeY + sps->log2_diff_max_min_luma_coding_block_size; //7-11
++    int CtbSizeY = 1 << CtbLog2SizeY; //7-13
++    int PicWidthInCtbsY = ceil(sps->pic_width_in_luma_samples / CtbSizeY); //7-15
++    int PicHeightInCtbsY = ceil(sps->pic_height_in_luma_samples / CtbSizeY); //7-17
++    int PicSizeInCtbsY = PicWidthInCtbsY * PicHeightInCtbsY; //7-19
++    if (1)
++    {
++        memset(ssh, 0, sizeof(slice_segment_header_t));
++    }
++    ssh->first_slice_segment_in_pic_flag = bs_read_u1(b);
++    if ((nal->nal_unit_type >= NAL_UNIT_CODED_SLICE_BLA_W_LP) && (nal->nal_unit_type <= NAL_UNIT_RESERVED_IRAP_VCL23))
++    {
++        ssh->no_output_of_prior_pics_flag = bs_read_u1(b);
++    }
++    ssh->slice_pic_parameter_set_id = bs_read_ue(b);
++    if (!ssh->first_slice_segment_in_pic_flag)
++    {
++        if (pps->dependent_slice_segments_enabled_flag)
++        {
++            ssh->dependent_slice_segment_flag = bs_read_u1(b);
++        }
++        ssh->slice_segment_address = bs_read_u(b,(int)(ceil(log2(PicSizeInCtbsY))));
++    }
++
++    if (!ssh->dependent_slice_segment_flag)
++    {
++        for (i = 0;i < pps->num_extra_slice_header_bits;i++)
++        {
++            ssh->slice_reserved_flag[i] = bs_read_u1(b);
++        }
++        ssh->slice_type = bs_read_ue(b);
++        if (pps->output_flag_present_flag)
++        {
++            ssh->pic_output_flag = bs_read_u1(b);
++        }
++        if (sps->separate_colour_plane_flag == 1)
++        {
++            ssh->colour_plane_id = bs_read_u(b,2);
++        }
++        if ((nal->nal_unit_type != NAL_UNIT_CODED_SLICE_IDR_W_RADL) && (nal->nal_unit_type != NAL_UNIT_CODED_SLICE_IDR_N_LP))
++        {
++            ssh->slice_pic_order_cnt_lsb = bs_read_u(b, (sps->log2_max_pic_order_cnt_lsb_minus4 + 4));
++            ssh->short_term_ref_pic_set_sps_flag = bs_read_u1(b);
++            /*
++            if (!ssh->short_term_ref_pic_set_sps_flag)
++            {
++                //TODO st_ref_pic_set( num_short_term_ref_pic_sets )
++            }
++            else if (sps->num_short_term_ref_pic_sets > 1)
++            {
++                ssh->short_term_ref_pic_set_idx = bs_read_u(b, (sps->num_short_term_ref_pic_sets));
++            }
++            if (sps->long_term_ref_pics_present_flag)
++            {
++                if (sps->num_long_term_ref_pics_sps > 0)
++                {
++                    ssh->num_long_term_sps = bs_read_ue(b);
++                }
++                ssh->num_long_term_pics = bs_read_ue(b);
++                for (i = 0;i < (ssh->num_long_term_sps + ssh->num_long_term_pics);i++)
++                {
++                    if (i < ssh->num_long_term_sps)
++                    {
++                        if (sps->num_long_term_ref_pics_sps > 1)
++                        {
++                            ssh->lt_idx_sps[i] = bs_read_u(b, (sps->num_long_term_ref_pics_sps));
++                        }
++                    }
++                    else {
++                        ssh->poc_lsb_lt[i] = bs_read_u(b, (sps->log2_max_pic_order_cnt_lsb_minus4+4));
++                        ssh->used_by_curr_pic_lt_flag[i] = bs_read_u1(b);
++                    }
++                    ssh->delta_poc_msb_present_flag[i] = bs_read_u1(b);
++                    if (ssh->delta_poc_msb_present_flag[i])
++                    {
++                        ssh->delta_poc_msb_cycle_lt[i] = bs_read_ue(b);
++                    }
++                }
++            }
++            if (sps->sps_temporal_mvp_enabled_flag)
++            {
++                ssh->slice_temporal_mvp_enabled_flag = bs_read_u1(b);
++            }
++            */
++        }
++        /*
++        if (sps->sample_adaptive_offset_enabled_flag)
++        {
++            ssh->slice_sao_luma_flag = bs_read_u1(b);
++            if (sps->chroma_format_idc != 0) //FIXME ChromaArrayType may differ from chroma_format_idc
++            {
++                ssh->slice_sao_chroma_flag = bs_read_u1(b);
++            }
++        }
++        if ((ssh->slice_type == SH_SLICE_TYPE_P) || (ssh->slice_type == SH_SLICE_TYPE_B))
++        {
++            ssh->num_ref_idx_active_override_flag = bs_read_u1(b);
++            if (ssh->num_ref_idx_active_override_flag)
++            {
++                ssh->num_ref_idx_l0_active_minus1 = bs_read_ue(b);
++                if (ssh->slice_type == SH_SLICE_TYPE_B)
++                {
++                    ssh->num_ref_idx_l1_active_minus1 = bs_read_ue(b);
++                }
++            }
++            //TODO ref_pic_lists_modification( )
++            if (ssh->slice_type == SH_SLICE_TYPE_B)
++            {
++                ssh->mvd_l1_zero_flag = bs_read_u1(b);
++            }
++            if (pps->cabac_init_present_flag)
++                ssh->cabac_init_flag = bs_read_u1(b);
++            if (ssh->slice_temporal_mvp_enabled_flag)
++            {
++                if (ssh->slice_type == SH_SLICE_TYPE_B)
++                    ssh->collocated_from_l0_flag = bs_read_u1(b);
++                if ((ssh->collocated_from_l0_flag && ssh->num_ref_idx_l0_active_minus1>0) ||
++                    (!ssh->collocated_from_l0_flag && ssh->num_ref_idx_l1_active_minus1>0))
++                    ssh->collocated_ref_idx = bs_read_ue(b);
++            }
++            if ((pps->weighted_pred_flag && (ssh->slice_type == SH_SLICE_TYPE_P)) ||
++                (pps->weighted_bipred_flag && (ssh->slice_type == SH_SLICE_TYPE_B)))
++            {
++                //TODO pred_weight_table( )
++            }
++            ssh->five_minus_max_num_merge_cand = bs_read_ue(b);
++            //TODO use_integer_mv_flag
++        }
++        ssh->slice_qp_delta = bs_read_se(b);
++        if (pps->pps_slice_chroma_qp_offsets_present_flag)
++        {
++            ssh->slice_cb_qp_offset = bs_read_se(b);
++            ssh->slice_cr_qp_offset = bs_read_se(b);
++        }
++        //TODO pps_slice_act_qp_offsets_present_flag
++        //TODO chroma_qp_offset_list_enabled_flag
++        if (pps->deblocking_filter_override_enabled_flag)
++            ssh->deblocking_filter_override_flag = bs_read_u1(b);
++        if (ssh->deblocking_filter_override_flag)
++        {
++            ssh->slice_deblocking_filter_disabled_flag = bs_read_u1(b);
++            if (!ssh->slice_deblocking_filter_disabled_flag)
++            {
++                ssh->slice_beta_offset_div2 = bs_read_se(b);
++                ssh->slice_tc_offset_div2 = bs_read_se(b);
++            }
++        }
++        if (pps->pps_loop_filter_across_slices_enabled_flag && (ssh->slice_sao_luma_flag || ssh->slice_sao_chroma_flag ||
++            !ssh->slice_deblocking_filter_disabled_flag))
++            ssh->slice_loop_filter_across_slices_enabled_flag = bs_read_u1(b);
++        */
++    }
++    /*
++    if (pps->tiles_enabled_flag || pps->entropy_coding_sync_enabled_flag)
++    {
++        ssh->num_entry_point_offsets = bs_read_ue(b);
++        if (ssh->num_entry_point_offsets > 0)
++        {
++            ssh->offset_len_minus1 = bs_read_ue(b);
++            for (i = 0;i < ssh->num_entry_point_offsets;i++)
++            {
++                //TODO  ssh->entry_point_offset_minus1[i]
++            }
++        }
++    }
++    if (pps->slice_segment_header_extension_present_flag)
++    {
++        ssh->slice_segment_header_extension_length = bs_read_ue(b);
++        for (i = 0;i < ssh->slice_segment_header_extension_length;i++)
++            ssh->slice_segment_header_extension_data_byte[i] = bs_read_u(b, 8);
++    }
++    */
++    //TODO byte_alignment( )
++}
++#endif
++void read_debug_slice_rbsp(h265_stream_t* h, bs_t* b)
++{
++    //read_slice_segment_header(h, b);
++
++    //TODO slice data
++}
++#if 0
++//7.3.1 NAL unit syntax
++int read_debug_nal_unit(h265_stream_t* h, uint8_t* buf, int size)
++{
++    nal_t* nal = h->nal;
++
++    int nal_size = size;
++    int rbsp_size = size;
++    uint8_t* rbsp_buf = (uint8_t*)calloc(1, rbsp_size);
++
++    if (1)
++    {
++        int rc = nal_to_rbsp(buf, &nal_size, rbsp_buf, &rbsp_size);
++
++        if (rc < 0) { free(rbsp_buf); return -1; } // handle conversion error
++    }
++
++    if (0)
++    {
++        rbsp_size = size * 3 / 4; // NOTE this may have to be slightly smaller (3/4 smaller, worst case) in order to be guaranteed to fit
++    }
++
++    bs_t* b = bs_new(rbsp_buf, rbsp_size);
++    //7.3.1.2 NALU header
++    //printf("%d.%d: ", b->p - b->start, b->bits_left);
++    nal->forbidden_zero_bit = bs_read_u(b, 1); printf("forbidden_zero_bit: %d \n", nal->forbidden_zero_bit);
++    //printf("%d.%d: ", b->p - b->start, b->bits_left);
++    nal->nal_unit_type = bs_read_u(b, 6); printf("nal->nal_unit_type: %d \n", nal->nal_unit_type);
++    //printf("%d.%d: ", b->p - b->start, b->bits_left);
++    nal->nuh_layer_id = bs_read_u(b, 6); printf("nal->nuh_layer_id: %d \n", nal->nuh_layer_id);
++    //printf("%d.%d: ", b->p - b->start, b->bits_left);
++    nal->nuh_temporal_id_plus1 = bs_read_u(b, 3); printf("nal->nuh_temporal_id_plus1: %d \n", nal->nuh_temporal_id_plus1);
++
++    switch (nal->nal_unit_type)
++    {
++    case NAL_UNIT_CODED_SLICE_TRAIL_R:
++    case NAL_UNIT_CODED_SLICE_TRAIL_N:
++    case NAL_UNIT_CODED_SLICE_TSA_R:
++    case NAL_UNIT_CODED_SLICE_TSA_N:
++    case NAL_UNIT_CODED_SLICE_STSA_R:
++    case NAL_UNIT_CODED_SLICE_STSA_N:
++    case NAL_UNIT_CODED_SLICE_BLA_W_LP:
++    case NAL_UNIT_CODED_SLICE_BLA_W_RADL:
++    case NAL_UNIT_CODED_SLICE_BLA_N_LP:
++    case NAL_UNIT_CODED_SLICE_IDR_W_RADL:
++    case NAL_UNIT_CODED_SLICE_IDR_N_LP:
++    case NAL_UNIT_CODED_SLICE_CRA:
++    case NAL_UNIT_CODED_SLICE_RADL_N:
++    case NAL_UNIT_CODED_SLICE_RADL_R:
++    case NAL_UNIT_CODED_SLICE_RASL_N:
++    case NAL_UNIT_CODED_SLICE_RASL_R:
++        read_debug_slice_rbsp(h, b);
++        printSH(h);
++        break;
++#ifdef HAVE_SEI
++    case NAL_UNIT_PREFIX_SEI:
++        read_debug_sei_rbsp(h, b);
++        break;
++#endif
++
++    case NAL_UNIT_VPS:
++        read_debug_video_parameter_set_rbsp(h, b);
++        printVPS(h);
++        break;
++
++    case NAL_UNIT_SPS:
++        read_debug_seq_parameter_set_rbsp(h, b);
++        printSPS(h);
++        break;
++
++    case NAL_UNIT_PPS:
++        read_debug_pic_parameter_set_rbsp(h, b);
++        printPPS(h);
++        break;
++
++    default:
++        return -1;
++    }
++
++    if (bs_overrun(b)) { bs_free(b); free(rbsp_buf); return -1; }
++
++    if (0)
++    {
++        // now get the actual size used
++        rbsp_size = bs_pos(b);
++
++        int rc = rbsp_to_nal(rbsp_buf, &rbsp_size, buf, &nal_size);
++        if (rc < 0) { bs_free(b); free(rbsp_buf); return -1; }
++    }
++
++    bs_free(b);
++    free(rbsp_buf);
++
++    return nal_size;
++}
++
++
++void printVPS(h265_stream_t* h)
++{
++    vps_t* vps = h->vps;
++    printf("VPS:\n");
++    printf("vps_video_parameter_set_id:%d\n",vps->vps_video_parameter_set_id);
++    printf("vps_base_layer_internal_flag:%d\n", vps->vps_base_layer_internal_flag);
++    printf("vps_base_layer_available_flag:%d\n", vps->vps_base_layer_available_flag);
++    printf("vps_max_layers_minus1:%d\n", vps->vps_max_layers_minus1);
++    printf("vps_max_sub_layers_minus1:%d\n", vps->vps_max_sub_layers_minus1);
++    printf("vps_temporal_id_nesting_flag:%d\n", vps->vps_temporal_id_nesting_flag);
++    printPTL(h);
++    printf("vps_sub_layer_ordering_info_present_flag:%d\n", vps->vps_sub_layer_ordering_info_present_flag);
++    printf("vps_max_layer_id:%d\n", vps->vps_max_layer_id);
++    printf("vps_num_layer_sets_minus1:%d\n", vps->vps_num_layer_sets_minus1);
++    printf("vps_timing_info_present_flag:%d\n", vps->vps_timing_info_present_flag);
++}
++void printSPS(h265_stream_t* h)
++{
++    sps_t* sps = h->sps;
++    printf("SPS:\n");
++    printf("sps_video_parameter_set_id:%d\n", sps->sps_video_parameter_set_id);
++    printf("sps_max_sub_layers_minus1:%d\n", sps->sps_max_sub_layers_minus1);
++    printf("sps_temporal_id_nesting_flag:%d\n", sps->sps_temporal_id_nesting_flag);
++    printPTL(h);
++    printf("sps_seq_parameter_set_id:%d\n", sps->sps_seq_parameter_set_id);
++    printf("chroma_format_idc:%d\n", sps->chroma_format_idc);
++    printf("pic_width_in_luma_samples:%d\n", sps->pic_width_in_luma_samples);
++    printf("pic_height_in_luma_samples:%d\n", sps->pic_height_in_luma_samples);
++    printf("conformance_window_flag:%d\n", sps->conformance_window_flag);
++}
++void printPPS(h265_stream_t* h)
++{
++    pps_t* pps = h->pps;
++    printf("PPS:\n");
++    printf("pps_pic_parameter_set_id:%d\n", pps->pps_pic_parameter_set_id);
++    printf("pps_seq_parameter_set_id:%d\n", pps->pps_seq_parameter_set_id);
++    printf("dependent_slice_segments_enabled_flag:%d\n", pps->dependent_slice_segments_enabled_flag);
++    printf("output_flag_present_flag:%d\n", pps->output_flag_present_flag);
++    printf("num_extra_slice_header_bits:%d\n", pps->num_extra_slice_header_bits);
++    printf("sign_data_hiding_enabled_flag:%d\n", pps->sign_data_hiding_enabled_flag);
++    printf("cabac_init_present_flag:%d\n", pps->cabac_init_present_flag);
++    printf("num_ref_idx_l0_default_active_minus1:%d\n", pps->num_ref_idx_l0_default_active_minus1);
++    printf("num_ref_idx_l1_default_active_minus1:%d\n", pps->num_ref_idx_l1_default_active_minus1);
++    printf("init_qp_minus26:%d\n", pps->init_qp_minus26);
++    printf("constrained_intra_pred_flag:%d\n", pps->constrained_intra_pred_flag);
++    printf("transform_skip_enabled_flag:%d\n", pps->transform_skip_enabled_flag);
++    printf("cu_qp_delta_enabled_flag:%d\n", pps->cu_qp_delta_enabled_flag);
++
++    printf("pps_cb_qp_offset:%d\n", pps->pps_cb_qp_offset);
++    printf("pps_cr_qp_offset:%d\n", pps->pps_cr_qp_offset);
++    printf("pps_slice_chroma_qp_offsets_present_flag:%d\n", pps->pps_slice_chroma_qp_offsets_present_flag);
++    printf("weighted_pred_flag:%d\n", pps->weighted_pred_flag);
++    printf("weighted_bipred_flag:%d\n", pps->weighted_bipred_flag);
++    printf("transquant_bypass_enabled_flag:%d\n", pps->transquant_bypass_enabled_flag);
++    printf("tiles_enabled_flag:%d\n", pps->tiles_enabled_flag);
++    printf("entropy_coding_sync_enabled_flag:%d\n", pps->entropy_coding_sync_enabled_flag);
++    if (pps->tiles_enabled_flag)
++    {
++        printf("num_tile_columns_minus1:%d\n", pps->num_tile_columns_minus1);
++        printf("num_tile_rows_minus1:%d\n", pps->num_tile_rows_minus1);
++        printf("uniform_spacing_flag:%d\n", pps->uniform_spacing_flag);
++    }
++}
++void printPTL(h265_stream_t* h)
++{
++    int j;
++    profile_tier_level_t* ptl = h->ptl;
++    printf("profile_tier_level( 1, vps_max_sub_layers_minus1 ):\n");
++    printf("  general_profile_space:%d\n", ptl->general_profile_space);
++    printf("  general_tier_flag:%d\n",ptl->general_tier_flag);
++    printf("  general_profile_idc:%d\n", ptl->general_profile_idc);
++    printf("  general_profile_compatibility_flag: ");
++    for (j = 0;j < 32;j++)
++        printf("%d ", ptl->general_profile_compatibility_flag[j]);
++    printf("\n");
++    printf("  general_progressive_source_flag:%d\n", ptl->general_progressive_source_flag);
++    printf("  general_interlaced_source_flag:%d\n", ptl->general_interlaced_source_flag);
++    printf("  general_non_packed_constraint_flag:%d\n", ptl->general_non_packed_constraint_flag);
++    printf("  general_frame_only_constraint_flag:%d\n", ptl->general_frame_only_constraint_flag);
++    printf("  general_level_idc:%d\n", ptl->general_level_idc);
++}
++
++void printSH(h265_stream_t* h)
++{
++    int i = 0;
++    slice_segment_header_t* ssh = h->ssh;
++    nal_t* nal = h->nal;
++    pps_t* pps = h->pps;
++    sps_t* sps = h->sps;
++    printf("Slice header:\n");
++    printf("first_slice_segment_in_pic_flag:%d\n", ssh->first_slice_segment_in_pic_flag);
++    if ((nal->nal_unit_type >= NAL_UNIT_CODED_SLICE_BLA_W_LP) && (nal->nal_unit_type <= NAL_UNIT_RESERVED_IRAP_VCL23))
++    {
++        printf("no_output_of_prior_pics_flag:%d\n", ssh->no_output_of_prior_pics_flag);
++    }
++    printf("slice_pic_parameter_set_id:%d\n", ssh->slice_pic_parameter_set_id);
++    if (!ssh->first_slice_segment_in_pic_flag)
++    {
++        if (pps->dependent_slice_segments_enabled_flag)
++        {
++            printf("dependent_slice_segment_flag:%d\n", ssh->dependent_slice_segment_flag);
++        }
++        printf("slice_segment_address:%d\n", ssh->slice_segment_address);
++    }
++    if (!ssh->dependent_slice_segment_flag)
++    {
++        printf("slice_reserved_flag:%d ");
++        for (i = 0;i < pps->num_extra_slice_header_bits;i++)
++        {
++            printf("%d ", ssh->slice_reserved_flag[i]);
++        }
++        printf("\n");
++        printf("slice_type:%d\n", ssh->slice_type);
++        if (pps->output_flag_present_flag)
++        {
++            printf("pic_output_flag:%d\n", ssh->pic_output_flag);
++        }
++        if (sps->separate_colour_plane_flag == 1)
++        {
++            printf("colour_plane_id:%d\n", ssh->colour_plane_id);
++        }
++        if ((nal->nal_unit_type != NAL_UNIT_CODED_SLICE_IDR_W_RADL) && (nal->nal_unit_type != NAL_UNIT_CODED_SLICE_IDR_N_LP))
++        {
++            printf("slice_pic_order_cnt_lsb:%d\n", ssh->slice_pic_order_cnt_lsb);
++            printf("short_term_ref_pic_set_sps_flag:%d\n", ssh->short_term_ref_pic_set_sps_flag);
++        }
++    }
++}#endif
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/AML_HEVCEncoder.h b/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/AML_HEVCEncoder.h
+index 9adb6cb..aa5b9e9 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/AML_HEVCEncoder.h
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/AML_HEVCEncoder.h
+@@ -117,6 +117,11 @@ typedef struct HEVCEncParams_s {
+     int transfer; /*color transfer charicstics*/
+     int matrix; /* color space matrix coefficients*/
+     bool range; /*color range flag, 0:full, 1:limitedd*/
++    bool crop_enable;
++    int crop_left;
++    int crop_top;
++    int crop_right;
++    int crop_bottom;
+ } AMVHEVCEncParams;
+ 
+ typedef struct {
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/bs.h b/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/bs.h
+new file mode 100644
+index 0000000..c4efa46
+--- /dev/null
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/bs.h
+@@ -0,0 +1,383 @@
++/*
++ **
++ ** Copyright 2012 The Android Open Source Project
++ **
++ ** Licensed under the Apache License, Version 2.0 (the "License");
++ ** you may not use this file except in compliance with the License.
++ ** You may obtain a copy of the License at
++ **
++ **     http://www.apache.org/licenses/LICENSE-2.0
++ **
++ ** Unless required by applicable law or agreed to in writing, software
++ ** distributed under the License is distributed on an "AS IS" BASIS,
++ ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ ** See the License for the specific language governing permissions and
++ ** limitations under the License.
++ */
++
++#ifndef _H264_BS_H
++#define _H264_BS_H        1
++
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++typedef struct
++{
++	uint8_t* start;
++	uint8_t* p;
++	uint8_t* end;
++	int bits_left;
++} bs_t;
++
++#define _OPTIMIZE_BS_ 0
++
++#if ( _OPTIMIZE_BS_ > 0 )
++#ifndef FAST_U8
++#define FAST_U8
++#endif
++#endif
++
++
++static bs_t* bs_new(uint8_t* buf, size_t size);
++static void bs_free(bs_t* b);
++static bs_t* bs_clone( bs_t* dest, const bs_t* src );
++static bs_t*  bs_init(bs_t* b, uint8_t* buf, size_t size);
++static uint32_t bs_byte_aligned(bs_t* b);
++static int bs_eof(bs_t* b);
++static int bs_overrun(bs_t* b);
++static int bs_pos(bs_t* b);
++
++static uint32_t bs_peek_u1(bs_t* b);
++static uint32_t bs_read_u1(bs_t* b);
++static uint32_t bs_read_u(bs_t* b, int n);
++static uint32_t bs_read_f(bs_t* b, int n);
++static uint32_t bs_read_u8(bs_t* b);
++static uint32_t bs_read_ue(bs_t* b);
++static int32_t  bs_read_se(bs_t* b);
++
++static void bs_write_u1(bs_t* b, uint32_t v);
++static void bs_write_u(bs_t* b, int n, uint32_t v);
++static void bs_write_f(bs_t* b, int n, uint32_t v);
++static void bs_write_u8(bs_t* b, uint32_t v);
++static void bs_write_ue(bs_t* b, uint32_t v);
++static void bs_write_se(bs_t* b, int32_t v);
++
++static int bs_read_bytes(bs_t* b, uint8_t* buf, int len);
++static int bs_write_bytes(bs_t* b, uint8_t* buf, int len);
++static int bs_skip_bytes(bs_t* b, int len);
++static uint32_t bs_next_bits(bs_t* b, int nbits);
++// IMPLEMENTATION
++
++static inline bs_t* bs_init(bs_t* b, uint8_t* buf, size_t size)
++{
++    b->start = buf;
++    b->p = buf;
++    b->end = buf + size;
++    b->bits_left = 8;
++    return b;
++}
++
++static inline bs_t* bs_new(uint8_t* buf, size_t size)
++{
++    bs_t* b = (bs_t*)malloc(sizeof(bs_t));
++    bs_init(b, buf, size);
++    return b;
++}
++
++static inline void bs_free(bs_t* b)
++{
++    free(b);
++}
++
++static inline bs_t* bs_clone(bs_t* dest, const bs_t* src)
++{
++    dest->start = src->p;
++    dest->p = src->p;
++    dest->end = src->end;
++    dest->bits_left = src->bits_left;
++    return dest;
++}
++
++static inline uint32_t bs_byte_aligned(bs_t* b)
++{
++    return (b->bits_left == 8);
++}
++
++static inline int bs_eof(bs_t* b) { if (b->p >= b->end) { return 1; } else { return 0; } }
++
++static inline int bs_overrun(bs_t* b) { if (b->p > b->end) { return 1; } else { return 0; } }
++
++static inline int bs_pos(bs_t* b) { if (b->p > b->end) { return (b->end - b->start); } else { return (b->p - b->start); } }
++
++static inline int bs_bytes_left(bs_t* b) { return (b->end - b->p); }
++
++static inline uint32_t bs_read_u1(bs_t* b)
++{
++    uint32_t r = 0;
++
++    b->bits_left--;
++
++    if (! bs_eof(b))
++    {
++        r = ((*(b->p)) >> b->bits_left) & 0x01;
++    }
++
++    if (b->bits_left == 0) { b->p ++; b->bits_left = 8; }
++
++    return r;
++}
++
++static inline void bs_skip_u1(bs_t* b)
++{
++    b->bits_left--;
++    if (b->bits_left == 0) { b->p ++; b->bits_left = 8; }
++}
++
++static inline uint32_t bs_peek_u1(bs_t* b)
++{
++    uint32_t r = 0;
++
++    if (! bs_eof(b))
++    {
++        r = ((*(b->p)) >> ( b->bits_left - 1 )) & 0x01;
++    }
++    return r;
++}
++
++
++static inline uint32_t bs_read_u(bs_t* b, int n)
++{
++    uint32_t r = 0;
++    int i;
++    for (i = 0; i < n; i++)
++    {
++        r |= ( bs_read_u1(b) << ( n - i - 1 ) );
++    }
++    return r;
++}
++
++static inline void bs_skip_u(bs_t* b, int n)
++{
++    int i;
++    for ( i = 0; i < n; i++ )
++    {
++        bs_skip_u1( b );
++    }
++}
++
++static inline uint32_t bs_read_f(bs_t* b, int n) { return bs_read_u(b, n); }
++
++static inline uint32_t bs_read_u8(bs_t* b)
++{
++#ifdef FAST_U8
++    if (b->bits_left == 8 && ! bs_eof(b)) // can do fast read
++    {
++        uint32_t r = b->p[0];
++        b->p++;
++        return r;
++    }
++#endif
++    return bs_read_u(b, 8);
++}
++
++static inline uint32_t bs_read_ue(bs_t* b)
++{
++    int32_t r = 0;
++    int i = 0;
++
++    while( (bs_read_u1(b) == 0) && (i < 32) && (!bs_eof(b)) )
++    {
++        i++;
++    }
++    r = bs_read_u(b, i);
++    r += (1 << i) - 1;
++    return r;
++}
++
++static inline int32_t bs_read_se(bs_t* b)
++{
++    int32_t r = bs_read_ue(b);
++    if (r & 0x01)
++    {
++        r = (r+1)/2;
++    }
++    else
++    {
++        r = -(r/2);
++    }
++    return r;
++}
++
++
++static inline void bs_write_u1(bs_t* b, uint32_t v)
++{
++    b->bits_left--;
++
++    if (! bs_eof(b))
++    {
++        // FIXME this is slow, but we must clear bit first
++        // is it better to memset(0) the whole buffer during bs_init() instead?
++        // if we don't do either, we introduce pretty nasty bugs
++        (*(b->p)) &= ~(0x01 << b->bits_left);
++        (*(b->p)) |= ((v & 0x01) << b->bits_left);
++    }
++
++    if (b->bits_left == 0) { b->p ++; b->bits_left = 8; }
++}
++
++static inline void bs_write_u(bs_t* b, int n, uint32_t v)
++{
++    int i;
++    for (i = 0; i < n; i++)
++    {
++        bs_write_u1(b, (v >> ( n - i - 1 ))&0x01 );
++    }
++}
++
++static inline void bs_write_f(bs_t* b, int n, uint32_t v) { bs_write_u(b, n, v); }
++
++static inline void bs_write_u8(bs_t* b, uint32_t v)
++{
++#ifdef FAST_U8
++    if (b->bits_left == 8 && ! bs_eof(b)) // can do fast write
++    {
++        b->p[0] = v;
++        b->p++;
++        return;
++    }
++#endif
++    bs_write_u(b, 8, v);
++}
++
++static inline void bs_write_ue(bs_t* b, uint32_t v)
++{
++    static const int len_table[256] =
++    {
++        1,
++        1,
++        2,2,
++        3,3,3,3,
++        4,4,4,4,4,4,4,4,
++        5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
++        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
++        6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++        8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
++    };
++
++    int len;
++
++    if (v == 0)
++    {
++        bs_write_u1(b, 1);
++    }
++    else
++    {
++        v++;
++
++        if (v >= 0x01000000)
++        {
++            len = 24 + len_table[ v >> 24 ];
++        }
++        else if(v >= 0x00010000)
++        {
++            len = 16 + len_table[ v >> 16 ];
++        }
++        else if(v >= 0x00000100)
++        {
++            len =  8 + len_table[ v >>  8 ];
++        }
++        else
++        {
++            len = len_table[ v ];
++        }
++
++        bs_write_u(b, 2*len-1, v);
++    }
++}
++
++static inline void bs_write_se(bs_t* b, int32_t v)
++{
++    if (v <= 0)
++    {
++        bs_write_ue(b, -v*2);
++    }
++    else
++    {
++        bs_write_ue(b, v*2 - 1);
++    }
++}
++
++static inline int bs_read_bytes(bs_t* b, uint8_t* buf, int len)
++{
++    int actual_len = len;
++    if (b->end - b->p < actual_len) { actual_len = b->end - b->p; }
++    if (actual_len < 0) { actual_len = 0; }
++    memcpy(buf, b->p, actual_len);
++    if (len < 0) { len = 0; }
++    b->p += len;
++    return actual_len;
++}
++
++static inline int bs_write_bytes(bs_t* b, uint8_t* buf, int len)
++{
++    int actual_len = len;
++    if (b->end - b->p < actual_len) { actual_len = b->end - b->p; }
++    if (actual_len < 0) { actual_len = 0; }
++    memcpy(b->p, buf, actual_len);
++    if (len < 0) { len = 0; }
++    b->p += len;
++    return actual_len;
++}
++
++static inline int bs_skip_bytes(bs_t* b, int len)
++{
++    int actual_len = len;
++    if (b->end - b->p < actual_len) { actual_len = b->end - b->p; }
++    if (actual_len < 0) { actual_len = 0; }
++    if (len < 0) { len = 0; }
++    b->p += len;
++    return actual_len;
++}
++
++static inline uint32_t bs_next_bits(bs_t* bs, int nbits)
++{
++   bs_t b;
++   bs_clone(&b,bs);
++   return bs_read_u(&b, nbits);
++}
++
++static inline uint64_t bs_next_bytes(bs_t* bs, int nbytes)
++{
++   int i = 0;
++   uint64_t val = 0;
++
++   if ( (nbytes > 8) || (nbytes < 1) ) { return 0; }
++   if (bs->p + nbytes > bs->end) { return 0; }
++
++   for ( i = 0; i < nbytes; i++ ) { val = ( val << 8 ) | bs->p[i]; }
++   return val;
++}
++
++#define bs_print_state(b) fprintf( stderr,  "%s:%d@%s: b->p=0x%02hhX, b->left = %d\n", __FILE__, __LINE__, __FUNCTION__, *b->p, b->bits_left )
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/h265bitstream.h b/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/h265bitstream.h
+new file mode 100644
+index 0000000..49168e6
+--- /dev/null
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/include/h265bitstream.h
+@@ -0,0 +1,659 @@
++/**
++ * @h265_stream.h
++ * reading bitstream of H.265
++ * @author hanyi <13141211944@163.com>
++ */
++
++#ifndef _H265_STREAM_H
++#define _H265_STREAM_H        1
++
++#include <stdint.h>
++#include <stdio.h>
++#include <assert.h>
++#include "bs.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++enum {
++    // 7.4.3.1: vps_max_layers_minus1 is in [0, 62].
++    HEVC_MAX_LAYERS     = 63,
++    // 7.4.3.1: vps_max_sub_layers_minus1 is in [0, 6].
++    HEVC_MAX_SUB_LAYERS = 7,
++    // 7.4.3.1: vps_num_layer_sets_minus1 is in [0, 1023].
++    HEVC_MAX_LAYER_SETS = 1024,
++
++    // 7.4.2.1: vps_video_parameter_set_id is u(4).
++    HEVC_MAX_VPS_COUNT = 16,
++    // 7.4.3.2.1: sps_seq_parameter_set_id is in [0, 15].
++    HEVC_MAX_SPS_COUNT = 16,
++    // 7.4.3.3.1: pps_pic_parameter_set_id is in [0, 63].
++    HEVC_MAX_PPS_COUNT = 64,
++
++    // A.4.2: MaxDpbSize is bounded above by 16.
++    HEVC_MAX_DPB_SIZE = 16,
++    // 7.4.3.1: vps_max_dec_pic_buffering_minus1[i] is in [0, MaxDpbSize - 1].
++    HEVC_MAX_REFS     = HEVC_MAX_DPB_SIZE,
++
++    // 7.4.3.2.1: num_short_term_ref_pic_sets is in [0, 64].
++    HEVC_MAX_SHORT_TERM_REF_PIC_SETS = 64,
++    // 7.4.3.2.1: num_long_term_ref_pics_sps is in [0, 32].
++    HEVC_MAX_LONG_TERM_REF_PICS      = 32,
++
++    // A.3: all profiles require that CtbLog2SizeY is in [4, 6].
++    HEVC_MIN_LOG2_CTB_SIZE = 4,
++    HEVC_MAX_LOG2_CTB_SIZE = 6,
++
++    // E.3.2: cpb_cnt_minus1[i] is in [0, 31].
++    HEVC_MAX_CPB_CNT = 32,
++
++    // A.4.1: in table A.6 the highest level allows a MaxLumaPs of 35 651 584.
++    HEVC_MAX_LUMA_PS = 35651584,
++    // A.4.1: pic_width_in_luma_samples and pic_height_in_luma_samples are
++    // constrained to be not greater than sqrt(MaxLumaPs * 8).  Hence height/
++    // width are bounded above by sqrt(8 * 35651584) = 16888.2 samples.
++    HEVC_MAX_WIDTH  = 16888,
++    HEVC_MAX_HEIGHT = 16888,
++
++    // A.4.1: table A.6 allows at most 22 tile rows for any level.
++    HEVC_MAX_TILE_ROWS    = 22,
++    // A.4.1: table A.6 allows at most 20 tile columns for any level.
++    HEVC_MAX_TILE_COLUMNS = 20,
++
++    // A.4.2: table A.6 allows at most 600 slice segments for any level.
++    HEVC_MAX_SLICE_SEGMENTS = 600,
++
++    // 7.4.7.1: in the worst case (tiles_enabled_flag and
++    // entropy_coding_sync_enabled_flag are both set), entry points can be
++    // placed at the beginning of every Ctb row in every tile, giving an
++    // upper bound of (num_tile_columns_minus1 + 1) * PicHeightInCtbsY - 1.
++    // Only a stream with very high resolution and perverse parameters could
++    // get near that, though, so set a lower limit here with the maximum
++    // possible value for 4K video (at most 135 16x16 Ctb rows).
++    HEVC_MAX_ENTRY_POINT_OFFSETS = HEVC_MAX_TILE_COLUMNS * 135,
++};
++
++    typedef struct ShortTermRPS {
++        unsigned int num_negative_pics;
++        int num_delta_pocs;
++        int rps_idx_num_delta_pocs;
++        int32_t delta_poc[32];
++        uint8_t used[32];
++    } ShortTermRPS;
++    /**
++   Video Parameter Set
++   @see 7.3.2.1 Video parameter set RBSP syntax
++*/
++    typedef struct {
++        int vps_video_parameter_set_id;
++        int vps_base_layer_internal_flag;
++        int vps_base_layer_available_flag;
++        int vps_max_layers_minus1;
++        int vps_max_sub_layers_minus1;
++        int vps_temporal_id_nesting_flag;
++        int vps_reserved_0xffff_16bits;
++        int vps_sub_layer_ordering_info_present_flag;
++        int vps_max_dec_pic_buffering_minus1[7];
++        int vps_max_num_reorder_pics[7];
++        int vps_max_latency_increase_plus1[7];
++        int vps_max_layer_id;
++        int vps_num_layer_sets_minus1;
++        int layer_id_included_flag[1024][1];
++        int vps_timing_info_present_flag;
++        int vps_num_units_in_tick;
++        int vps_time_scale;
++        int vps_poc_proportional_to_timing_flag;
++        int vps_num_ticks_poc_diff_one_minus1;
++        int vps_num_hrd_parameters;
++        int hrd_layer_set_idx[1024];
++        int cprms_present_flag[1024];
++        int vps_extension_flag;
++        int vps_extension_data_flag;
++    } vps_t;
++
++
++    /**
++       Sequence Parameter Set
++       @see 7.3.2.2 Sequence parameter set RBSP syntax
++       @see read_seq_parameter_set_rbsp
++       @see write_seq_parameter_set_rbsp
++       @see debug_sps
++    */
++    typedef struct
++    {
++        int sps_video_parameter_set_id;
++        int sps_max_sub_layers_minus1;
++        int sps_temporal_id_nesting_flag;
++        //TODO profile_tier_level
++        int sps_seq_parameter_set_id;
++        int chroma_format_idc;
++        int separate_colour_plane_flag;
++        int pic_width_in_luma_samples;
++        int pic_height_in_luma_samples;
++        int conformance_window_flag;
++        int conf_win_left_offset;
++        int conf_win_right_offset;
++        int conf_win_top_offse;
++        int conf_win_bottom_offset;
++        int bit_depth_luma_minus8;
++        int bit_depth_chroma_minus8;
++        int log2_max_pic_order_cnt_lsb_minus4;
++        int sps_sub_layer_ordering_info_present_flag;
++        int sps_max_dec_pic_buffering_minus1[7];
++        int sps_max_num_reorder_pics[7];
++        int sps_max_latency_increase_plus1[7];
++        int log2_min_luma_coding_block_size_minus3;
++        int log2_diff_max_min_luma_coding_block_size;
++        int log2_min_luma_transform_block_size_minus2;
++        int log2_diff_max_min_luma_transform_block_size;
++        int max_transform_hierarchy_depth_inter;
++        int max_transform_hierarchy_depth_intra;
++        int scaling_list_enabled_flag;
++        int sps_scaling_list_data_present_flag;
++        //TODO: scaling_list_data
++        //scaling_list_data_t sld;
++        int amp_enabled_flag;
++        int sample_adaptive_offset_enabled_flag;
++        int pcm_enabled_flag;
++        int pcm_sample_bit_depth_luma_minus1;
++        int pcm_sample_bit_depth_chroma_minus1;
++        int log2_min_pcm_luma_coding_block_size_minus3;
++        int log2_diff_max_min_pcm_luma_coding_block_size;
++        int pcm_loop_filter_disabled_flag;
++        int num_short_term_ref_pic_sets;
++
++        //TODO: st_ref_pic_set( i )
++
++        int long_term_ref_pics_present_flag;
++        int num_long_term_ref_pics_sps;
++        int lt_ref_pic_poc_lsb_sps[33];
++        int used_by_curr_pic_lt_sps_flag[33];
++        int sps_temporal_mvp_enabled_flag;
++        int strong_intra_smoothing_enabled_flag;
++        int vui_parameters_present_flag;
++        //TODO: vui
++        int sps_extension_present_flag;
++        int sps_range_extension_flag;
++        int sps_multilayer_extension_flag;
++        int sps_3d_extension_flag;
++        //int sps_scc_extension_flag;
++        int sps_extension_5bits;
++
++        //TODO: sps_range_extension( )
++        // 7.3.2.2.2
++        struct {
++            int transform_skip_rotation_enabled_flag;
++            int transform_skip_context_enabled_flag;
++            int implicit_rdpcm_enabled_flag;
++            int explicit_rdpcm_enabled_flag;
++            int extended_precision_processing_flag;
++            int intra_smoothing_disabled_flag;
++            int high_precision_offsets_enabled_flag;
++            int persistent_rice_adaptation_enabled_flag;
++            int cabac_bypass_alignment_enabled_flag;
++        } sps_range_extension;
++        //TODO: sps_multilayer_extension( )
++        // F.7.3.2.2.4
++        struct {
++            int inter_view_mv_vert_constraint_flag;
++        } sps_multilayer_extension;
++        //TODO: sps_3d_extension( )
++        // I.7.3.2.2.5
++        struct {
++            int iv_di_mc_enabled_flag[2];
++            int iv_mv_scal_enabled_flag[2];
++            int log2_ivmc_sub_pb_size_minus3[2];
++            int iv_res_pred_enabled_flag[2];
++            int depth_ref_enabled_flag[2];
++            int vsp_mc_enabled_flag[2];
++            int dbbp_enabled_flag[2];
++            int tex_mc_enabled_flag[2];
++            int log2_texmc_sub_pb_size_minus3[2];
++            int intra_contour_enabled_flag[2];
++            int intra_dc_only_wedge_enabled_flag[2];
++            int cqt_cu_part_pred_enabled_flag[2];
++            int inter_dc_only_enabled_flag[2];
++            int skip_intra_enabled_flag[2];
++        } sps_3d_extension;
++        //TODO: sps_scc_extension( )
++        //7.3.2.2.3
++        int sps_extension_data_flag;
++
++    } sps_h265_t;
++
++
++    /**
++   Picture Parameter Set
++   @see 7.3.2.3 Picture parameter set RBSP syntax
++    */
++    typedef struct {
++        int pps_pic_parameter_set_id;
++        int pps_seq_parameter_set_id;
++        int dependent_slice_segments_enabled_flag;
++        int output_flag_present_flag;
++        int num_extra_slice_header_bits;
++        int sign_data_hiding_enabled_flag;
++        int cabac_init_present_flag;
++        int num_ref_idx_l0_default_active_minus1;
++        int num_ref_idx_l1_default_active_minus1;
++        int init_qp_minus26;
++        int constrained_intra_pred_flag;
++        int transform_skip_enabled_flag;
++        int cu_qp_delta_enabled_flag;
++        int diff_cu_qp_delta_depth;
++        int pps_cb_qp_offset;
++        int pps_cr_qp_offset;
++        int pps_slice_chroma_qp_offsets_present_flag;
++        int weighted_pred_flag;
++        int weighted_bipred_flag;
++        int transquant_bypass_enabled_flag;
++        int tiles_enabled_flag;
++        int entropy_coding_sync_enabled_flag;
++        int num_tile_columns_minus1;
++        int num_tile_rows_minus1;
++        int uniform_spacing_flag;
++        //TODO: column_width_minus1[] row_height_minus1[]
++        //FIXME
++        int* column_width_minus1;
++        int* row_height_minus1;
++
++        int loop_filter_across_tiles_enabled_flag;
++        int pps_loop_filter_across_slices_enabled_flag;
++        int deblocking_filter_control_present_flag;
++        int deblocking_filter_override_enabled_flag;
++        int pps_deblocking_filter_disabled_flag;
++        int pps_beta_offset_div2;
++        int pps_tc_offset_div2;
++        int pps_scaling_list_data_present_flag;
++        int lists_modification_present_flag;
++        int log2_parallel_merge_level_minus2;
++        int slice_segment_header_extension_present_flag;
++        int pps_extension_present_flag;
++        int pps_range_extension_flag;
++        int pps_multilayer_extension_flag;
++        int pps_3d_extension_flag;
++        int pps_scc_extension_flag;
++        int pps_extension_4bits;
++        //TODO: pps_range_extension( )
++        //TODO: pps_multilayer_extension( )
++        //TODO: pps_3d_extension( )
++        //TODO: pps_scc_extension( )
++        int pps_extension_data_flag;
++    } pps_h265_t;
++
++    //7.3.3
++    typedef struct {
++        int general_profile_space;
++        int general_tier_flag;
++        int general_profile_idc;
++        int general_profile_compatibility_flag[32];
++        int general_progressive_source_flag;
++        int general_interlaced_source_flag;
++        int general_non_packed_constraint_flag;
++        int general_frame_only_constraint_flag;
++        int general_max_12bit_constraint_flag;
++        int general_max_10bit_constraint_flag;
++        int general_max_8bit_constraint_flag;
++        int general_max_422chroma_constraint_flag;
++        int general_max_420chroma_constraint_flag;
++        int general_max_monochrome_constraint_flag;
++        int general_intra_constraint_flag;
++        int general_one_picture_only_constraint_flag;
++        int general_lower_bit_rate_constraint_flag;
++        int general_max_14bit_constraint_flag;
++        int general_reserved_zero_33bits;
++        int general_reserved_zero_34bits;
++        int general_reserved_zero_7bits;
++        int general_reserved_zero_35bits;
++        int general_reserved_zero_43bits;
++        int general_inbld_flag;
++        int general_reserved_zero_bit;
++        int general_level_idc;
++        int sub_layer_profile_present_flag[6];
++        int sub_layer_level_present_flag[6];
++        int reserved_zero_2bits[2];
++        int sub_layer_profile_space[6];
++        int sub_layer_tier_flag[6];
++        int sub_layer_profile_idc[6];
++        int sub_layer_profile_compatibility_flag[6][32];
++        int sub_layer_progressive_source_flag[6];
++        int sub_layer_interlaced_source_flag[6];
++        int sub_layer_non_packed_constraint_flag[6];
++        int sub_layer_frame_only_constraint_flag[6];
++        int sub_layer_max_12bit_constraint_flag[6];
++        int sub_layer_max_10bit_constraint_flag[6];
++        int sub_layer_max_8bit_constraint_flag[6];
++        int sub_layer_max_422chroma_constraint_flag[6];
++        int sub_layer_max_420chroma_constraint_flag[6];
++        int sub_layer_max_monochrome_constraint_flag[6];
++        int sub_layer_intra_constraint_flag[6];
++        int sub_layer_one_picture_only_constraint_flag[6];
++        int sub_layer_lower_bit_rate_constraint_flag[6];
++        int sub_layer_max_14bit_constraint_flag[6];
++        int sub_layer_reserved_zero_33bits[6];
++        int sub_layer_reserved_zero_34bits[6];
++        int sub_layer_reserved_zero_7bits[6];
++        int sub_layer_reserved_zero_35bits[6];
++        int sub_layer_reserved_zero_43bits[6];
++        int sub_layer_inbld_flag[6];
++        int sub_layer_reserved_zero_bit[6];
++        int sub_layer_level_idc[6];
++    } profile_tier_level_t;
++
++    //7.3.7 Short-term reference picture set syntax
++    //st_ref_pic_set
++    typedef struct {
++        int inter_ref_pic_set_prediction_flag;
++        int delta_idx_minus1;
++        int delta_rps_sign;
++        int abs_delta_rps_minus1;
++        int used_by_curr_pic_flag[16];
++        int use_delta_flag[16];
++        int num_negative_pics;
++        int num_positive_pics;
++        int delta_poc_s0_minus1[16];
++        int used_by_curr_pic_s0_flag[16];
++        int delta_poc_s1_minus1[16];
++        int used_by_curr_pic_s1_flag[16];
++    } st_ref_pic_set_t;
++
++    //E.2.1
++    typedef struct
++    {
++        int aspect_ratio_info_present_flag;
++        int aspect_ratio_idc;
++        int sar_width;
++        int sar_height;
++        int overscan_info_present_flag;
++        int overscan_appropriate_flag;
++        int video_signal_type_present_flag;
++        int video_format;
++        int video_full_range_flag;
++        int colour_description_present_flag;
++        int colour_primaries;
++        int transfer_characteristics;
++        int matrix_coeffs;
++        int chroma_loc_info_present_flag;
++        int chroma_sample_loc_type_top_field;
++        int chroma_sample_loc_type_bottom_field;
++        int neutral_chroma_indication_flag;
++        int field_seq_flag;
++        int frame_field_info_present_flag;
++        int default_display_window_flag;
++        int def_disp_win_left_offset;
++        int def_disp_win_right_offset;
++        int def_disp_win_top_offset;
++        int def_disp_win_bottom_offset;
++        int vui_timing_info_present_flag;
++        int vui_num_units_in_tick;
++        int vui_time_scale;
++        int vui_poc_proportional_to_timing_flag;
++        int vui_num_ticks_poc_diff_one_minus1;
++        int vui_hrd_parameters_present_flag;
++        int bitstream_restriction_flag;
++        int tiles_fixed_structure_flag;
++        int motion_vectors_over_pic_boundaries_flag;
++        int restricted_ref_pic_lists_flag;
++        int min_spatial_segmentation_idc;
++        int max_bytes_per_pic_denom;
++        int max_bits_per_min_cu_denom;
++        int log2_max_mv_length_horizontal;
++        int log2_max_mv_length_vertical;
++    } vui_t;
++
++    //E.2.2
++    typedef struct
++    {
++        int nal_hrd_parameters_present_flag;
++        int vcl_hrd_parameters_present_flag;
++        int sub_pic_hrd_params_present_flag;
++        int tick_divisor_minus2;
++        int du_cpb_removal_delay_increment_length_minus1;
++        int sub_pic_cpb_params_in_pic_timing_sei_flag;
++        int dpb_output_delay_du_length_minus1;
++        int bit_rate_scale;
++        int cpb_size_scale;
++        int cpb_size_du_scale;
++        int initial_cpb_removal_delay_length_minus1;
++        int au_cpb_removal_delay_length_minus1;
++        int dpb_output_delay_length_minus1;
++        int fixed_pic_rate_general_flag[7];
++        int fixed_pic_rate_within_cvs_flag[7];
++        int elemental_duration_in_tc_minus1[7];
++        int low_delay_hrd_flag[7];
++        int cpb_cnt_minus1[7];
++        //TODO: E.2.3 sub_layer_hrd_parameters()
++        int bit_rate_value_minus1[32];
++        int cpb_size_value_minus1[32];
++        int cpb_size_du_value_minus1[32];
++        int bit_rate_du_value_minus1[32];
++        int cbr_flag[32];
++    } hrd_h265_t;
++
++    //7.3.4: scaling_list_data( )
++    typedef struct {
++        int scaling_list_pred_mode_flag[4][6];
++        int scaling_list_pred_matrix_id_delta[4][6];
++        int scaling_list_dc_coef_minus8[2][6];
++        int scaling_list_delta_coef;
++    } scaling_list_data_t;
++
++    /**
++   Access unit delimiter
++   @see 7.3.2.5 NAL unit syntax
++   @see read_nal_unit
++   @see write_nal_unit
++   @see debug_nal
++*/
++    typedef struct
++    {
++        int pic_type;
++    } aud_t;
++
++    /**
++      Slice Header
++      @see 7.3.6.1 Slice header syntax
++      @see read_slice_header_rbsp
++      @see write_slice_header_rbsp
++      @see debug_slice_header_rbsp
++    */
++    typedef struct
++    {
++        int first_slice_segment_in_pic_flag;
++        int no_output_of_prior_pics_flag;
++        int slice_pic_parameter_set_id;
++        int dependent_slice_segment_flag;
++        int slice_segment_address;
++        int slice_reserved_flag[2];
++        int slice_type;
++        int pic_output_flag;
++        int colour_plane_id;
++        int slice_pic_order_cnt_lsb;
++        int short_term_ref_pic_set_sps_flag;
++        //TODO 7.3.7 st_ref_pic_set( num_short_term_ref_pic_sets )
++
++        int short_term_ref_pic_set_idx;
++        int num_long_term_sps;
++        int num_long_term_pics;
++        //FIXME
++        int* lt_idx_sps;
++        int* poc_lsb_lt;
++        int* used_by_curr_pic_lt_flag;
++        int* delta_poc_msb_present_flag;
++        int* delta_poc_msb_cycle_lt;
++
++        int slice_temporal_mvp_enabled_flag;
++        int slice_sao_luma_flag;
++        int slice_sao_chroma_flag;
++        int num_ref_idx_active_override_flag;
++        int num_ref_idx_l0_active_minus1;
++        int num_ref_idx_l1_active_minus1;
++
++        //TODO 7.3.6.2 ref_pic_lists_modification( )
++        //7.3.6.2 Reference picture list modification syntax
++        //ref_pic_list_modification()
++        struct
++        {
++            int ref_pic_list_modification_flag_l0;
++            int list_entry_l0[14];
++            int ref_pic_list_modification_flag_l1;
++            int list_entry_l1[14];
++        } rplm;
++
++        int mvd_l1_zero_flag;
++        int cabac_init_flag;
++        int collocated_from_l0_flag;
++        int collocated_ref_idx;
++
++        //TODO 7.6.3.6 pred_weight_table( )
++
++        int five_minus_max_num_merge_cand;
++        int use_integer_mv_flag;
++        int slice_qp_delta;
++        int slice_cb_qp_offset;
++        int slice_cr_qp_offset;
++        int slice_act_y_qp_offset;
++        int slice_act_cb_qp_offset;
++        int slice_act_cr_qp_offset;
++        int cu_chroma_qp_offset_enabled_flag;
++        int deblocking_filter_override_flag;
++        int slice_deblocking_filter_disabled_flag;
++        int slice_beta_offset_div2;
++        int slice_tc_offset_div2;
++        int slice_loop_filter_across_slices_enabled_flag;
++        int num_entry_point_offsets;
++        int offset_len_minus1;
++        //FIXME
++        int* entry_point_offset_minus1;
++        int slice_segment_header_extension_length;
++        int slice_segment_header_extension_data_byte[256];
++
++    } slice_segment_header_t;
++
++    typedef struct
++    {
++        int rbsp_size;
++        uint8_t* rbsp_buf;
++    } slice_data_rbsp_t;
++
++    /**
++   Network Abstraction Layer (NAL) unit
++   @see 7.3.1 NAL unit syntax
++   @see read_nal_unit
++   @see write_nal_unit
++   @see debug_nal
++*/
++    typedef struct
++    {
++        int forbidden_zero_bit;
++        int nal_unit_type;
++        int nuh_layer_id;
++        int nuh_temporal_id_plus1;
++
++        //uint8_t* rbsp_buf;
++        //int rbsp_size;
++    } nal_t;
++
++    /**
++   H265 stream
++   Contains data structures for all NAL types that can be handled by this library.
++   When reading, data is read into those, and when writing it is written from those.
++   The reason why they are all contained in one place is that some of them depend on others, we need to
++   have all of them available to read or write correctly.
++ */
++    typedef struct
++    {
++        nal_t* nal;
++        vps_t* vps;
++        sps_h265_t* sps;
++        pps_h265_t* pps;
++        aud_t* aud;
++        st_ref_pic_set_t strps[HEVC_MAX_SHORT_TERM_REF_PIC_SETS];
++        ShortTermRPS st_rps[HEVC_MAX_SHORT_TERM_REF_PIC_SETS];
++
++        profile_tier_level_t* ptl;
++        vui_t* vui;
++        hrd_h265_t* hrd;
++        scaling_list_data_t* sld;
++        slice_segment_header_t* ssh;
++        slice_data_rbsp_t* slice_data;
++
++        vps_t* vps_table[16];
++        sps_h265_t* sps_table[32];
++        pps_h265_t* pps_table[256];
++    } h265_stream_t;
++
++    int RBSPtoEBSP(unsigned char *streamBuffer, int begin_bytepos, int end_bytepos, int min_num_bytes);
++    int EBSPtoRBSP(unsigned char *streamBuffer, int begin_bytepos, int end_bytepos);
++    h265_stream_t *h265bitstream_init();
++    void h265_free(h265_stream_t* h);
++
++    int find_nal_unit(uint8_t* buf, int size, int* nal_start, int* nal_end);
++
++    int rbsp_to_nal(const uint8_t* rbsp_buf, const int* rbsp_size, uint8_t* nal_buf, int* nal_size);
++    int nal_to_rbsp(const uint8_t* nal_buf, int* nal_size, uint8_t* rbsp_buf, int* rbsp_size);
++
++    int read_debug_nal_unit(h265_stream_t* h, uint8_t* buf, int size);
++    void read_debug_video_parameter_set_rbsp(h265_stream_t* h, bs_t* b);
++    void read_debug_seq_parameter_set_rbsp(h265_stream_t* h, bs_t* b);
++    void read_st_ref_pic_set(h265_stream_t* h, bs_t* b,int  stRpsIdx);
++    void read_ref_pic_lists_modification(h265_stream_t* h, bs_t* b);
++    void read_profile_tier_level(h265_stream_t* h, bs_t* b,int profilePresentFlag,int maxNumSubLayersMinus1);
++    void read_scaling_list_data(h265_stream_t* h, bs_t* b);
++    void read_debug_vui_parameters(h265_stream_t* h, bs_t* b);
++    void read_debug_hrd_parameters(h265_stream_t* h, bs_t* b);
++    void read_debug_pic_parameter_set_rbsp(h265_stream_t* h, bs_t* b);
++    void read_access_unit_delimiter_rbsp(h265_stream_t* h, bs_t* b);
++    void read_scaling_list_data(h265_stream_t* h, bs_t* b);
++    //void read_slice_segment_header(h265_stream_t* h, bs_t* b);
++    void read_debug_slice_rbsp(h265_stream_t* h, bs_t* b);
++
++    void read_debug_rbsp_trailing_bits(h265_stream_t* h, bs_t* b);
++    void read_debug_rbsp_trailing_bits(h265_stream_t* h, bs_t* b);
++    void write_debug_rbsp_trailing_bits(bs_t *b);
++    int more_rbsp_trailing_data(h265_stream_t* h, bs_t* b);
++    void write_profile_tier_level(h265_stream_t* h, bs_t* b, int profilePresentFlag, int maxNumSubLayersMinus1);
++    void write_scaling_list_data(h265_stream_t* h, bs_t* b);
++    void write_debug_seq_parameter_set_rbsp(h265_stream_t* h, bs_t* b);
++
++    void printVPS(h265_stream_t* h);
++    void printSPS(h265_stream_t* h);
++    void printPPS(h265_stream_t* h);
++    void printPTL(h265_stream_t* h);
++    void printSH(h265_stream_t* h);
++
++    //7.4.7 Table 7-7. Name association to slice_type
++    #define SH_SLICE_TYPE_B        0        // B (B slice)
++    #define SH_SLICE_TYPE_P        1        // P (P slice)
++    #define SH_SLICE_TYPE_I        2        // I (I slice)
++
++    //Appendix E. Table E-1  Meaning of sample aspect ratio indicator
++    #define SAR_Unspecified  0           // Unspecified
++    #define SAR_1_1        1             //  1:1
++    #define SAR_12_11      2             // 12:11
++    #define SAR_10_11      3             // 10:11
++    #define SAR_16_11      4             // 16:11
++    #define SAR_40_33      5             // 40:33
++    #define SAR_24_11      6             // 24:11
++    #define SAR_20_11      7             // 20:11
++    #define SAR_32_11      8             // 32:11
++    #define SAR_80_33      9             // 80:33
++    #define SAR_18_11     10             // 18:11
++    #define SAR_15_11     11             // 15:11
++    #define SAR_64_33     12             // 64:33
++    #define SAR_160_99    13             // 160:99
++    #define SAR_4_3       14
++    #define SAR_3_2       15
++    #define SAR_2_1       16
++                                         // 17..254           Reserved
++    #define SAR_Extended      255        // Extended_SAR
++
++    // file handle for debug output
++    extern FILE* h265_dbgfile;
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+\ No newline at end of file
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/libvp_hevc_codec.cpp b/amvenc_265/EncoderAPI-HEVC/hevc_enc/libvp_hevc_codec.cpp
+index 204df60..f5be224 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/libvp_hevc_codec.cpp
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/libvp_hevc_codec.cpp
+@@ -9,6 +9,7 @@
+ #include "include/AML_HEVCEncoder.h"
+ #include "include/enc_define.h"
+ #include "./vpuapi/include/vdi_osal.h"
++#include "include/h265bitstream.h"
+ 
+ const char version[] = "Amlogic libamvenc_265 version 1.0";
+ 
+@@ -144,6 +145,14 @@ AMVEnc_Status initEncParams(AMVHEVCEncHandle *handle,
+     handle->mEncParams.MBsIntraOverlap = 0;
+     handle->mEncParams.encode_once = 1;
+ 
++    handle->mEncParams.crop_enable = encode_info.crop_enable;
++    if (handle->mEncParams.crop_enable) {
++        handle->mEncParams.crop_left = encode_info.crop.left;
++        handle->mEncParams.crop_top = encode_info.crop.top;
++        handle->mEncParams.crop_right = encode_info.crop.right;
++        handle->mEncParams.crop_bottom = encode_info.crop.bottom;
++    }
++
+     if (encode_info.enc_feature_opts & ENABLE_PARA_UPDATE)
+       handle->mEncParams.param_change_enable = 1;
+ 
+@@ -248,6 +257,141 @@ exit:
+     return (vl_codec_handle_hevc_t) NULL;
+ }
+ 
++#define H265_HEADER_LEN 6
++
++void vl_encoder_adjust_h265_header(vl_codec_handle_hevc_t handle,char *header,int *dataLength)
++{
++    bs_t bs;
++    //sps_h265_t sps = {0};
++    uint32_t i = 0;
++    int vps_nalu_size = 0;
++    int sps_nalu_size = 0;
++    int pps_nalu_size = 0;
++    int new_sps_size = 0;
++    int vps_start = -1;
++    int sps_start = -1;
++    int pps_start = -1;
++    int ret = 0;
++    h265_stream_t *pstream_handle = NULL;
++    AMVHEVCEncHandle *codec_handle = (AMVHEVCEncHandle *)handle;
++//    VLOG(INFO,"vl_multi_encoder_adjust_header,stream_type:%d",handle->mEncParams.stream_type);
++   /* if (handle->mEncParams.stream_type != AMV_HEVC || !handle->vui_info.vui_parameters_present_flag)
++        return;*/
++
++    uint8_t *vps_nalu = (uint8_t *) malloc(sizeof(uint8_t) * (*dataLength));
++    uint8_t *sps_nalu = (uint8_t *) malloc(sizeof(uint8_t) * (*dataLength));
++    uint8_t *pps_nalu = (uint8_t *) malloc(sizeof(uint8_t) * (*dataLength));
++    if (sps_nalu == NULL || pps_nalu == NULL || vps_nalu == NULL) {
++        VLOG(ERR,"hack_sps malloc for sps or pps failed");
++        return;
++    }
++
++    for (i=0;i<*dataLength-H265_HEADER_LEN;i++) {
++        if ((uint8_t)header[i+0] == 0 && (uint8_t)header[i+1] == 0 && (uint8_t)header[i+2] == 0 && (uint8_t)header[i+3] == 1 &&
++            (((uint8_t)header[i+4]) & 0x7e) == 0x40) {
++            vps_start = i;
++            VLOG(INFO,"hack_sps vps_start=%d\n", vps_start);
++            //break;
++        }
++        if ((uint8_t)header[i+0] == 0 && (uint8_t)header[i+1] == 0 && (uint8_t)header[i+2] == 0 && (uint8_t)header[i+3] == 1 &&
++            (((uint8_t)header[i+4]) & 0x7e) == 0x42) {
++            sps_start = i;
++            VLOG(INFO,"hack_sps pps_start=%d\n", sps_start);
++        }
++        if ((uint8_t)header[i+0] == 0 && (uint8_t)header[i+1] == 0 && (uint8_t)header[i+2] == 0 && (uint8_t)header[i+3] == 1 &&
++        (((uint8_t)header[i+4]) & 0x7e) == 0x44) {
++            pps_start = i;
++            VLOG(INFO,"hack_sps pps_start=%d\n", pps_start);
++            break;
++        }
++    }
++
++    vps_nalu_size = sps_start;
++    sps_nalu_size = pps_start - sps_start;
++    pps_nalu_size = *dataLength - pps_start;
++    VLOG(INFO,"hack_sps old vps_nalu_size=%d,sps_nalu_size=%d,pps_nalu_size=%d",vps_nalu_size, sps_nalu_size, pps_nalu_size);
++
++    memcpy(vps_nalu, header, vps_nalu_size);
++    memcpy(sps_nalu, header + sps_start, sps_nalu_size);
++    memcpy(pps_nalu, header + pps_start, pps_nalu_size);
++#if 0
++    char tmp[1024] = {0};
++    char tmp1[128] = {0};
++    for (int i = 0;i < *dataLength;i++) {
++        sprintf(tmp1," %x",header[i]);
++        strcat(tmp,tmp1);
++    }
++    VLOG(ERR,"old header data:%s",tmp);
++#endif
++    sps_nalu_size = EBSPtoRBSP(sps_nalu,H265_HEADER_LEN,sps_nalu_size);
++
++    pstream_handle = h265bitstream_init();
++    bs_init(&bs, sps_nalu + H265_HEADER_LEN, sps_nalu_size - H265_HEADER_LEN);
++    read_debug_seq_parameter_set_rbsp(pstream_handle, &bs);
++    read_debug_rbsp_trailing_bits(pstream_handle,&bs);
++/*
++    pstream_handle->sps->vui_parameters_present_flag = handle->vui_info.vui_parameters_present_flag;
++    pstream_handle->vui->video_full_range_flag = handle->vui_info.video_full_range_flag;
++    if (pstream_handle->sps->vui_parameters_present_flag) {
++        pstream_handle->vui->video_signal_type_present_flag = 1;//handle->video_signal_type_present_flag;
++    }
++    if (handle->vui_info.colour_primaries && handle->vui_info.transfer_characteristics && handle->vui_info.matrix_coefficients) {
++        pstream_handle->vui->colour_description_present_flag = 1;//handle->colour_description_present_flag;
++        pstream_handle->vui->colour_primaries = handle->vui_info.colour_primaries;
++        pstream_handle->vui->transfer_characteristics = handle->vui_info.transfer_characteristics;
++        pstream_handle->vui->matrix_coeffs = handle->vui_info.matrix_coefficients;
++    }
++    VLOG(INFO,"old header sps.vui_parameters_present_flag:%d, range =%d,primaries = %d,transfer:%d,matrix:%d", pstream_handle->sps->vui_parameters_present_flag,pstream_handle->vui->video_full_range_flag,pstream_handle->vui->colour_primaries,pstream_handle->vui->transfer_characteristics,pstream_handle->vui->matrix_coeffs);
++    */
++
++    pstream_handle->sps->conformance_window_flag = codec_handle->mEncParams.crop_enable;//1;
++    if (pstream_handle->sps->conformance_window_flag) {
++        pstream_handle->sps->conf_win_top_offse = codec_handle->mEncParams.crop_top / 2;
++        pstream_handle->sps->conf_win_left_offset = codec_handle->mEncParams.crop_left / 2;
++        pstream_handle->sps->conf_win_right_offset = (codec_handle->mEncParams.width - codec_handle->mEncParams.crop_right) / 2;//0;//(256 - 176)/2;
++        pstream_handle->sps->conf_win_bottom_offset = (codec_handle->mEncParams.height - codec_handle->mEncParams.crop_bottom) / 2;
++        VLOG(INFO,"crop top:%d,left:%d,right:%d,bottom:%d,enable:%d",pstream_handle->sps->conf_win_top_offse,
++                                                                    pstream_handle->sps->conf_win_left_offset,
++                                                                    pstream_handle->sps->conf_win_right_offset,
++                                                                    pstream_handle->sps->conf_win_bottom_offset,
++                                                                    pstream_handle->sps->conformance_window_flag);
++    }
++
++    memset(sps_nalu + H265_HEADER_LEN, 0, *dataLength - H265_HEADER_LEN);
++
++    bs_init(&bs, sps_nalu + H265_HEADER_LEN, *dataLength - H265_HEADER_LEN);
++    write_debug_seq_parameter_set_rbsp(pstream_handle, &bs);
++    write_debug_rbsp_trailing_bits(&bs);
++    new_sps_size = bs.p - bs.start + H265_HEADER_LEN;
++
++    memset(header, 0, vps_nalu_size + new_sps_size + pps_nalu_size);
++
++    memcpy(header,vps_nalu, vps_nalu_size);
++
++    new_sps_size = RBSPtoEBSP(sps_nalu,H265_HEADER_LEN,new_sps_size,0);
++    memcpy(header + vps_nalu_size,sps_nalu,new_sps_size);
++    memcpy(header + new_sps_size + vps_nalu_size, pps_nalu, pps_nalu_size);
++    *dataLength = new_sps_size + pps_nalu_size + vps_nalu_size;
++#if 0
++    memset(tmp,0,sizeof(tmp));
++    memset(tmp1,0,sizeof(tmp1));
++    for (int i = 0;i < *dataLength;i++) {
++        sprintf(tmp1," %x",header[i]);
++        strcat(tmp,tmp1);
++    }
++    VLOG(ERR,"new header:%s",tmp);
++#endif
++    if (vps_nalu)
++        free(vps_nalu);
++    if (sps_nalu)
++        free(sps_nalu);
++    if (pps_nalu)
++        free(pps_nalu);
++    h265_free(pstream_handle);
++}
++
++
++
+ encoding_metadata_hevc_t vl_video_encoder_generate_header(vl_codec_handle_hevc_t codec_handle,
+                                                                    unsigned char *pHeader,
+                                                                    unsigned int *pLength) {
+@@ -257,6 +401,7 @@ encoding_metadata_hevc_t vl_video_encoder_generate_header(vl_codec_handle_hevc_t
+    if (!handle->mSpsPpsHeaderReceived) {
+         ret = AML_HEVCEncHeader(handle->am_enc_handle, (unsigned char *)pHeader, (unsigned int *)pLength);
+         if (ret == AMVENC_SUCCESS) {
++            vl_encoder_adjust_h265_header(codec_handle, (char *)pHeader,(int *)pLength);
+             handle->mSPSPPSDataSize = 0;
+             handle->mSPSPPSData = (char *)malloc(*pLength);
+             if (handle->mSPSPPSData) {
+@@ -316,6 +461,7 @@ encoding_metadata_hevc_t vl_video_encoder_encode_hevc(vl_codec_handle_hevc_t cod
+     if (!handle->mSpsPpsHeaderReceived) {
+         ret = AML_HEVCEncHeader(handle->am_enc_handle, (unsigned char *)out, (unsigned int *)&dataLength);
+         if (ret == AMVENC_SUCCESS) {
++            vl_encoder_adjust_h265_header(codec_handle, (char *)out,(int *)&dataLength);
+             handle->mSPSPPSDataSize = 0;
+             handle->mSPSPPSData = (char *)malloc(dataLength);
+             if (handle->mSPSPPSData) {
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vp_hevc_codec_1_0.h b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vp_hevc_codec_1_0.h
+index cf2f790..528ed73 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vp_hevc_codec_1_0.h
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vp_hevc_codec_1_0.h
+@@ -78,6 +78,13 @@ typedef enum {
+         bit field value: 1 enable, 0: disable (default)*/
+ #define ENABLE_LONG_TERM_REF    0x80
+ 
++typedef struct crop_info {
++    int left;
++    int top;
++    int right;
++    int bottom;
++}crop_info_t;
++
+ /* encoder info*/
+ typedef struct vl_encode_info_hevc {
+   int width;
+@@ -108,6 +115,8 @@ typedef struct vl_encode_info_hevc {
+   int transfer; /*color transfer charicstics*/
+   int matrix; /* color space matrix coefficients*/
+   bool range; /*color range flag, 0:full, 1:limitedd*/
++  bool crop_enable;
++  crop_info_t crop;
+ } vl_encode_info_hevc_t;
+ 
+ /* dma buffer info*/
+-- 
+2.25.1
+
