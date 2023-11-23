@@ -1,0 +1,42 @@
+From 189c6cb07720c97da2c504ee4bf2257f18f5b26e Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Thu, 14 Sep 2023 15:37:17 +0800
+Subject: [PATCH] amlbian: only jammy support chromium [1/1]
+
+PD#SWPL-125583
+
+Problem:
+source only support jammy release.
+
+Solution:
+only jammy type support chromium.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: I9b9cadfa507017a63e297707aa6c047276114de2
+---
+ config/functions/build-base-rootfs | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/config/functions/build-base-rootfs b/config/functions/build-base-rootfs
+index 7a57e7a..fe5cad5 100755
+--- a/config/functions/build-base-rootfs
++++ b/config/functions/build-base-rootfs
+@@ -366,8 +366,10 @@ build_base_rootfs()
+ 	eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get -y \
+ 		$apt_extra $apt_extra_progress --no-install-recommends install $PACKAGE_LIST_CHROMIUM"'
+ 
+-	info_msg "add chromium-browser ppa source"
+-	eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo | add-apt-repository ppa:saiarcot895/chromium-beta"'
++    	if [[ "$DISTRIB_TYPE" != "minimal" ]]; then
++	    info_msg "add chromium-browser ppa source"
++	    eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo | add-apt-repository ppa:saiarcot895/chromium-beta"'
++    	fi
+ 
+     # stage: install additional packages
+ 	info_msg "Installing packages"
+-- 
+2.25.1
+
