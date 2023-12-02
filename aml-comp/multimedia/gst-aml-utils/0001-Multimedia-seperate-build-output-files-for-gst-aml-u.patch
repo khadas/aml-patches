@@ -1,0 +1,401 @@
+From 8d2826d67206152e8dd928e7e50d4a89b3ec8ae2 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Fri, 10 Nov 2023 14:21:16 +0800
+Subject: [PATCH 1/9] Multimedia: seperate build output files for gst aml utils
+ [2/2]
+
+PD#SWPL-145541
+
+Problem:
+build output file *.o/*.so/bin is in the same file as the source code
+it cause git error
+
+Solution:
+change the makefile and bb, set build output file to build/temp/work...
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I9bf7fd95ebf21bcb987d2ec2273e5c706ed1c3ab
+---
+ detect-library/Makefile            | 44 ++++++++++++++++++------------
+ dma-allocator/Makefile             | 36 ++++++++++++++++--------
+ dma-allocator/dma_log.c            |  6 ++--
+ gst-aml-dma-allocator/Makefile     | 37 +++++++++++++++++--------
+ gst-aml-gfx2d/Makefile             | 36 ++++++++++++++++--------
+ gst-jpeg-swdec/Makefile            | 31 +++++++++++++++------
+ gst-plugin-conv/src/Makefile.am    |  5 ++--
+ gst-plugin-nn/src/Makefile.am      |  4 +--
+ gst-plugin-overlay/src/Makefile.am |  5 ++--
+ 9 files changed, 131 insertions(+), 73 deletions(-)
+
+diff --git a/detect-library/Makefile b/detect-library/Makefile
+index 428c1a9..0f83a51 100644
+--- a/detect-library/Makefile
++++ b/detect-library/Makefile
+@@ -1,37 +1,45 @@
+-OBJ = *.c *.cpp
+-
+ TARGET = libdetect-library.so
++OUT_DIR ?= .
++
++SRCS=$(wildcard *.cpp *.cc *.c)
+ 
+ all: $(TARGET)
+ 
+ CXXFLAGS+=-std=c++14 -Wall -Wextra -fPIC -Os
+ CFLAGS = -Wall -Wextra -fPIC -Os
+-LDFLAGS +=  -L$(STAGING_DIR)/usr/lib/ -Wall -Wextra -fPIC -Os -lstdc++ -lm -lpthread -lnnsdk
+-
+-LDFLAGS +=  -L/lib/lib64
++LDFLAGS +=  -Llib/lib64
++LDFLAGS +=  -L$(STAGING_DIR)/usr/lib/ -Wall -Wextra -fPIC -Os -lstdc++ -lm -lpthread -lnnsdk -lnndemo
+ 
+ CFLAGS += \
+ 	-I inc/ \
+ 	-I$(STAGING_DIR)/usr/include/
+ 
+-$(info "the value of CFLAGS is$(CFLAGS)")
+-$(info "the value of LDFLAGS is$(LDFLAGS)")
+-$(info "the value of STAGING_DIR is$(STAGING_DIR)")
+-$(info "the value of TARGET_DIR is$(TARGET_DIR)")
++LDFLAGS += -L$(STAGING_DIR)/usr/lib/ \
++			-L$(OUT_DIR)/$(OBJDIR)
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CXXFLAGS : $(CXXFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
++
++$(TARGET): $(SRCS)
++	@echo " [TARGET] $(TARGET)"
++	@echo " [SRCS] $(SRCS)"
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall $(SRCS) $(LDFLAGS) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+-$(TARGET): $(OBJ)
+-	$(CXX) $(TARGET_CFLAGS) $(CFLAGS) $(CXXFLAGS)  -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET) $(TEST)
++	rm -f *.o $(OUT_DIR)/$(TARGET) $(OUT_DIR)/$(TEST)
+ 
+ install:
+-	cp inc/*.h $(STAGING_DIR)/usr/include/
+-	cp $(TARGET) $(TARGET_DIR)/usr/lib/
+-	rm $(TARGET)
+-	cp lib/lib64/*.so $(TARGET_DIR)/usr/lib/
+-	cp -rf nn_data/ $(TARGET_DIR)/etc/
+-
++	install -m 644 inc/*.h $(STAGING_DIR)/usr/include
++	install -m 644 lib/lib64/*.so $(TARGET_DIR)/usr/lib
++	install -m 644 nn_data/ $(TARGET_DIR)/etc
++	install -m 644 $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/lib
+ 
+diff --git a/dma-allocator/Makefile b/dma-allocator/Makefile
+index caa7cdd..a324037 100644
+--- a/dma-allocator/Makefile
++++ b/dma-allocator/Makefile
+@@ -1,30 +1,42 @@
+-OBJ = *.c
+-
+ TARGET = libdma-allocator.so
++OUT_DIR ?= .
++
++SRCS=$(wildcard *.cpp *.cc *.c)
+ 
+ all: $(TARGET)
+ 
+-CFLAGS = $(GST_CFLAGS) -Wall -Wextra -fPIC -Os
++CFLAGS = -Wall -Werror -Wextra -fPIC -Os
+ CFLAGS += $(shell $(PKG_CONFIG) --cflags )
+-LDFLAGS += $(shell $(PKG_CONFIG) --libs -Os )
++LDFLAGS += -Wall -Wextra -fPIC -Os $(shell $(PKG_CONFIG) --libs )
+ 
+-LDFLAGS += -L$(STAGING_DIR)/usr/lib/
+ CFLAGS += \
+ 	-I inc/ \
+ 	-I$(STAGING_DIR)/usr/include/
+ 
+-$(info "the value of STAGING_DIR is$(STAGING_DIR)")
++LDFLAGS += -L$(STAGING_DIR)/usr/lib/ \
++			-L$(OUT_DIR)/$(OBJDIR)
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CXXFLAGS : $(CXXFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
++
++$(TARGET): $(SRCS)
++	@echo " [TARGET] $(TARGET)"
++	@echo " [SRCS] $(SRCS)"
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall $(SRCS) $(LDFLAGS) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+-$(TARGET): $(OBJ)
+-	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET) $(TEST)
++	rm -f *.o $(OUT_DIR)/$(TARGET) $(OUT_DIR)/$(TEST)
+ 
+ install:
+-	cp inc/*.h $(STAGING_DIR)/usr/include/
+-	cp $(TARGET) $(TARGET_DIR)/usr/lib/
+-	rm $(TARGET)
++	install -m 644 inc/*.h $(STAGING_DIR)/usr/include
++	install -m 644 $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/lib
+ 
+diff --git a/dma-allocator/dma_log.c b/dma-allocator/dma_log.c
+index 9afe159..6924a0c 100644
+--- a/dma-allocator/dma_log.c
++++ b/dma-allocator/dma_log.c
+@@ -59,9 +59,9 @@ void dma_LogMsg(dma_debug_level_t level, const char *fmt, ...)
+     char arg_buffer[DEBUG_BUFFER_LEN] = {0};
+     va_list arg;
+ 
+-    // if (_check_log_level(level) == 0) {
+-    //     return ;
+-    // }
++    if (_check_log_level(level) == 0) {
++        return ;
++    }
+ 
+     va_start(arg, fmt);
+     vsnprintf(arg_buffer, DEBUG_BUFFER_LEN, fmt, arg);
+diff --git a/gst-aml-dma-allocator/Makefile b/gst-aml-dma-allocator/Makefile
+index 259efa2..35cf1db 100644
+--- a/gst-aml-dma-allocator/Makefile
++++ b/gst-aml-dma-allocator/Makefile
+@@ -1,29 +1,44 @@
+-OBJ = *.c
+-
+ TARGET = libgst-aml-dma-allocator.so
++OUT_DIR ?= .
++
++SRCS=$(wildcard *.cpp *.cc *.c)
+ 
+ all: $(TARGET)
+ 
+-CFLAGS = $(GST_CFLAGS) -Wall -Wextra -fPIC -Os
++CFLAGS = $(GST_CFLAGS) -Wall -Werror -Wextra -fPIC -Os
+ CFLAGS += $(shell $(PKG_CONFIG) --cflags gstreamer-1.0 gstreamer-base-1.0 gstreamer-allocators-1.0 gstreamer-video-1.0)
++
++LDFLAGS += -Wall -Wextra -fPIC -Os
++LDFLAGS += -ldma-allocator
++
+ CFLAGS += \
+ 	-I inc/ \
+ 	-I$(STAGING_DIR)/usr/include/
+ 
+-LDFLAGS = $(GST_PLUGIN_LDFLAGS) $(shell $(PKG_CONFIG) --libs -Os gstreamer-1.0 gstreamer-base-1.0 gstreamer-allocators-1.0 gstreamer-video-1.0)
+-LDFLAGS += -L$(STAGING_DIR)/usr/lib/ -ldma-allocator
++LDFLAGS += -L$(STAGING_DIR)/usr/lib/ \
++           -L$(OUT_DIR)/$(OBJDIR) \
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CXXFLAGS : $(CXXFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
+ 
++$(TARGET): $(SRCS)
++	@echo " [TARGET] $(TARGET)"
++	@echo " [SRCS] $(SRCS)"
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall $(SRCS) $(LDFLAGS) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+-$(TARGET): $(OBJ)
+-	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET) $(TEST)
++	rm -f *.o $(OUT_DIR)/$(TARGET) $(OUT_DIR)/$(TEST)
+ 
+ install:
+-	cp inc/*.h $(STAGING_DIR)/usr/include/
+-	cp $(TARGET) $(TARGET_DIR)/usr/lib/
+-	rm $(TARGET)
++	install -m 644 inc/*.h $(STAGING_DIR)/usr/include
++	install -m 644 $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/lib
+ 
+diff --git a/gst-aml-gfx2d/Makefile b/gst-aml-gfx2d/Makefile
+index f0578ad..e1557eb 100644
+--- a/gst-aml-gfx2d/Makefile
++++ b/gst-aml-gfx2d/Makefile
+@@ -1,30 +1,44 @@
+-OBJ = *.c
+-
+ TARGET = libgst-aml-gfx2d.so
++OUT_DIR ?= .
++
++SRCS=$(wildcard *.cpp *.cc *.c)
+ 
+ all: $(TARGET)
+ 
+ CFLAGS = $(GST_CFLAGS) -Wall -Wextra -fPIC -Os
+ CFLAGS += $(shell $(PKG_CONFIG) --cflags gstreamer-1.0 gstreamer-base-1.0 gstreamer-allocators-1.0 gstreamer-video-1.0)
+-LDFLAGS += $(shell $(PKG_CONFIG) --libs -Os gstreamer-1.0 gstreamer-base-1.0 gstreamer-allocators-1.0 gstreamer-video-1.0)
++LDFLAGS += -Wall -Wextra -fPIC -Os $(shell $(PKG_CONFIG) --libs gstreamer-1.0 gstreamer-base-1.0 gstreamer-allocators-1.0 gstreamer-video-1.0)
++
++LDFLAGS += -lge2d
+ 
+-LDFLAGS += -L$(STAGING_DIR)/usr/lib/ -lge2d
+ CFLAGS += \
+ 	-I inc/ \
+ 	-I$(STAGING_DIR)/usr/include/
+ 
+-$(info "the value of STAGING_DIR is$(STAGING_DIR)")
++LDFLAGS += -L$(STAGING_DIR)/usr/lib/ \
++			-L$(OUT_DIR)/$(OBJDIR)
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CXXFLAGS : $(CXXFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
++
++$(TARGET): $(SRCS)
++	@echo " [TARGET] $(TARGET)"
++	@echo " [SRCS] $(SRCS)"
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall $(SRCS) $(LDFLAGS) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+-$(TARGET): $(OBJ)
+-	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET) $(TEST)
++	rm -f *.o $(OUT_DIR)/$(TARGET) $(OUT_DIR)/$(TEST)
+ 
+ install:
+-	cp inc/*.h $(STAGING_DIR)/usr/include/
+-	cp $(TARGET) $(TARGET_DIR)/usr/lib/
+-	rm $(TARGET)
++	install -m 644 inc/*.h $(STAGING_DIR)/usr/include
++	install -m 644 $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/lib
+ 
+diff --git a/gst-jpeg-swdec/Makefile b/gst-jpeg-swdec/Makefile
+index 9d19e30..db756cc 100644
+--- a/gst-jpeg-swdec/Makefile
++++ b/gst-jpeg-swdec/Makefile
+@@ -1,28 +1,41 @@
+-OBJ = *.c
+-
+ TARGET = libgst-jpeg-swdec.so
++OUT_DIR ?= .
+ 
++SRCS=$(wildcard *.cpp *.cc *.c)
+ all: $(TARGET)
+ 
+ CFLAGS = -Wall -Wextra -fPIC -Os
+-LDFLAGS = $(GST_PLUGIN_LDFLAGS) -Os -lm -lpthread -ljpeg
++LDFLAGS = $(GST_PLUGIN_LDFLAGS) -Wall -Wextra -fPIC -Os -lm -lpthread -ljpeg
+ 
+ CFLAGS += \
+ 	-I inc/ \
+ 	-I$(STAGING_DIR)/usr/include/
+ 
++LDFLAGS += -L$(STAGING_DIR)/usr/lib/ \
++			-L$(OUT_DIR)/$(OBJDIR)
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CXXFLAGS : $(CXXFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
++
++$(TARGET): $(SRCS)
++	@echo " [TARGET] $(TARGET)"
++	@echo " [SRCS] $(SRCS)"
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall $(SRCS) $(LDFLAGS) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+-$(TARGET): $(OBJ)
+-	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET) $(TEST)
++	rm -f *.o $(OUT_DIR)/$(TARGET) $(OUT_DIR)/$(TEST)
+ 
+ install:
+-	cp inc/*.h $(STAGING_DIR)/usr/include/
+-	cp $(TARGET) $(TARGET_DIR)/usr/lib/
+-	rm $(TARGET)
++	install -m 644 inc/*.h $(STAGING_DIR)/usr/include
++	install -m 644 $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/lib
+ 
+ 
+diff --git a/gst-plugin-conv/src/Makefile.am b/gst-plugin-conv/src/Makefile.am
+index 2cc706a..3bc48e4 100644
+--- a/gst-plugin-conv/src/Makefile.am
++++ b/gst-plugin-conv/src/Makefile.am
+@@ -12,9 +12,8 @@ libgstamlvconv_la_CFLAGS = $(GST_CFLAGS) \
+ 
+ 
+ libgstamlvconv_la_LIBADD = $(GST_LIBS) \
+-		    	     		-lgst-aml-dma-allocator \
+-		    	     		-lgst-aml-gfx2d \
+-		    	     		-lge2d
++    	     		-lgst-aml-dma-allocator \
++    	     		-lgst-aml-gfx2d
+ 
+ libgstamlvconv_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) -Os
+ libgstamlvconv_la_LIBTOOLFLAGS = --tag=disable-static
+diff --git a/gst-plugin-nn/src/Makefile.am b/gst-plugin-nn/src/Makefile.am
+index 0706cf1..1057896 100644
+--- a/gst-plugin-nn/src/Makefile.am
++++ b/gst-plugin-nn/src/Makefile.am
+@@ -16,9 +16,7 @@ libgstamlnn_la_LIBADD = $(GST_LIBS) \
+ 			-lgst-aml-dma-allocator \
+ 			-lgst-aml-gfx2d \
+ 			-ldetect-library \
+-			-lge2d \
+-			-lnnsdk \
+-			-lnndemo
++			-lnnsdk
+ 
+ libgstamlnn_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) -Wl,--as-needed -Os
+ libgstamlnn_la_LIBTOOLFLAGS = --tag=disable-static
+diff --git a/gst-plugin-overlay/src/Makefile.am b/gst-plugin-overlay/src/Makefile.am
+index 49013be..8992a89 100644
+--- a/gst-plugin-overlay/src/Makefile.am
++++ b/gst-plugin-overlay/src/Makefile.am
+@@ -13,9 +13,8 @@ libgstamloverlay_la_CFLAGS = $(GST_CFLAGS) \
+ 			     			-I$(STAGING_DIR)/usr/include/
+ 
+ libgstamloverlay_la_LIBADD = $(GST_LIBS) \
+- 		    	     		-lgst-aml-dma-allocator \
+- 		    	     		-lgst-aml-gfx2d \
+- 		    	     		-lge2d
++    	     		-lgst-aml-dma-allocator \
++    	     		-lgst-aml-gfx2d
+ 
+ libgstamloverlay_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) -Os
+ libgstamloverlay_la_LIBTOOLFLAGS = --tag=disable-static
+-- 
+2.25.1
+

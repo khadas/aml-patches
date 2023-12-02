@@ -1,0 +1,43 @@
+From 723689f15514d06e8f1b5d25237d59795d9547d5 Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Fri, 24 Nov 2023 14:18:29 +0800
+Subject: [PATCH 05/13] amlbian: Compilation failed without cache [1/1]
+
+PD#SWPL-147153
+
+Problem:
+Compilation failed without cache
+
+Solution:
+set no_proxy and http_proxy
+
+Verify:
+debian
+
+Change-Id: Icdd6aab222109a85953d3a25c38ebb14a7888469
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+---
+ env/docker-run-debian.sh | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/env/docker-run-debian.sh b/env/docker-run-debian.sh
+index 24bc412..55bfb36 100755
+--- a/env/docker-run-debian.sh
++++ b/env/docker-run-debian.sh
+@@ -33,8 +33,12 @@ DOCKER_RUN="docker run -it --name $CONTAINER_NAME \
+     --device=/dev/loop0:/dev/loop0 --cap-add SYS_ADMIN \
+     "
+ 
+-DOCKER_RUN+="amlbian_jammy:1.0"
++if [ -n "${https_proxy}" ]; then
++    DOCKER_RUN+="-e http_proxy=http://${https_proxy} -e https_proxy=http://${https_proxy} \
++                 -e no_proxy="localhost,127.0.0.1,security.ubuntu.com,archive.ubuntu.com" "
++fi
+ 
++DOCKER_RUN+="amlbian_jammy:1.0"
+ 
+ 
+ ## Display parameters
+-- 
+2.25.1
+

@@ -1,0 +1,42 @@
+From 277da641daf3c95bc7991ea96ebd0083fd00fcf1 Mon Sep 17 00:00:00 2001
+From: "dongyang.zhang" <dongyang.zhang@amlogic.com>
+Date: Tue, 14 Nov 2023 07:42:56 +0000
+Subject: [PATCH 10/14] audio: add HDMITX_Src_Select in json. [1/1]
+
+PD#SH-16531
+
+Problem:
+In order to configure tx src.
+
+Solution:
+add HDMITX_Src_Select.
+
+Verify:
+test
+
+Change-Id: I8bb237ea745c6cdb4a828bd97ee5c0cabb3689fc
+Signed-off-by: dongyang.zhang <dongyang.zhang@amlogic.com>
+---
+ .../aml-audio-hal/files/aml_audio_config.tv.json               | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json b/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
+index 53f63d9c..5f4a5cf8 100644
+--- a/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
++++ b/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
+@@ -1,10 +1,11 @@
+ {
+ 	"TV_Platform": 1,
+ 	"STB_Platform": 0,
+-	"Dual_Spdif_Support": 1,
++	"Dual_Spdif_Support": 0,
+ 	"Ms12_Force_Ddp_Out": 0,
+ 	"Dtv_Audio_Skipamadec": 0,
+ 	"Dtv_Audio_Syncenable": 1,
++	"HDMITX_Src_Select": 4,
+ 	"Codec_Support_List":[
+ 		{"Name": "PCM", "Format": "AUDIO_FORMAT_PCM", "Support": true, "Description": "pcm", "License":false},
+ 		{"Name": "MP3", "Format": "AUDIO_FORMAT_MP3", "Support": true, "Description": "MPEG-1/2 Layer1/Layer2/Layer3", "License":false},
+-- 
+2.25.1
+

@@ -1,0 +1,53 @@
+From d7d1a3b071c93fb86d0ff7e7482f949ee5d28199 Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Tue, 21 Nov 2023 19:50:22 +0800
+Subject: [PATCH 4/5] bootargs: adjust size of CONFIG_SYS_CBSIZE [1/1]
+
+PD#SWPL-146644
+
+Problem:
+initargs is too long, it may cause the bootargs parameter to be truncated
+
+Solution:
+adjust size of CONFIG_SYS_CBSIZE
+
+Verify:
+t7 sc2
+
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+Change-Id: I996083f9e9c19802c3e7b1444c94f33902b39730
+---
+ board/amlogic/configs/s4_ap222_debian.h  | 4 ++++
+ board/amlogic/configs/sc2_ah212_debian.h | 3 +++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/board/amlogic/configs/s4_ap222_debian.h b/board/amlogic/configs/s4_ap222_debian.h
+index 6e6a8b430a1..034667e225d 100644
+--- a/board/amlogic/configs/s4_ap222_debian.h
++++ b/board/amlogic/configs/s4_ap222_debian.h
+@@ -455,5 +455,9 @@ defined(CONFIG_STORE_COMPATIBLE)
+ 
+ #define BL32_SHARE_MEM_SIZE  0x800000
+ #define CONFIG_AML_KASLR_SEED
++
++#undef CONFIG_SYS_CBSIZE
++#define CONFIG_SYS_CBSIZE 1024
++
+ #endif
+ 
+diff --git a/board/amlogic/configs/sc2_ah212_debian.h b/board/amlogic/configs/sc2_ah212_debian.h
+index 2e7e1f20ffd..2a0cefb7f77 100644
+--- a/board/amlogic/configs/sc2_ah212_debian.h
++++ b/board/amlogic/configs/sc2_ah212_debian.h
+@@ -451,5 +451,8 @@ defined(CONFIG_STORE_COMPATIBLE)
+ #define BL32_SHARE_MEM_SIZE  0x800000
+ #define CONFIG_AML_KASLR_SEED
+ 
++#undef CONFIG_SYS_CBSIZE
++#define CONFIG_SYS_CBSIZE 1024
++
+ #endif
+ 
+-- 
+2.25.1
+

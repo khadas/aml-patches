@@ -1,0 +1,419 @@
+From 28c3a2df1e95e24719429f2f02ed470a80de8781 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Fri, 10 Nov 2023 15:26:41 +0800
+Subject: [PATCH 1/3] Multimedia: seperate build output files for mediactrlsrc
+ [2/2]
+
+PD#SWPL-145539
+
+Problem:
+build output file *.o/*.so/bin is in the same file as the source code
+it cause git error
+
+Solution:
+change the makefile and bb, set build output file to build/temp/work...
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I825a208e0fb7b7fd088a409f06bec857e37d8ce7
+---
+ Makefile                     |  2 ++
+ amlv4l2src/amlv4l2src.c      | 66 +++++++++++++++++++++---------------
+ amlv4l2src/camsrc/camsrc.c   | 11 ++++--
+ amlv4l2src/hdmisrc/Makefile  |  1 -
+ amlv4l2src/hdmisrc/hdmisrc.c |  3 +-
+ camctrl/Makefile             | 20 ++++++++---
+ camctrl/camctrl.cc           | 11 ++++--
+ hdmictrl/Makefile            |  1 -
+ hdmictrl/hdmictrl.c          |  2 ++
+ makefile.inc                 | 35 ++++++++++++-------
+ 10 files changed, 99 insertions(+), 53 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index d3d513c..819b433 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,6 +1,8 @@
+ ENABLE_MEDIACTRL_CAM = $(AMLSRC_MEDIACTRL_CAM)
+ ENABLE_MEDIACTRL_HDMI = $(AMLSRC_MEDIACTRL_HDMI)
+ 
++OUT_DIR ?= .
++
+ SUB_DIRS := \
+ 			$(CURDIR)/amlv4l2src \
+ 			$(CURDIR)/amlv4l2src/amlsrc \
+diff --git a/amlv4l2src/amlv4l2src.c b/amlv4l2src/amlv4l2src.c
+index 6b25057..5ba2644 100644
+--- a/amlv4l2src/amlv4l2src.c
++++ b/amlv4l2src/amlv4l2src.c
+@@ -268,7 +268,7 @@ int aml_v4l2src_connect(char** devname) {
+ 
+   int ret = 0;
+   struct v4l2_capability cap;
+-  printf("devname : %s\n", *devname);
++  printf("[API:%s:%d]Enter, devname : %s\n", __func__, __LINE__, *devname);
+ 
+   // mipi cam：
+   if (0 == strncmp("/dev/media",(char*)(*devname),10)) {
+@@ -291,17 +291,19 @@ int aml_v4l2src_connect(char** devname) {
+     printf("Error: get video type failed: %s\n", *devname);
+     return -1;
+   }
+-    printf("strcmp cap.driver: %s\n", cap.driver);
++  printf("strcmp cap.driver: %s\n", cap.driver);
+ 
+     // usb cam：
+   if (0 == strcmp("uvcvideo",(char*)(cap.driver))) {
+-        // *dev_type = 0;
+-        return 0;  //as usb
++    printf("[API:%s:%d]Exit, USB camera\n", __func__, __LINE__);
++    // *dev_type = 0;
++    return 0;  //as usb
+   }
+     // mipi cam：
+   if (0 == strcmp("ARM-camera-isp",(char*)(cap.driver))) {
+-        // *dev_type = 1; //as t7 mipi camera
+-        return 1;
++    printf("[API:%s:%d]Exit, ARM-camera-isp\n", __func__, __LINE__);
++    // *dev_type = 1; //as t7 mipi camera
++    return 1;
+   }
+ 
+     // hdmi rx：
+@@ -318,58 +320,66 @@ int aml_v4l2src_connect(char** devname) {
+           amlsrc.initialize(*devname);
+         else
+           printf("Amlsrc no init interf\n");
++
++        printf("[API:%s:%d]Exit, HDMI RX\n", __func__, __LINE__);
+         // aml_v4l2src_streamon();
+         return 3;
+       }
+   }
+     // hdmi tx：
+   if (0 == strcmp("amlvideo2",(char*)(cap.driver))) {
+-      //  *dev_type = 4;
+-       return 4;
++    printf("[API:%s:%d]Exit, HDMI TX\n", __func__, __LINE__);
++    //  *dev_type = 4;
++    return 4;
+   }
+ 
+-    if (0 == strcmp("aml-camera",(char*)(cap.driver))) {
+-        //enum all media node, map to video63
+-        char media_filepath[DEVNAME_SIZE];
+-        int ret = 0;
+-        ret = get_correspond_media_node(*devname, media_filepath);
+-        printf("%s: media_filepath = %s\n", __func__, media_filepath);
+-        if (ret < 0) {
+-            printf("%s: Error get media devnode\n", __func__);
+-            return -1;
+-        }
+-           // *devname = media_filepath;
+-            if (0 == aml_v4l2src_get_method(&amlsrc, "cam")) {
+-            char *vidname = amlsrc.initialize(media_filepath);
+-            printf("%s: finall dev name: %s\n", __func__, *devname);
+-            return 5;
+-        }
+-
++  if (0 == strcmp("aml-camera",(char*)(cap.driver))) {
++      //enum all media node, map to video63
++      char media_filepath[DEVNAME_SIZE];
++      int ret = 0;
++      ret = get_correspond_media_node(*devname, media_filepath);
++      printf("%s: media_filepath = %s\n", __func__, media_filepath);
++      if (ret < 0) {
++        printf("%s: Error get media devnode\n", __func__);
++        return -1;
++      }
++        // *devname = media_filepath;
++        if (0 == aml_v4l2src_get_method(&amlsrc, "cam")) {
++        char *vidname = amlsrc.initialize(media_filepath);
++        printf("[API:%s:%d]Exit, AML ISP, finall dev name: %s\n", __func__, __LINE__, *devname);
++        return 5;
++      }
+   }
+ 
+-    printf("unknown case (devname : %s)\n", *devname);
++  printf("[API:%s:%d]Exit, unknown case (devname : %s)\n", __func__, __LINE__, *devname);
+ 
+-    // *dev_type = -1;
+-    return -1;
++  // *dev_type = -1;
++  return -1;
+ 
+ }
+ 
+ 
+ void aml_v4l2src_disconnect() {
++  printf("[API:%s:%d]Enter\n", __func__, __LINE__);
+   if (amlsrc.finalize)
+     amlsrc.finalize();
+   change_divide_framerate(1);
+   g_change_framerate = false;
++  printf("[API:%s:%d]Exit\n", __func__, __LINE__);
+ }
+ 
+ 
+ void aml_v4l2src_streamon() {
++  printf("[API:%s:%d]Enter\n", __func__, __LINE__);
+   if (amlsrc.start)
+     amlsrc.start();
++  printf("[API:%s:%d]Exit\n", __func__, __LINE__);
+ }
+ 
+ 
+ void aml_v4l2src_streamoff() {
++  printf("[API:%s:%d]Enter\n", __func__, __LINE__);
+   if (amlsrc.stop)
+     amlsrc.stop();
++  printf("[API:%s:%d]Exit\n", __func__, __LINE__);
+ }
+diff --git a/amlv4l2src/camsrc/camsrc.c b/amlv4l2src/camsrc/camsrc.c
+index 3a80cac..b77d272 100644
+--- a/amlv4l2src/camsrc/camsrc.c
++++ b/amlv4l2src/camsrc/camsrc.c
+@@ -55,7 +55,7 @@
+ #include "mediactrl_common.h"
+ #include "mediactrl_log.h"
+ 
+-static char *server_socket = DEFAULT_SERVER_SOCKET0;
++static const char *server_socket = DEFAULT_SERVER_SOCKET0;
+ static int client_sockfd = -1;
+ static char vdevname_buffer[32] = {0};
+ 
+@@ -70,13 +70,13 @@ int cam_src_select_socket(const char *filepath) {
+             current max support dual mipi camera, please debug and ");
+             return -2;
+         }else {
+-            log_debug("select socket1");
+             server_socket = DEFAULT_SERVER_SOCKET1;
++            log_debug("select socket:%s", server_socket);
+             return 0;
+         }
+     } else {
+-        log_debug("select socket0");
+         server_socket = DEFAULT_SERVER_SOCKET0;
++        log_debug("select socket:%s", server_socket);
+         return 0;
+     }
+   } else {
+@@ -100,10 +100,13 @@ cam_src_obtain_devname(const char *filepath) {
+     log_debug("fork error");
+     exit(1);
+   }
++  log_debug("fork ok, pid:%d", pid);
+   if (pid == 0) {
+     prctl(PR_SET_PDEATHSIG, SIGTERM);
+     /* call execl to startup camctrl */
++    log_debug("execl /usr/bin/camctrl");
+     execl("/usr/bin/camctrl", "camctrl", "-m", filepath, "-c", "2", "-s", server_socket, NULL);
++    log_debug("execl /usr/bin/camctrl done");
+   }
+ 
+   while (true) {
+@@ -116,7 +119,9 @@ cam_src_obtain_devname(const char *filepath) {
+   /* temporarily */
+   usleep(200000);
+ 
++  log_debug("udp_sock_create");
+   client_sockfd = udp_sock_create(server_socket);
++  log_debug("udp_sock_recv");
+   udp_sock_recv(
+     client_sockfd,
+     vdevname_buffer,
+diff --git a/amlv4l2src/hdmisrc/Makefile b/amlv4l2src/hdmisrc/Makefile
+index f9a1c4b..51501d6 100644
+--- a/amlv4l2src/hdmisrc/Makefile
++++ b/amlv4l2src/hdmisrc/Makefile
+@@ -1,6 +1,5 @@
+ TARGET = libhdmisrc.so
+ SRCS = hdmisrc.c
+-AMLENC_LIB=$(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(SRCS)))
+ EXTRA_CFLAGS += ""
+ CFLAGS += $(EXTRA_CFLAGS) -I../../include
+ LDFLAGS += -L../
+diff --git a/amlv4l2src/hdmisrc/hdmisrc.c b/amlv4l2src/hdmisrc/hdmisrc.c
+index cd0092a..1b5757e 100644
+--- a/amlv4l2src/hdmisrc/hdmisrc.c
++++ b/amlv4l2src/hdmisrc/hdmisrc.c
+@@ -59,11 +59,12 @@
+ #define MSG_BUFFER_SIZE   30
+ #define MSG_NUM       100
+ 
+-static char *server_socket = hdmictrl_SERVER_SOCKET;
++static const char *server_socket = hdmictrl_SERVER_SOCKET;
+ static int client_sockfd = -1;
+ 
+ static void
+ hdmi_src_obtain_devname(const char *filepath) {
++    (void)filepath;
+     log_debug("enter");
+ 
+     if (!access(server_socket, F_OK)) {
+diff --git a/camctrl/Makefile b/camctrl/Makefile
+index d0da32b..738fa56 100644
+--- a/camctrl/Makefile
++++ b/camctrl/Makefile
+@@ -15,18 +15,28 @@ TARGET = camctrl
+ 
+ all: $(TARGET)
+ 
+-$(TARGET): $(OBJS)
++$(info "LDLIBS : $(LDLIBS)")
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
++
++$(TARGET): $(OUT_DIR)/$(OBJS)
+ 	@echo " [LINK] $@"
+-	@$(CXX) $(LDFLAGS) $+ $(LDLIBS) -o $@
++	@$(CXX) $(LDFLAGS) $+ $(LDLIBS) -o $(OUT_DIR)/$@
+ 
+-$(OBJDIR)/%.o: %.cc
++$(OUT_DIR)/$(OBJDIR)/%.o: %.cc
+ 	@echo " [CC] $<"
+-	@mkdir -p $(OBJDIR)/$(dir $<)
++	@mkdir -p $(OUT_DIR)/$(OBJDIR)
+ 	@$(CC) $(CFLAGS) -o $@ -c $<
+ 
+ .PHONY:clean
+ 
+ clean:
+ 	@echo " [CLEAN] ..."
+-	@rm -rf $(OBJDIR) $(TARGET)
++	@rm -rf $(OUT_DIR)/$(OBJDIR) $(OUT_DIR)/$(TARGET)
+ 
+diff --git a/camctrl/camctrl.cc b/camctrl/camctrl.cc
+index 6623228..7897aa2 100644
+--- a/camctrl/camctrl.cc
++++ b/camctrl/camctrl.cc
+@@ -61,7 +61,7 @@
+ static int connected_sockfd = -1;
+ 
+ static char *media_device_name = NULL;
+-static char *server_socket = DEFAULT_SERVER_SOCKET0;
++static const char *server_socket = DEFAULT_SERVER_SOCKET0;
+ static struct media_device *media_dev = NULL;
+ static int camera_num = 1;
+ 
+@@ -130,6 +130,10 @@ struct thread_param {
+  * set default value
+  */
+ static struct thread_param tparam = {
++  .buffer_isp_stats={0},
++  .buffer_isp_param={0},
++  .sensor_cfg = NULL,
++  .lens_cfg = NULL,
+   .width = 3840,
+   .height = 1920,
+   // .pixformat = V4L2_PIX_FMT_NV12, /* V4L2_PIX_FMT_NV12, V4L2_PIX_FMT_Y12, V4L2_PIX_FMT_SRGGB12 */
+@@ -146,7 +150,9 @@ static struct thread_param tparam = {
+ 
+   .mutex = PTHREAD_MUTEX_INITIALIZER,
+   .cond = PTHREAD_COND_INITIALIZER,
++  .process_socket_tid = 0,
+   .streaming = false,
++  .info = {0},
+ };
+ 
+ /*
+@@ -913,10 +919,11 @@ static void Signalhandler(int sig)
+ }
+ 
+ int main(int argc, char *argv[]) {
+-
+   signal(SIGINT, Signalhandler);
+   signal(SIGTERM, Signalhandler);
+ 
++  log_debug("[%s:%s:%d]\n", __FILE__, __func__, __LINE__);
++
+   parse_opt(argc, argv);
+ 
+   /**
+diff --git a/hdmictrl/Makefile b/hdmictrl/Makefile
+index b0d6b31..ff3b61b 100644
+--- a/hdmictrl/Makefile
++++ b/hdmictrl/Makefile
+@@ -1,6 +1,5 @@
+ TARGET = hdmictrl
+ SRCS = hdmictrl.c
+-AMLENC_LIB=$(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(SRCS)))
+ EXTRA_CFLAGS += ""
+ CFLAGS = -I../include
+ CFLAGS += $(EXTRA_CFLAGS) -Wno-stringop-truncation
+diff --git a/hdmictrl/hdmictrl.c b/hdmictrl/hdmictrl.c
+index af7504e..bf7128c 100644
+--- a/hdmictrl/hdmictrl.c
++++ b/hdmictrl/hdmictrl.c
+@@ -296,6 +296,8 @@ static void Signalhandler(int sig)
+ 
+ int main(int argc, char **argv)
+ {
++    (void)argc;
++    (void)argv;
+     signal(SIGINT, SIG_IGN); // Ignore the SIGINT signal
+     signal(SIGTERM, Signalhandler);
+ 
+diff --git a/makefile.inc b/makefile.inc
+index a548de3..b8f0d20 100644
+--- a/makefile.inc
++++ b/makefile.inc
+@@ -1,24 +1,35 @@
+-CFLAGS += -Wall -Werror -Werror=jump-misses-init -fPIC -O2
++CFLAGS += -Wall -Werror=jump-misses-init -fPIC -Os
++LDFLAGS += -Wall -Wextra -fPIC -Os
+ 
+-OBJDIR = objs
+ 
+-OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
++CFLAGS += \
++	-I$(STAGING_DIR)/usr/include/
++
++LDFLAGS += -L$(STAGING_DIR)/usr/lib/ \
++			-L$(OUT_DIR) \
++			$(LDLIBS)
++
+ 
+ all: $(TARGET)
+ 
+-$(TARGET): $(OBJS)
+-	@echo " [OBJS] $(OBJS)"
+-	@echo " [LINK] $@"
+-	@$(CC) $(LDFLAGS) $+ $(LDLIBS) -o $@
++$(info "LDLIBS : $(LDLIBS)")
++
++$(info "TARGET_CFLAGS : $(TARGET_CFLAGS)")
++$(info "CFLAGS : $(CFLAGS)")
++$(info "LDFLAGS : $(LDFLAGS)")
++$(info "OUT_DIR : $(OUT_DIR)")
++$(info "STAGING_DIR : $(STAGING_DIR)")
++$(info "TARGET_DIR : $(TARGET_DIR)")
++
++$(TARGET): $(SRCS)
++	@echo " [TARGET] $(TARGET)"
++	@echo " [SRCS] $(SRCS)"
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall $(SRCS) $(LDFLAGS) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+-$(OBJDIR)/%.o: %.c
+-	@echo " [CC] $<"
+-	@mkdir -p $(OBJDIR)/$(dir $<)
+-	@$(CC) $(CFLAGS) -o $@ -c $<
+ 
+ .PHONY:clean
+ 
+ clean:
+ 	@echo " [CLEAN] ..."
+-	@rm -rf $(OBJDIR) $(TARGET)
++	@rm -rf $(OUT_DIR) $(OUT_DIR)/$(TARGET)
+ 
+-- 
+2.25.1
+

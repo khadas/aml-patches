@@ -1,0 +1,136 @@
+From 0b3e990d84a35f3bdb6b4ad45920233a7ef52953 Mon Sep 17 00:00:00 2001
+From: "xiaoya.lin" <xiaoya.lin@amlogic.com>
+Date: Tue, 28 Nov 2023 17:09:58 +0800
+Subject: [PATCH 1/2] multiEnc: fix pthread_mutex_lock crash [1/1]
+
+PD#SWPL-146411
+
+Problem:
+pthread_mutex_lock crash
+
+Solution:
+Modify the mapping object: Shared virtual Memory -> Shared File
+
+Verify:
+local
+
+Signed-off-by: xiaoya.lin <xiaoya.lin@amlogic.com>
+Change-Id: I31592e53090dabf267f1ca1d2f502f95db89e614
+---
+ multiEnc/vpuapi/include/vdi.h | 10 +++++++
+ multiEnc/vpuapi/vdi.c         | 55 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+)
+
+diff --git a/multiEnc/vpuapi/include/vdi.h b/multiEnc/vpuapi/include/vdi.h
+index 4fd5a39..f365c5e 100644
+--- a/multiEnc/vpuapi/include/vdi.h
++++ b/multiEnc/vpuapi/include/vdi.h
+@@ -46,6 +46,16 @@
+ #define SUPPORT_MULTI_CORE_IN_ONE_DRIVER
+ #define MAX_VPU_CORE_NUM MAX_NUM_VPU_CORE
+ 
++#ifndef __ANDROID__
++/*
++ * Fixed for glibc2.33
++ * error: The futex facility returned an unexpected error code.
++ *
++ */
++#define AML_FIXED_FOR_GLIBC_2_33
++#define VPU_SHARED_FILE_NAME "/tmp/vpu_mutex.map"
++#define VPU_SHARED_FILE_SIZE 4096
++#endif
+ #define MAX_VPU_BUFFER_POOL (1000)
+ 
+ #define VpuWriteReg( CORE, ADDR, DATA )                 vdi_write_register( CORE, ADDR, DATA )					// system register write
+diff --git a/multiEnc/vpuapi/vdi.c b/multiEnc/vpuapi/vdi.c
+index 80dfd63..cb4e1df 100644
+--- a/multiEnc/vpuapi/vdi.c
++++ b/multiEnc/vpuapi/vdi.c
+@@ -96,6 +96,10 @@ typedef struct  {
+     unsigned int product_code;
+     int vpu_fd;
+     vpu_instance_pool_t *pvip;
++#ifdef AML_FIXED_FOR_GLIBC_2_33
++    int shared_mutex_fd;
++    void* shared_mutex_map;
++#endif
+     int task_num;
+     int clock_state;
+     vpudrv_buffer_t vdb_register;
+@@ -403,6 +407,16 @@ int vdi_release(u32 core_idx)
+     if (vdi->pvip)
+         munmap(vdi->pvip, (sizeof(vpu_instance_pool_t) + sizeof(MUTEX_HANDLE) * VDI_NUM_LOCK_HANDLES));
+ 
++#ifdef AML_FIXED_FOR_GLIBC_2_33
++    if (vdi->shared_mutex_map)
++        munmap(vdi->shared_mutex_map, sizeof(MUTEX_HANDLE) * VDI_NUM_LOCK_HANDLES);
++
++    if (vdi->shared_mutex_fd) {
++        close(vdi->shared_mutex_fd);
++        vdi->shared_mutex_fd = -1;
++    }
++#endif
++
+     if (vdi->vpu_fd != -1 && vdi_init_flag[core_idx] != INIT_VDI_STAT_NULL)
+     {
+         close(vdi->vpu_fd);
+@@ -532,15 +546,56 @@ vpu_instance_pool_t *vdi_get_instance_pool(u32 core_idx)
+             VLOG(ERR, "[VDI] fail to map instance pool phyaddr=0x%x, size = %d\n", (int)vdb.phys_addr, (int)vdb.size);
+             return NULL;
+         }
++#ifdef AML_FIXED_FOR_GLIBC_2_33
++        int shared_mutex_fd = open(VPU_SHARED_FILE_NAME, O_CREAT|O_RDWR, 00777);
++        if (shared_mutex_fd < 0) {
++            VLOG(ERR,
++                 "[VDI] Can't open %s. [error=%s]\n"
++                 "Maybe this file has been created by others\n",
++                 VPU_SHARED_FILE_NAME, strerror(errno));
++            return NULL;
++        }
++
++        if (ftruncate(shared_mutex_fd, VPU_SHARED_FILE_SIZE) != 0) {
++            VLOG(ERR, "[VDI] Can't truncate %s. [error=%s]\n",
++                 VPU_SHARED_FILE_NAME, strerror(errno));
++            close(shared_mutex_fd);
++            shared_mutex_fd = -1;
++            return NULL;
++        }
++
++        void *shared_mutex_map = mmap(NULL, VPU_SHARED_FILE_SIZE,
++                                      PROT_READ | PROT_WRITE,
++                                      MAP_SHARED, shared_mutex_fd, 0);
++        if (shared_mutex_map == MAP_FAILED) {
++            VLOG(ERR, "[VDI] fail to map vpu shared file=0x%x, size = %d\n",
++               (int)shared_mutex_map, VPU_SHARED_FILE_SIZE);
++            close(shared_mutex_fd);
++            shared_mutex_fd = -1;
++            return NULL;
++        }
++
++        vdi->shared_mutex_fd = shared_mutex_fd;
++        vdi->shared_mutex_map = shared_mutex_map;
++#endif
+ 
+ #ifdef SUPPORT_MULTI_CORE_IN_ONE_DRIVER
+         vdi->pvip = (vpu_instance_pool_t *)(vdb.virt_addr + (core_idx*(sizeof(vpu_instance_pool_t) + sizeof(MUTEX_HANDLE)*VDI_NUM_LOCK_HANDLES)));
+ #else
+         vdi->pvip = (vpu_instance_pool_t *)(vdb.virt_addr);
+ #endif
++#ifdef AML_FIXED_FOR_GLIBC_2_33
++        vdi->vpu_mutex = vdi->shared_mutex_map;
++        // Unused Mutex
++        vdi->vpu_disp_mutex =
++            (void*)((unsigned long)vdi->shared_mutex_map + sizeof(MUTEX_HANDLE));
++        vdi->vmem_mutex =
++            (void*)((unsigned long)vdi->shared_mutex_map + 2 * sizeof(MUTEX_HANDLE));
++#else
+         vdi->vpu_mutex = (void *)((ulong)vdi->pvip + sizeof(vpu_instance_pool_t));	//change the pointer of vpu_mutex to at end pointer of vpu_instance_pool_t to assign at allocated position.
+         vdi->vpu_disp_mutex = (void *)((ulong)vdi->pvip + sizeof(vpu_instance_pool_t) + sizeof(MUTEX_HANDLE));
+         vdi->vmem_mutex = (void *)((unsigned long)vdi->pvip + sizeof(vpu_instance_pool_t) + 2*sizeof(MUTEX_HANDLE));
++#endif
+ 
+         VLOG(INFO, "[VDI] instance pool physaddr=0x%x, virtaddr=0x%x, base=0x%x, size=%d\n", (int)vdb.phys_addr, (int)vdb.virt_addr, (int)vdb.base, (int)vdb.size);
+     }
+-- 
+2.25.1
+

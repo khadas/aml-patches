@@ -1,0 +1,38 @@
+From 402f74438c8cf312c2e2a7e7e7c65dba5750c17d Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Wed, 15 Nov 2023 16:25:58 +0800
+Subject: [PATCH 4/9] videotranscode: h.265 encoder failed to run [1/1]
+
+PD#SWPL-146229
+
+Problem:
+H.265 encoder failed to run
+
+Solution:
+The 'alignment' parameter for H.265 is 'nal'
+
+Verify:
+t7
+
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+Change-Id: Ib3e32535f0180a89bae0461934f0c881186b8e9e
+---
+ videotranscoding-demo/videotranscoding_demo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/videotranscoding-demo/videotranscoding_demo.c b/videotranscoding-demo/videotranscoding_demo.c
+index 7122543..bd91752 100644
+--- a/videotranscoding-demo/videotranscoding_demo.c
++++ b/videotranscoding-demo/videotranscoding_demo.c
+@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
+         data->videoparser1 = gst_element_factory_make("h265parse", "h265parse-parser");
+         src_caps = gst_caps_new_simple("video/x-h265",
+                                         "stream-format", G_TYPE_STRING, "byte-stream",
+-                                        "alignment",G_TYPE_STRING,"au",
++                                        "alignment",G_TYPE_STRING,"nal",
+                                         //"width", G_TYPE_INT, 720,
+                                         //"height", G_TYPE_INT, 420,
+                                         // "framerate", GST_TYPE_FRACTION, param->src_framerate,
+-- 
+2.25.1
+

@@ -1,0 +1,50 @@
+From d3c578826408481106ff88adb3cf49d066eae394 Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Fri, 17 Nov 2023 15:02:57 +0800
+Subject: [PATCH 04/13] amlbian: Set onboard audio for gnome [1/1]
+
+PD#SWPL-146000
+
+Problem:
+Gnome cannot set onboard audio.
+
+Solution:
+Set onboard audio for gnome.
+
+Verify:
+local
+
+Change-Id: Ib829869decaa426a41b18c243f704d5f10b7d473
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+---
+ config/boards/amlogic/S905X4-AH212.conf | 2 +-
+ config/boards/amlogic/S905Y4-AP222.conf | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/config/boards/amlogic/S905X4-AH212.conf b/config/boards/amlogic/S905X4-AH212.conf
+index 4467da4..1cf8932 100644
+--- a/config/boards/amlogic/S905X4-AH212.conf
++++ b/config/boards/amlogic/S905X4-AH212.conf
+@@ -106,6 +106,6 @@ tweaks_platform() {
+ 	if [ -f $ROOTFS_TEMP/etc/pulse/default.pa ]; then
+ 		info_msg "set T7C default asound config"
+ 		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo 'load-module module-alsa-source device=hw:0,3' | tee -a /etc/pulse/default.pa"'
+-        eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo 'load-module module-alsa-sink device=hw:0,1' | tee -a /etc/pulse/default.pa"'
++        eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo 'load-module module-alsa-sink device=hw:0,4' | tee -a /etc/pulse/default.pa"'
+ 	fi
+ }
+diff --git a/config/boards/amlogic/S905Y4-AP222.conf b/config/boards/amlogic/S905Y4-AP222.conf
+index 05f4fb9..0e5a4ce 100644
+--- a/config/boards/amlogic/S905Y4-AP222.conf
++++ b/config/boards/amlogic/S905Y4-AP222.conf
+@@ -105,6 +105,6 @@ tweaks_platform() {
+ 	if [ -f $ROOTFS_TEMP/etc/pulse/default.pa ]; then
+ 		info_msg "set T7C default asound config"
+ 		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo 'load-module module-alsa-source device=hw:0,3' | tee -a /etc/pulse/default.pa"'
+-		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo 'load-module module-alsa-sink device=hw:0,4' | tee -a /etc/pulse/default.pa"'
++		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "echo 'load-module module-alsa-sink device=hw:0,2' | tee -a /etc/pulse/default.pa"'
+ 	fi
+ }
+-- 
+2.25.1
+

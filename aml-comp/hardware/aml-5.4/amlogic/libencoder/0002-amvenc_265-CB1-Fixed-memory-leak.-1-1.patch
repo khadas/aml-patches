@@ -1,0 +1,105 @@
+From 770273d6192cf7f0736347aef5e0a0c86d78a7d3 Mon Sep 17 00:00:00 2001
+From: "xiaoya.lin" <xiaoya.lin@amlogic.com>
+Date: Thu, 30 Nov 2023 18:56:27 +0800
+Subject: [PATCH 2/2] amvenc_265: CB1 Fixed memory leak. [1/1]
+
+PD#SWPL-146833
+
+Problem:
+Memory leak.
+
+Solution:
+Fixed memory leak.
+
+Verify:
+SC2
+
+Signed-off-by: xiaoya.lin <xiaoya.lin@amlogic.com>
+Change-Id: I6aaa1d69b2f0ad4a3b4c388e5d65136d1905a9cc
+---
+ .../hevc_enc/vpuapi/include/vpuapi.h          |  1 +
+ .../EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapi.c  | 28 ++++++++++++++++++-
+ .../hevc_enc/vpuapi/vpuapifunc.h              |  2 ++
+ 3 files changed, 30 insertions(+), 1 deletion(-)
+
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/include/vpuapi.h b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/include/vpuapi.h
+index 48d1f51..df1a080 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/include/vpuapi.h
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/include/vpuapi.h
+@@ -3657,6 +3657,7 @@ Coded picture type
+     int frameCycle;         /**<  The parameter for reporting the cycle number of decoding/encoding one frame.*/
+     Uint64      pts;        /**< Presentation Timestamp of encoded picture. */
+     Uint32      encInstIdx;     /**< An index of instance which have finished encoding with a picture at this command. This is only for Multi-Core encoder product. */
++    FrameBuffer encSrcFrame;/*< the encoded (retired) source frame buffer information, use together with encSrcIdx field */
+ } EncOutputInfo;
+ 
+ /**
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapi.c b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapi.c
+index f0df3ac..316c9fc 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapi.c
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapi.c
+@@ -843,6 +843,13 @@ RetCode VPU_EncStartOneFrame(
+         return RETCODE_WRONG_CALL_SEQUENCE;
+     }
+ 
++    if (pEncInfo->srcBufUseIndex[param->srcIdx] == 1
++        && param->srcEndFlag == 0) {
++        VLOG(ERR,"source frame was already in encoding index %d \n",
++                param->srcIdx);
++        return RETCODE_INVALID_PARAM;
++    }
++
+     pSrcFrame = param->sourceFrame;
+     if (pSrcFrame && pSrcFrame->dma_buf_planes && (param->srcEndFlag == 0)) { // use dma_buf
+         vpu_multi_dma_buf_info_t dma_info;
+@@ -893,6 +900,12 @@ RetCode VPU_EncStartOneFrame(
+ 
+     ret = ProductVpuEncode(pCodecInst, param);
+ 
++    if (ret == RETCODE_SUCCESS) {
++        /* record the used source frame */
++        pEncInfo->srcBufUseIndex[param->srcIdx] = 1;
++        pEncInfo->srcBufMap[param->srcIdx] = *pSrcFrame;
++    }
++
+     SetPendingInst(pCodecInst->coreIdx, pCodecInst);
+ 
+     return ret;
+@@ -929,7 +942,20 @@ RetCode VPU_EncGetOutputInfo(
+     ret = ProductVpuEncGetResult(pCodecInst, info);
+ 
+     if (ret == RETCODE_SUCCESS) {
+-        info->pts = pEncInfo->ptsMap[info->encSrcIdx];
++        if (info->encSrcIdx >= 0 && info->reconFrameIndex >= 0 )
++        {
++
++            info->pts = pEncInfo->ptsMap[info->encSrcIdx];
++             /* return the used soure frame */
++            if (pEncInfo->srcBufUseIndex[info->encSrcIdx] == 1) {
++                pSrcFrame = &(pEncInfo->srcBufMap[info->encSrcIdx]);
++                info->encSrcFrame = *pSrcFrame;
++                pEncInfo->srcBufUseIndex[info->encSrcIdx] = 0;
++             } else
++               VLOG(ERR, "Soure Frame already retired index= %d use %d\n",
++                        info->encSrcIdx,
++                        pEncInfo->srcBufUseIndex[info->encSrcIdx]);
++        }
+     }
+     else {
+         info->pts = 0LL;
+diff --git a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapifunc.h b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapifunc.h
+index c7d2970..8caa2ca 100644
+--- a/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapifunc.h
++++ b/amvenc_265/EncoderAPI-HEVC/hevc_enc/vpuapi/vpuapifunc.h
+@@ -327,6 +327,8 @@ typedef struct {
+     Int32   errorReasonCode;
+     Uint64          curPTS;             /**! Current timestamp in 90KHz */
+     Uint64          ptsMap[32];         /**! PTS mapped with source frame index */
++    FrameBuffer     srcBufMap[32]; /**! source frame index map */
++    Uint32          srcBufUseIndex[32]; /**! flag the occupied src buf */
+ } EncInfo;
+ 
+ 
+-- 
+2.25.1
+

@@ -1,0 +1,84 @@
+From 51ccb07b0e094b0e7f5285a1b253cbae48144d69 Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Fri, 17 Nov 2023 11:47:35 +0800
+Subject: [PATCH 11/14] videotranscoding: modify the out dir [1/1]
+
+PD#SWPL-146506
+
+Problem:
+the build dir not correct.
+
+Solution:
+modify the Makefile out dir.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: I65d7135cb0368f740e52c55916ca2dd7a94ae7de
+---
+ .../gst-aml-utils/gst-aml-videotranscoding.bb        | 12 ++----------
+ .../gst-aml-utils/videotranscoding-demo.bb           |  5 ++---
+ 2 files changed, 4 insertions(+), 13 deletions(-)
+
+diff --git a/recipes-multimedia/gst-aml-utils/gst-aml-videotranscoding.bb b/recipes-multimedia/gst-aml-utils/gst-aml-videotranscoding.bb
+index d5e23d1f..796250a9 100644
+--- a/recipes-multimedia/gst-aml-utils/gst-aml-videotranscoding.bb
++++ b/recipes-multimedia/gst-aml-utils/gst-aml-videotranscoding.bb
+@@ -16,7 +16,7 @@ inherit autotools pkgconfig
+ 
+ do_configure[noexec] = "1"
+ 
+-EXTRA_OEMAKE = "TARGET_DIR=${D} STAGING_DIR=${STAGING_DIR_TARGET} DESTDIR=${D} PKG_CONFIG=${STAGING_BINDIR_NATIVE}/pkg-config"
++EXTRA_OEMAKE = "OUT_DIR=${B} TARGET_DIR=${D} STAGING_DIR=${STAGING_DIR_TARGET} DESTDIR=${D} PKG_CONFIG=${STAGING_BINDIR_NATIVE}/pkg-config"
+ 
+ do_compile(){
+     oe_runmake -C ${S} ${EXTRA_OEMAKE} all
+@@ -26,20 +26,12 @@ do_install() {
+     install -d -m 0755 ${D}${libdir}
+     install -d -m 0755 ${D}${includedir}
+ 
+-    install -D -m 0755 ${S}/*.so ${D}${libdir}/
+     install -D -m 0755 ${S}/inc/*.h ${D}${includedir}/
++    install -D -m 0644 ${B}/*.so ${D}${libdir}/
+ 
+-    rm ${S}/*.so
+ }
+ 
+ 
+-
+-#DEPENDS += "${@bb.utils.contains('EXTRA_OECONF', ' ', ' ', ' ', d)}"
+-#RDEPENDS_${PN} += "${@bb.utils.contains('EXTRA_OECONF', ' ', ' ', ' ', d)}"
+-
+-#EXTRA_OEMAKE = "OUT_DIR=${B} CROSS=${TARGET_PREFIX} TARGET_DIR=${STAGING_DIR_TARGET} STAGING_DIR=${D} DESTDIR=${D}"
+-
+-
+ FILES_${PN} = " ${libdir}/* "
+ FILES_${PN}-dev = " ${includedir}/* \
+                     /usr/lib/pkgconfig/* \
+diff --git a/recipes-multimedia/gst-aml-utils/videotranscoding-demo.bb b/recipes-multimedia/gst-aml-utils/videotranscoding-demo.bb
+index 55bea4ae..1ea345d1 100644
+--- a/recipes-multimedia/gst-aml-utils/videotranscoding-demo.bb
++++ b/recipes-multimedia/gst-aml-utils/videotranscoding-demo.bb
+@@ -13,7 +13,7 @@ SRCREV ?="${AUTOREV}"
+ 
+ do_configure[noexec] = "1"
+ 
+-EXTRA_OEMAKE = "TARGET_DIR=${D} STAGING_DIR=${STAGING_DIR_TARGET} DESTDIR=${D} PKG_CONFIG=${STAGING_BINDIR_NATIVE}/pkg-config"
++EXTRA_OEMAKE = "OUT_DIR=${B} TARGET_DIR=${D} STAGING_DIR=${STAGING_DIR_TARGET} DESTDIR=${D} PKG_CONFIG=${STAGING_BINDIR_NATIVE}/pkg-config"
+ 
+ do_compile(){
+     oe_runmake -C ${S} ${EXTRA_OEMAKE} all
+@@ -22,8 +22,7 @@ do_compile(){
+ 
+ do_install() {
+     install -d -m 0755 ${D}${bindir}
+-    install -D -m 0755 ${S}/videotranscoding_demo ${D}${bindir}/
+-    rm ${S}/videotranscoding_demo
++    install -D -m 0777 ${B}/videotranscoding_demo ${D}${bindir}/
+ }
+ 
+ FILES_${PN} = "${bindir}/*"
+-- 
+2.25.1
+

@@ -1,0 +1,108 @@
+From 687c4af738dc23760033c7c4cd01f4292523505b Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Wed, 20 Sep 2023 10:07:07 +0800
+Subject: [PATCH 03/13] Amlbian: Delete khadas information. [1/1]
+
+PD#SWPL-145971
+
+Problem:
+The system contains information about khadas.
+
+Solution:
+Delete information of khadas.
+
+Verify:
+local PB
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I421de5fc5ea5367dee27c4943ba74ac81034dd16
+---
+ config/apt.key                     | 30 ------------------------------
+ config/functions/build-base-rootfs | 18 +++++++++---------
+ scripts/krescue.sh                 |  3 ++-
+ 3 files changed, 11 insertions(+), 40 deletions(-)
+ delete mode 100755 config/apt.key
+
+diff --git a/config/apt.key b/config/apt.key
+deleted file mode 100755
+index 6f84b20..0000000
+--- a/config/apt.key
++++ /dev/null
+@@ -1,30 +0,0 @@
+------BEGIN PGP PUBLIC KEY BLOCK-----
+-Version: GnuPG v1
+-
+-mQENBF0uvb4BCAC3AQdpMuf+LYm+zPWa4bvpQARsiOcL0NoqeDAcw/h9uZxi+BGi
+-MnAk3DtIiCfkTaEZ5O01JPspAUkBnrOoihTRFRGK7SE8x2T30o+f+LUC0/VMPgsH
+-nndCZkcGfxdu8ROJcT7IcKcsA3Xq9nFlmI9mCE/pLW1qJNWOWB7k1rK+Qoa6d6Ob
+-kgoKM9ZftOFp1B5FclPSSuywzoaublpbjkw3VGpO9fydR0lDDDsgUO2e+rCOpg0X
+-xNSlnF2Zhnv9lghwVRsJ/l3xouHHdrf8EgPRwJj4cq4XHHjX6zh4NKgsS3cOvDVj
+-FzyyB/4A0jlxd6/PpNFAtPAVs6mPbziM6tAHABEBAAG0Gk5pY2sgWGllIDxuaWNr
+-QGtoYWRhcy5jb20+iQE3BBMBCgAhBQJdLr2+AhsDBQsJCAcDBRUKCQgLBRYDAgEA
+-Ah4BAheAAAoJEODzAu5Ymy5ds6YIAKa6wRC8pjKY5xzCxIybTyadwgBicTdHyeG+
+-n27FpLixSrLLAzpyCICiZWYJbdqUc6eEDU443gIKoLLyeL3h4Xnk9QShtg6V5B/3
+-0inrBdR6Ol4/vSKH+yCQKm17Ea1yfV/TdC+jnY7jDEPQZ4KA8a8/FJmYY+J/JvpM
+-CGltyaV6y6/eGymK1EGcZNKtWWYBRFcby/b1aDsVP4rHlbdNtMF8UR8gVf84JAyp
+-eiu02Qqno0AKrRNs3ck1Yw/XE5JfcIS9lVmQRfW0X3lsvU6AHpBHQDKlQ33qNH/k
+-xMzLJP4i/1grv5rr8K8XGDUNOvwhq99CzMYfrla00zNZpeneSKC5AQ0EXS69vgEI
+-AKvhJzBwj6VuVKEzYGRathrhfWkDIUk9j9K4uzXYo7laPlIIynb3c+JzQJ7u6brz
+-ekaa+YWwlc7JpaE7bT/xjKnAYEcZ4+6JYrxFGx1qrr6hgdRevdezTQWUwC/H3gkx
+-zXrgYXnWBXpWUV4CfYURVJ/Ik2VInL+K5IPeFcygKofNjqrwZTX0COZKSUp1pvLN
+-ewjbiZj8foSOqoI1RAH6JEGyn6JUflNdvMOjB5O7sU9i7in3N0f2zMXYqgraet3x
+-9//B4Egp8cuwhp0n12ml1Hhw1lby1Ij8fEpbGZg8tsMszQAHa4n70pd4BSd8C9sh
+-WH0op+2gIo7u3Ee9Rtit5ecAEQEAAYkBHwQYAQoACQUCXS69vgIbDAAKCRDg8wLu
+-WJsuXYAJB/4gK+q41opWSL4ow/LiPNcWY+w1IAeBz1tMhLfa/eAnLVpzAZYa+9GR
+-fU7nCSQhMTM53VohbW69o2Y1beYefZiu82G3MgMCO9h1/cFCv+NSkSYNCePDwoXE
+-978Ut1M3HvBD2f7bIIrqeGmpVPTkxwApIxImZjcMEEx19JVH71y+t8x3t5G01iyv
+-asM+1IxASIvLXPZSsqserBuPXbf/3xqsat/VNNUPbAgTSnRMgCmqZzhNYI8EtKQi
+-Pq4T8VV3ru+jjuc5p+KMEqqvAnVr0QOMh86HY0/pGnS3TNa94EbXA6q09M6JXYct
+-HGkB8O8sGW3QoE+Do5SN3BT8UBY8gL7o
+-=Z7C7
+------END PGP PUBLIC KEY BLOCK-----
+diff --git a/config/functions/build-base-rootfs b/config/functions/build-base-rootfs
+index ea73714..4022ac3 100755
+--- a/config/functions/build-base-rootfs
++++ b/config/functions/build-base-rootfs
+@@ -331,15 +331,15 @@ build_base_rootfs()
+ 	# stage: create apt sources list
+ 	create_sources_list "$DISTRIB_RELEASE" "$ROOTFS_TEMP/"
+ 
+-	# stage: install key
+-	cp $CONFIG/apt.key $ROOTFS_TEMP
+-	APT_VERSION=$(LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "apt --version | cut -d\" \" -f2")
+-	if linux-version compare "${APT_VERSION}" ge 2.4.1; then
+-		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "cat apt.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/amlbian.gpg"'
+-	else
+-		eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "cat apt.key | apt-key add -"'
+-	fi
+-	rm $ROOTFS_TEMP/apt.key
++	# stage: install key   TODO
++	#cp $CONFIG/apt.key $ROOTFS_TEMP
++	#APT_VERSION=$(LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "apt --version | cut -d\" \" -f2")
++	#if linux-version compare "${APT_VERSION}" ge 2.4.1; then
++	#	eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "cat apt.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/amlbian.gpg"'
++	#else
++	#	eval 'LC_ALL=C LANG=C chroot $ROOTFS_TEMP /bin/bash -c "cat apt.key | apt-key add -"'
++	#fi
++	#rm $ROOTFS_TEMP/apt.key
+ 
+ 	# add armhf architecture to arm64
+ 	if [[ $DISTRIB_ARCH == arm64 ]]; then
+diff --git a/scripts/krescue.sh b/scripts/krescue.sh
+index 25789a4..a9043cf 100755
+--- a/scripts/krescue.sh
++++ b/scripts/krescue.sh
+@@ -16,8 +16,9 @@ cd ${0%/*}/..
+ [ "$KRESCUE" ] || \
+ 	KRESCUE=krescue
+ 
++# Pseudo-address, features will be developed later
+ KRESCUE_SDK=amlbian-rescue-sdk
+-KRESCUE_GIT_SDK=https://github.com/khadas/$KRESCUE_SDK
++KRESCUE_GIT_SDK=https://github.com/amlbian/$KRESCUE_SDK
+ 
+ AMLBIAN_BUILD=$BUILD
+ 
+-- 
+2.25.1
+

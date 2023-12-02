@@ -1,0 +1,403 @@
+From 651ba5e1b371ebf61b03f49f40631c2d1aaca8c9 Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Fri, 17 Nov 2023 18:53:09 +0800
+Subject: [PATCH 13/14] absystem: smarthome support absystem [1/2]
+
+PD#SWPL-145575
+
+Problem:
+
+Solution:
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I388c65085f8fa00e8e795227c323f01242cd3a43
+---
+ recipes-core/images/aml-gpt-make.bb           |   6 +-
+ recipes-core/images/aml-package.inc           |  19 ++-
+ .../images/files/partition_table_ab.txt       |  24 +++
+ .../initrdscripts/files/init-meson_5.15.sh    | 141 +++++++++++++++++-
+ ...4-amlogic-add-rootfs_vendor-absystem.patch |  14 ++
+ recipes-core/swupdate/swupdate_git.bb         |   3 +
+ recipes-core/udev/udev-extraconf_%.bbappend   |   7 +-
+ 7 files changed, 199 insertions(+), 15 deletions(-)
+ create mode 100644 recipes-core/images/files/partition_table_ab.txt
+ create mode 100644 recipes-core/swupdate/swupdate/0004-amlogic-add-rootfs_vendor-absystem.patch
+
+diff --git a/recipes-core/images/aml-gpt-make.bb b/recipes-core/images/aml-gpt-make.bb
+index 01bc6e89..cb3136ec 100644
+--- a/recipes-core/images/aml-gpt-make.bb
++++ b/recipes-core/images/aml-gpt-make.bb
+@@ -3,9 +3,11 @@ LICENSE = "CLOSED"
+ LIC_FILES_CHKSUM=""
+ 
+ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+-SRC_URI += "file://partition_table.txt"
++SRC_URI += "${@bb.utils.contains("DISTRO_FEATURES", "gpt-partition", \
++            bb.utils.contains("DISTRO_FEATURES", "absystem", "file://partition_table_ab.txt", "file://partition_table.txt", d), "", d)}"
+ 
+-PARTITION_TABLE = "partition_table.txt"
++PARTITION_TABLE = "${@bb.utils.contains("DISTRO_FEATURES", "gpt-partition", \
++    bb.utils.contains("DISTRO_FEATURES", "absystem", "partition_table_ab.txt", "partition_table.txt", d), "", d)}"
+ 
+ S="${WORKDIR}/git"
+ 
+diff --git a/recipes-core/images/aml-package.inc b/recipes-core/images/aml-package.inc
+index d73d0d46..f254a28b 100644
+--- a/recipes-core/images/aml-package.inc
++++ b/recipes-core/images/aml-package.inc
+@@ -65,11 +65,28 @@ do_aml_pack() {
+     cp -f ${STAGING_DIR_NATIVE}${bindir}/aml-img-packer/res_packer ${DEPLOY_DIR_IMAGE}/
+     cp -rf ${STAGING_DIR_NATIVE}${bindir}/aml-img-packer/${SOC_FAMILY}/* ${DEPLOY_DIR_IMAGE}/
+     #Handle vbmeta partition in case AVB feature is not enabled.
+-    if ${@bb.utils.contains('DISTRO_FEATURES', 'AVB', 'false', 'true', d)}; then
++    if ${@bb.utils.contains('DISTRO_FEATURES', 'AVB', 'true', 'false', d)}; then
++        if ${@bb.utils.contains('DISTRO_FEATURES','absystem','true','false', d)};then
++            sed -i '$a file="vbmeta.img"           main_type="PARTITION"      sub_type="vbmeta_a"' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
++        else
++            sed -i '$a file="vbmeta.img"           main_type="PARTITION"      sub_type="vbmeta"' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
++        fi
++    else
+         sed -i '/vbmeta/ d' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
+     fi
+     if ${@bb.utils.contains('DISTRO_FEATURES', 'recovery', 'false', 'true', d)}; then
+         sed -i '/recovery/ d' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
++    else
++        if ${@bb.utils.contains('DISTRO_FEATURES', 'absystem', 'true', 'false', d)}; then
++            sed -i -e 's/sub_type=\"recovery\"/sub_type=\"recovery_a\"/' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
++        fi
++        if ${@bb.utils.contains('DISTRO_FEATURES', 'uboot-abmode', 'true', 'false', d)}; then
++            sed -i -e 's/sub_type=\"fip\"/sub_type=\"fip_a\"/' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
++        fi
++    fi
++
++    if ${@bb.utils.contains('DISTRO_FEATURES', 'vendor-image', 'false', 'true', d)}; then
++        sed -i '/vendor/ d' ${DEPLOY_DIR_IMAGE}/${PACK_CONF}
+     fi
+ 
+     if ${@bb.utils.contains('DISTRO_FEATURES', 'gpt-partition', 'true', 'false', d)}; then
+diff --git a/recipes-core/images/files/partition_table_ab.txt b/recipes-core/images/files/partition_table_ab.txt
+new file mode 100644
+index 00000000..bfe806a7
+--- /dev/null
++++ b/recipes-core/images/files/partition_table_ab.txt
+@@ -0,0 +1,24 @@
++//partitionName,startsddr,size,partitionGap,attr
++//ab don't need cache, but dts part will add 8M for it
++reserved,36M,64M,8M,0
++env,-,8M,8M,0
++logo,-,8M,8M,0x0001
++recovery_a,-,40M,8M,0x0001
++recovery_b,-,40M,8M,0x0001
++misc,-,8M,8M, 0x0001
++cri_data,-,8M,8M,0x0002
++param,-,16M,8M,0x0002
++boot_a,-,64M,8M,0x0001
++boot_b,-,64M,8M,0x0001
++rsv,-,16M,8M,0x0011
++tee,-,32M,8M,0x0001
++factory,-,8M,8M,0x0011
++vendor_a,-,448M,8M,0x0001
++vendor_b,-,448M,8M,0x0001
++vbmeta_a,-,2M,8M,0x0001
++vbmeta_b,-,2M,8M,0x0001
++odm,-,128M,8M,0x0001
++system_a,-,1536M,8M,0x0001
++system_b,-,1536M,8M,0x0001
++product,-,128M,8M,0x0001
++data,-,-,8M,0x0004
+\ No newline at end of file
+diff --git a/recipes-core/initrdscripts/files/init-meson_5.15.sh b/recipes-core/initrdscripts/files/init-meson_5.15.sh
+index 7a3e9c64..896eaff5 100644
+--- a/recipes-core/initrdscripts/files/init-meson_5.15.sh
++++ b/recipes-core/initrdscripts/files/init-meson_5.15.sh
+@@ -44,8 +44,111 @@ early_setup() {
+     fi
+ }
+ 
+-upstream_emmc_mount() {
+-  echo " do upstream emmc mount"
++rewrite_block_rules (){
++    #Determine whether it is MBR or GPT
++    tmp=`cat /sys/block/mmcblk0/mmcblk0p1/uevent | grep PARTNAME= | sed 's/.*=//'`
++    if [ -z "$tmp" ]; then #MBR
++        if [ ! -z "$ACTIVE_SLOT" ]; then
++            rm ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            touch ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++
++            if [ "$ACTIVE_SLOT" = "_a" ]; then
++                echo 'KERNEL=="mmcblk0p17", SYMLINK+="vendor"'  >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            else
++                echo 'KERNEL=="mmcblk0p18", SYMLINK+="vendor"'  >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            fi
++            echo 'KERNEL=="mmcblk0p16", SYMLINK+="factory"' >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            echo 'KERNEL=="mmcblk0p15", SYMLINK+="tee"'     >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules 
++        fi
++    else #GPT
++        if [ ! -z "$ACTIVE_SLOT" ]; then
++            rm ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            touch ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++
++            if [ "$ACTIVE_SLOT" = "_a" ]; then
++                echo 'KERNEL=="mmcblk0p14", SYMLINK+="vendor"'  >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            else
++                echo 'KERNEL=="mmcblk0p15", SYMLINK+="vendor"'  >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            fi
++            echo 'KERNEL=="mmcblk0p13", SYMLINK+="factory"' >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules
++            echo 'KERNEL=="mmcblk0p12", SYMLINK+="tee"'     >> ${ROOT_MOUNT}/etc/udev/rules.d/block.rules 
++        fi
++    fi
++}
++#The MBR does not support using partname to create soft links
++partname_not_exist() {
++    echo "ACTIVE_SLOT is $ACTIVE_SLOT"
++    if [ ! -f /dev/system ];then
++        echo "/dev/system not exist!"
++
++        if [ -z "$ACTIVE_SLOT" ]; then
++            # single system mode
++            ln -s /dev/mmcblk0p20  /dev/data
++            ln -s /dev/mmcblk0p5  /dev/env
++            ln -s /dev/mmcblk0p6  /dev/logo
++            ln -s /dev/mmcblk0p7  /dev/recovery
++            ln -s /dev/mmcblk0p8  /dev/misc
++            ln -s /dev/mmcblk0p9  /dev/cri_data
++            ln -s /dev/mmcblk0p10  /dev/param
++            ln -s /dev/mmcblk0p12 /dev/rsv
++            ln -s /dev/mmcblk0p13 /dev/tee
++            ln -s /dev/mmcblk0p3  /dev/cache
++            ln -s /dev/mmcblk0p2  /dev/reserved
++            ln -s /dev/mmcblk0p14  /dev/factory
++            ln -s /dev/mmcblk0p16  /dev/odm
++            ln -s /dev/mmcblk0p18  /dev/product
++            ln -s /dev/mmcblk0p17  /dev/system
++            ln -s /dev/mmcblk0p11  /dev/boot
++            ln -s /dev/mmcblk0p15  /dev/vendor
++            ln -s /dev/mmcblk0p19  /dev/vbmeta
++        else
++            # A/B system mode
++            ln -s /dev/mmcblk0p2  /dev/reserved
++            ln -s /dev/mmcblk0p3  /dev/cache
++            ln -s /dev/mmcblk0p5  /dev/env
++            ln -s /dev/mmcblk0p6  /dev/logo
++            ln -s /dev/mmcblk0p7  /dev/recovery_a
++            ln -s /dev/mmcblk0p8  /dev/recovery_b
++            ln -s /dev/mmcblk0p9  /dev/misc
++            ln -s /dev/mmcblk0p10 /dev/cri_data
++            ln -s /dev/mmcblk0p11 /dev/param
++            ln -s /dev/mmcblk0p12  /dev/boot_a
++            ln -s /dev/mmcblk0p13  /dev/boot_b
++            ln -s /dev/mmcblk0p14 /dev/rsv
++            ln -s /dev/mmcblk0p15 /dev/tee
++            ln -s /dev/mmcblk0p16 /dev/factory
++            ln -s /dev/mmcblk0p17  /dev/vendor_a
++            ln -s /dev/mmcblk0p18  /dev/vendor_b
++            ln -s /dev/mmcblk0p19 /dev/odm
++            ln -s /dev/mmcblk0p20 /dev/system_a
++            ln -s /dev/mmcblk0p21  /dev/system_b
++            ln -s /dev/mmcblk0p22 /dev/product
++            ln -s /dev/mmcblk0p23  /dev/vbmeta_a
++            ln -s /dev/mmcblk0p24  /dev/vbmeta_b
++            ln -s /dev/mmcblk0p25 /dev/data
++
++            if [ "$ACTIVE_SLOT" = "_a" ]; then
++                ln -s /dev/mmcblk0p7  /dev/recovery
++                ln -s /dev/mmcblk0p12  /dev/boot
++                ln -s /dev/mmcblk0p17  /dev/vendor
++                ln -s /dev/mmcblk0p23  /dev/vbmeta
++                ln -s /dev/mmcblk0p20 /dev/system
++            elif [ "$ACTIVE_SLOT" = "_b" ]; then
++                ln -s /dev/mmcblk0p8  /dev/recovery
++                ln -s /dev/mmcblk0p13  /dev/boot
++                ln -s /dev/mmcblk0p18  /dev/vendor
++                ln -s /dev/mmcblk0p24  /dev/vbmeta
++                ln -s /dev/mmcblk0p21  /dev/system
++            else
++                fatal "Could not find useable slot!"
++            fi
++        fi
++    else
++        echo "/dev/system exist!"
++    fi
++}
++
++partname_exist() {
+   if [ ! -f /dev/system ];then
+     echo "/dev/system not exist!"
+     if [  -d /sys/block/mmcblk0/mmcblk0p1/ ]; then
+@@ -59,6 +162,11 @@ upstream_emmc_mount() {
+         echo "part: $part, partname $partname, major $major, minor: $minor"
+ #        mknod /dev/$partname b $major $minor
+         ln -s /dev/$part  /dev/$partname
++
++        if [[ "$partname" == *_a ]] || [[ "$partname" == *_b ]]; then
++            partn=${partname%_*}
++            ln -s /dev/$part  /dev/$partn
++        fi
+         cd ..
+       done
+     fi
+@@ -69,6 +177,19 @@ upstream_emmc_mount() {
+   fi
+ }
+ 
++upstream_emmc_mount() {
++    echo " do upstream emmc mount"
++    if [  -d /sys/block/mmcblk0/mmcblk0p1/ ]; then
++        cd /sys/block/mmcblk0/mmcblk0p1/
++        partname=`cat uevent | grep PARTNAME= | sed 's/.*=//'`
++        if [ -z "$partname" ]; then
++            partname_not_exist
++        else
++            partname_exist
++        fi
++    fi
++}
++
+ read_args() {
+     [ -z "$CMDLINE" ] && CMDLINE=`cat /proc/cmdline`
+     for arg in $CMDLINE; do
+@@ -81,7 +202,7 @@ read_args() {
+                 modprobe $optarg 2> /dev/null ;;
+             androidboot.slot_suffix=*)
+                 ACTIVE_SLOT=$optarg
+-                ROOT_DEVICE=${ROOT_DEVICE}${ACTIVE_SLOT};;
++                ROOT_DEVICE=${ROOT_DEVICE};;
+             androidboot.vbmeta.device=*)
+                 VBMETA_DEVICE=$optarg ;;
+             LABEL=*)
+@@ -192,6 +313,8 @@ boot_root() {
+ 
+     selinux_relabel
+ 
++    rewrite_block_rules
++
+     cd $ROOT_MOUNT
+ 
+     # busybox switch_root supports -c option
+@@ -218,7 +341,7 @@ wait_for_device () {
+     i=1
+     while [ "$i" -le 30 ]
+     do
+-        if [ -b "${ROOT_DEVICE}" ]; then
++        if [ -e "${ROOT_DEVICE}" ]; then
+             echo "${ROOT_DEVICE} is ready now."
+             break
+         fi
+@@ -258,7 +381,7 @@ format_and_install() {
+         cp -rf /etc/modprobe.d /system/etc/
+         cp -rf /etc/modules-load.d /system/etc/
+         cp -rf /etc/modules /system/etc/
+-        echo "update complete"
++        echo "updagte complete" > /dev/kms
+         umount $ROOT_MOUNT
+         ROOT_DEVICE=/dev/system
+         ROOT_MOUNT=/system
+@@ -449,7 +572,7 @@ dm_verity_setup() {
+         vbmeta_mtd_number=$(cat /proc/mtd | grep -E "vbmeta" | awk -F : '{print $1}' | grep -o '[0-9]\+')
+         VBMETA_DEVICE_REAL=/dev/mtdblock${vbmeta_mtd_number}
+     else
+-        VBMETA_DEVICE_REAL=${VBMETA_DEVICE}${ACTIVE_SLOT}
++        VBMETA_DEVICE_REAL=${VBMETA_DEVICE}
+         # Change /dev/block/ to /dev/
+         if [ ! -b ${VBMETA_DEVICE_REAL} ]; then
+             VBMETA_DEVICE_REAL=`echo ${VBMETA_DEVICE_REAL} | sed "s/\/block\//\//g"`
+@@ -517,7 +640,7 @@ mount_and_boot() {
+ 
+         if [ "$ROOT_DEVICE" != "" ]; then
+             dm_verity_setup system ${ROOT_DEVICE} ${ROOT_MOUNT}
+-            dm_verity_setup vendor ${VENDOR_DEVICE}${ACTIVE_SLOT} none
++            dm_verity_setup vendor ${VENDOR_DEVICE} none
+             echo "dm-verity is $DM_VERITY_STATUS"
+             if [ "$DM_VERITY_STATUS" = "disabled" ]; then
+                 if ! mount -o ro,noatime,nodiratime $ROOT_DEVICE $ROOT_MOUNT ; then
+@@ -529,6 +652,7 @@ mount_and_boot() {
+         if [ "${FIRMWARE}" != "" ]; then
+             format_and_install
+         fi
++
+     fi
+ 
+     if touch $ROOT_MOUNT/bin 2>/dev/null; then
+@@ -575,12 +699,14 @@ mount_and_boot() {
+             else
+                 data_ext4_handle /data
+             fi
++
+             mkdir -p $OVERLAY_DIR/upperdir $OVERLAY_DIR/work
+             mount -t overlay overlay -o "lowerdir=$ROOT_ROMOUNT,upperdir=$OVERLAY_DIR/upperdir,workdir=$OVERLAY_DIR/work" $ROOT_MOUNT
+ 
+             mkdir -p ${ROOT_MOUNT}/$ROOT_ROMOUNT
+             mount --move $ROOT_ROMOUNT ${ROOT_MOUNT}/$ROOT_ROMOUNT
+             data_fbe_bind /data
++
+             if [[ $? -eq 0 ]]; then
+                 if [[ -d $OVERLAY_DIR ]]; then
+                     data_fbe_add_unencrypted_folders $OVERLAY_DIR
+@@ -589,6 +715,7 @@ mount_and_boot() {
+                 data_fbe_add_unencrypted_folders $SWUPDATE_DIR
+                 [[ "$DATA_FBE_STATUS" = "bound" ]] && DATA_FBE_STATUS="enabled"
+             fi
++
+             if [[ "$DATA_FBE_STATUS" = "disabled" ]]; then
+                 mkdir -p $ROOT_MOUNT/data
+                 mount --move /data $ROOT_MOUNT/data
+diff --git a/recipes-core/swupdate/swupdate/0004-amlogic-add-rootfs_vendor-absystem.patch b/recipes-core/swupdate/swupdate/0004-amlogic-add-rootfs_vendor-absystem.patch
+new file mode 100644
+index 00000000..ed33503e
+--- /dev/null
++++ b/recipes-core/swupdate/swupdate/0004-amlogic-add-rootfs_vendor-absystem.patch
+@@ -0,0 +1,14 @@
++diff --git a/handlers/raw_handler.c b/handlers/raw_handler.c
++index 52f2500..f72d68d 100644
++--- a/handlers/raw_handler.c
+++++ b/handlers/raw_handler.c
++@@ -230,7 +230,8 @@ static int blkprotect(struct img_type *img, bool on)
++ 
++ //try a/b system
++ if (get_active_slot(&slot)==0 && ((strcmp(img->fname, "boot.img")==0) ||
++- (strcmp(img->fname, "recovery.img")==0) || (strcmp(img->fname, "vbmeta.img")==0))) {
+++ (strcmp(img->fname, "recovery.img")==0) || (strcmp(img->fname, "vbmeta.img")==0) ||
+++ (strncmp(img->fname, "rootfs", 6)==0) || (strncmp(img->fname, "vendor", 6)==0))) {
++ 	if (slot == 0) {
++ 		sprintf(device_name, "%s%s", img->device, "_b");
++ 	} else {
+diff --git a/recipes-core/swupdate/swupdate_git.bb b/recipes-core/swupdate/swupdate_git.bb
+index 722b5cca..108505ed 100644
+--- a/recipes-core/swupdate/swupdate_git.bb
++++ b/recipes-core/swupdate/swupdate_git.bb
+@@ -33,6 +33,9 @@ SRC_URI = "git://github.com/sbabic/swupdate.git;protocol=https \
+         file://swupdate_nand.service \
+ "
+ 
++SRC_URI += "${@bb.utils.contains("DISTRO_FEATURES", "absystem", \
++        "file://0004-amlogic-add-rootfs_vendor-absystem.patch", "", d)}"
++
+ SRC_URI += "${@bb.utils.contains("DISTRO_FEATURES", "nand", \
+             bb.utils.contains("ROOTFS_TYPE", "ubifs", "file://ubifs.cfg", "file://squashfs.cfg", d), "", d)}"
+ 
+diff --git a/recipes-core/udev/udev-extraconf_%.bbappend b/recipes-core/udev/udev-extraconf_%.bbappend
+index af773519..a0a5c722 100644
+--- a/recipes-core/udev/udev-extraconf_%.bbappend
++++ b/recipes-core/udev/udev-extraconf_%.bbappend
+@@ -5,13 +5,10 @@ SRC_URI_append = " \
+     ${@bb.utils.contains('DISTRO_FEATURES', 'system-user', \
+     'file://10-video.rules', '', d)} \
+ "
+-SRC_URI_append = " \
+-    ${@bb.utils.contains('DISTRO_FEATURES', 'gpt-partition', \
+-    'file://block.rules', '', d)} \
++SRC_URI_append = " file://block.rules \
++                   file://dmaheap.rules \
+ "
+ 
+-SRC_URI_append = 'file://dmaheap.rules'
+-
+ do_install_append () {
+     sed -i 's/MOUNT="$MOUNT -o umask=007/MOUNT="$MOUNT -o iocharset=utf8,umask=007/g' ${D}${sysconfdir}/udev/scripts/mount.sh
+     sed -i 's/vfat|fat/vfat|fat|ntfs|exfat/g' ${D}${sysconfdir}/udev/scripts/mount.sh
+-- 
+2.25.1
+

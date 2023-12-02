@@ -1,0 +1,65 @@
+From 8a285a382b631d0f3f11e67e441c612f10291e06 Mon Sep 17 00:00:00 2001
+From: "kirk.wang" <kirk.wang@amlogic.com>
+Date: Fri, 1 Dec 2023 12:32:19 +0800
+Subject: [PATCH 9/9] amlvconv: the video cannot be displayed [1/1]
+
+PD#SWPL-148160
+
+Problem:
+When gstamlvconv does not specify
+the frame rate, the video cannot be displayed.
+
+Solution:
+When the frame rate is set to 0,
+no frame dropping operation will be performed.
+
+Verify:
+t7
+
+Change-Id: If06cce10b3b7cc52257276575cd0790299cd0d3a
+Signed-off-by: kirk.wang <kirk.wang@amlogic.com>
+---
+ gst-plugin-conv/src/gstamlvconv.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/gst-plugin-conv/src/gstamlvconv.c b/gst-plugin-conv/src/gstamlvconv.c
+index 9cb20de..c7a5dfb 100644
+--- a/gst-plugin-conv/src/gstamlvconv.c
++++ b/gst-plugin-conv/src/gstamlvconv.c
+@@ -403,12 +403,14 @@ gst_aml_vconv_transform_frame (GstVideoFilter * filter,
+   GST_INFO_OBJECT(self, "self->videorate.from_rate_numerator: %d,self->videorate.from_rate_denominator: %d",self->videorate.from_rate_numerator,self->videorate.from_rate_denominator);
+   GST_INFO_OBJECT(self, "self->videorate.to_rate_numerator: %d,self->videorate.to_rate_denominator: %d",self->videorate.to_rate_numerator,self->videorate.to_rate_denominator);
+   self->videorate.out_frame_count = self->videorate.out_frame_count + 1;
+-  divisor = (double)(self->videorate.from_rate_numerator / self->videorate.from_rate_denominator) / (double)(self->videorate.to_rate_numerator / self->videorate.to_rate_denominator);
+-  remainder = fmod((double)self->videorate.out_frame_count ,divisor);
+-  GST_INFO_OBJECT(self, "divisor: %lf,remainder: %lf,GlobalFrameCount :%lf",divisor,remainder,self->videorate.out_frame_count);
+-  if (1.0 <= remainder) {
+-      GST_INFO_OBJECT(self, "drop frame");
+-      return GST_BASE_TRANSFORM_FLOW_DROPPED;
++  if (0 != self->videorate.to_rate_numerator) {
++      divisor = (double)(self->videorate.from_rate_numerator / self->videorate.from_rate_denominator) / (double)(self->videorate.to_rate_numerator / self->videorate.to_rate_denominator);
++      remainder = fmod((double)self->videorate.out_frame_count ,divisor);
++      GST_INFO_OBJECT(self, "divisor: %lf,remainder: %lf,GlobalFrameCount :%lf",divisor,remainder,self->videorate.out_frame_count);
++      if (1.0 <= remainder) {
++          GST_INFO_OBJECT(self, "drop frame");
++          return GST_BASE_TRANSFORM_FLOW_DROPPED;
++      }
+   }
+ 
+   // output buffer
+@@ -677,6 +679,12 @@ gst_aml_vconv_init (GstAmlVConv *self)
+   self->graphic.m_input.fd = -1;
+   self->graphic.m_input.size = 0;
+ 
++  self->videorate.from_rate_denominator=0;
++  self->videorate.from_rate_numerator=0;
++  self->videorate.to_rate_denominator=0;
++  self->videorate.to_rate_numerator=0;
++  self->videorate.out_frame_count=0;
++
+   self->dmabuf_alloc = NULL;
+ }
+ 
+-- 
+2.25.1
+

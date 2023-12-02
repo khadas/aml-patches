@@ -1,7 +1,7 @@
-From 591b4ddaa2f7ab9b832904f4fcbd78e39fe9d355 Mon Sep 17 00:00:00 2001
+From 23335cd015fc40ba03bbfb5ecb75f03e97108b9c Mon Sep 17 00:00:00 2001
 From: "guoping.li" <guoping.li@amlogic.com>
 Date: Thu, 2 Feb 2023 17:04:14 +0800
-Subject: [PATCH 1/5] Amlbian: support Chinese simple language [1/1]
+Subject: [PATCH 01/13] Amlbian: support Chinese simple language [1/1]
 
 PD#SWPL-109095
 
@@ -29,10 +29,10 @@ Change-Id: I046c9ad21945b756ef237a6cc488f4c47465790a
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/config/config b/config/config
-index fa7166d..d0a9c8a 100755
+index 04870fc..5fb7098 100755
 --- a/config/config
 +++ b/config/config
-@@ -121,7 +121,7 @@ SUPPORT_LANGUAGE_VALUES="ENG | CHS" # English | Chinese simple
+@@ -124,7 +124,7 @@ SUPPORT_LANGUAGE_VALUES="ENG | CHS" # English | Chinese simple
  [[ -z $INSTALL_TYPE_RAW ]] && INSTALL_TYPE_RAW=no
  [[ -z $NO_APT_CACHER ]] && NO_APT_CACHER=yes
  [[ -z $SKIP_HEADER_DEB ]] && SKIP_HEADER_DEB=yes

@@ -1,0 +1,603 @@
+From 6f87cd28182847aad07afe18bb62021ec865500b Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Fri, 24 Nov 2023 10:50:53 +0800
+Subject: [PATCH 06/13] amlbian: support build script [1/2]
+
+PD#SWPL-147576
+
+Problem:
+support update code and build script, for easy to use
+
+Solution:
+1. update code :
+save stash->repo sync->apply stash
+2. build yocto->copy debs->build debian
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: Ifb94eb37ef392d547d4d3a0856b87072d313494d
+---
+ README.md                                     |  87 +----------
+ docs/How_to_update_code_and_build.md          |  69 +++++++++
+ ...er build.md => How_to_use_Docker_build.md} |   0
+ env/build-amlbian.sh                          | 145 ++++++++++++++++++
+ env/build-yocto.sh                            | 112 ++++++++++++++
+ env/docker-run-debian.sh                      |  14 +-
+ env/update-code.sh                            |  67 ++++++++
+ 7 files changed, 409 insertions(+), 85 deletions(-)
+ create mode 100755 docs/How_to_update_code_and_build.md
+ rename docs/{How to use Docker build.md => How_to_use_Docker_build.md} (100%)
+ create mode 100755 env/build-amlbian.sh
+ create mode 100755 env/build-yocto.sh
+ create mode 100755 env/update-code.sh
+
+diff --git a/README.md b/README.md
+index 24eeee8..d48687f 100644
+--- a/README.md
++++ b/README.md
+@@ -1,88 +1,11 @@
+-# Amlbian script set to build Debian images
++# Amlbian supprt
+ 
+ [![Licence](https://img.shields.io/badge/Licence-GPL--2.0-brightgreen.svg)](files:LICENSE)
+ 
+-# Supported build host
+-* `Ubuntu 20.04 Focal x64`
+-* `Ubuntu 22.04 Jammy x64`
+-* `Docker`
++Amlbian is released by Amlogic, and it support debian OS system, it support amlogic AIOT SOCs, such as A311D2, A311D, S905D3, S905X4, S905Y4
++It support many Amlogic hardwares in amlbian system, such as GPU, media decoder, media encoder, NPU, ISP, 2D graphics...
+ 
+ 
+-# Supported build target image
+-* `Debian 11 with minimal
+-* `Debian 11 with server
+-* `Debian 11 with gnome
+-
+-
+-## How to Build
+-### Step 1: Yocto build
+-### Step 1.1: build SOC relative debs
+-If you change kernel relative, or change SOC relative drivers, you should build SOC relative debs
+- through yocto environment.
+- 
+-```bash
+-$ ln -sf <your downloads dir>/yocto-downloads downloads
+-$ ln -sf <your CCACHE_DIR>/CCACHE_DIR CCACHE_DIR
+-$ export BUILD_DIR=$PWD/build-debs
+-$ source meta-meson/aml-setenv.sh mesont7-amlbian
+-$ bitbake amlogic-yocto
+-```
+-
+-for T7 and T7C, you should use mesont7-amlbian
+-
+-
+-#### Step 1.2: copy SOC relative debs to amlbian
+-```bash
+-$ ./copy_debs_from_yocto.sh
+-```
+-
+-### Step 2: Amlbian build
+-#### Step 2.1: Setup build environment
+-
+-```bash
+-$ source env/setenv.sh
+-```
+-You will select build config
+-Or you can load environment configuration from file.
+-
+-```bash
+-$ source env/setenv.sh config-template.conf
+-```
+-
+-You need to edit `config-template.conf` file to correct variables. 
+-please refer to `setenv-config` file to check all choices.
+-
+-
+-#### Step 2.2: Prepare download cache folder
+-```bash
+-$ ln -sf Your-path/amlbian-downloads amlbian-downloads
+-```
+-In download path, it will improve build speed, 
+-it is include the toolchains, debian base rootfs and CCACHE
+-
+-
+-#### Step 2.3: Build image
+-
+-```bash
+-$ ./build.sh
+-```
+-For Chinese users, it's better to use mirror from China:
+-
+-```bash
+-$ DOWNLOAD_MIRROR=china make
+-```
+-
+-
+-### Amlbian build in Docker
+-
+-Please refer to "docs/How to use Docker build.md"
+-
+-
+-### Build clearly rootfs cache, not install SOC relative debs. 
+-You can build all rootfs to cache, for faster build in future 
+-cd amlbian root folder, execute the following script, then it will debootstrap all the rootfs to cache
+-
+-```bash
+-$ sudo ./scripts/create_all_base_rootfs_to_cache.sh
+-```
++# How to documents
++/docs/How to*.md
+ 
+diff --git a/docs/How_to_update_code_and_build.md b/docs/How_to_update_code_and_build.md
+new file mode 100755
+index 0000000..a856185
+--- /dev/null
++++ b/docs/How_to_update_code_and_build.md
+@@ -0,0 +1,69 @@
++# Amlbian script set to build Debian images
++
++[![Licence](https://img.shields.io/badge/Licence-GPL--2.0-brightgreen.svg)](files:LICENSE)
++
++# Supported build host
++* `Ubuntu 20.04 Focal x64`
++* `Ubuntu 22.04 Jammy x64`
++* `Docker`
++
++
++# Supported build target image
++* `Debian 11 with minimal
++* `Debian 11 with gnome
++
++
++## How to update code and build
++
++### Step 1: update code
++It support git and repo system, so you can use repo init and repo sync to get the codes for the 1st time,
++in develop stage, you can update code and auto merge your local changes automatively, it is include 3 steps:
++1. git stash save all the local changed codes to cache
++2. repo sync
++3. git stash apply all the local changed back
++
++```bash
++$ ./update-code.sh
++```
++
++### Step 2: Build yocto part
++### Step 2.1: create a link for cache
++If you do the 1st build for yocto, you can build directly, and all the image and code can be download from internet,
++After 1st build, you can create a link to the local cache with follow commands, it will reduce the build time.
++
++```bash
++$ ln -sf <your downloads dir>/yocto-downloads downloads
++```
++
++### Step 2.1: build SOC relative source code to debs
++If you change SOC BSP relative codes, you should build yocto part.
++if you choose debian, it will build the SOC relative BSP part to debs
++
++```bash
++$ ./build-yocto.sh  # it will auto select the parameters
++$ ./build-yocto.sh T7_AN400 debian cleanbuild # use the parameters directly
++```
++
++#### Step 2.2: copy SOC hardware relative debs to amlbian build system
++```bash
++$ ./copy_debs_from_yocto.sh
++```
++
++### Step 3: Amlbian build
++#### Step 3.1: Prepare download cache folder
++If you do the 1st build for amlbian, you can build directly, and all the image and code can be download from internet,
++After 1st build, you can create a link to the local cache with follow commands, it will reduce the build time.
++it is include the toolchains, debian base rootfs and CCACHE
++
++```bash
++$ ln -sf Your-path/amlbian-downloads amlbian-downloads
++```
++
++#### Step 3.2: Setup build environment
++We use docker build as default for amlbian build, the benefit is as following:
++1. amlbian build need ROOT previlidge
++2. all amlbian development engineer should use the same environment
++```bash
++$ ./docker-run-debian.sh
++```
++
+diff --git a/docs/How to use Docker build.md b/docs/How_to_use_Docker_build.md
+similarity index 100%
+rename from docs/How to use Docker build.md
+rename to docs/How_to_use_Docker_build.md
+diff --git a/env/build-amlbian.sh b/env/build-amlbian.sh
+new file mode 100755
+index 0000000..596c35a
+--- /dev/null
++++ b/env/build-amlbian.sh
+@@ -0,0 +1,145 @@
++#!/bin/bash
++
++echo "build amlbian"
++
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP start**************************
++	$TEST_CASE_NAME.sh [build type]
++	$TEST_CASE_NAME.sh [build type] [config index]
++	build type:
++		rebuild 	# rebuild the project without delete the previous build result
++		cleanbuild 	# clean the previous build result and build the project
++	config index:
++		list the config files and select the config files with index
++
++	*********************************************************
++	EXAMPLES:
++		$TEST_CASE_NAME.sh cleanbuild
++		$TEST_CASE_NAME.sh cleanbuild 1
++		wrong parameter will show list for selecting
++	***************************HELP end**************************
++	"
++}
++
++
++build_type_array=
++selected_build_type=
++
++config_file_array=
++selected_config_index=
++selected_config_file=
++
++## select_config
++get_config_file() {
++	selected_config_index=$1
++	arr=($(find amlbian -maxdepth 1 -name "*.conf"))
++	declare -i count=${#arr[@]}-1
++
++	if [ $selected_config_index -le $count ]; then
++		selected_config_file=`echo ${arr[$selected_config_index]} |awk -F '/' '{print $NF}'`
++	else
++		selected_config_file=
++	fi
++}
++
++
++## select_config
++select_config() {
++	config_file_array=($(find amlbian -maxdepth 1 -name "*.conf"))
++	echo "Select the conf you need:"
++	declare -i NUM=0
++	for build_type in ${build_type_array[@]}
++	do
++		for file in ${config_file_array[@]}
++		do
++			echo -n $NUM
++			echo -n "    "
++			echo -n ${build_type}
++			echo -n "    "
++			echo ${file}
++			NUM=$NUM+1
++		done
++	done
++
++	read selected_config_index
++
++	NUM=0
++	for build_type in ${build_type_array[@]}
++	do
++		for file in ${config_file_array[@]}
++		do
++			if [ $selected_config_index == $NUM ]; then
++				selected_build_type=$build_type
++				selected_config_file=`echo $file |awk -F '/' '{print $NF}'`
++			fi
++			NUM=$NUM+1
++		done
++	done
++}
++
++
++
++###############################build prepare###################################
++if [ $# -ge 0  ];then # no parameters, select config and build
++	selected_build_type=$1
++	if [ $selected_build_type == "cleanbuild" ]; then
++		build_type_array=($selected_build_type)
++	elif [ $selected_build_type == "rebuild" ]; then
++		build_type_array=($selected_build_type)
++	else
++		echo "illegal build type: "$selected_build_type
++		selected_build_type=
++		build_type_array=("cleanbuild" "rebuild")
++	fi
++#	echo "build type:"$selected_build_type
++fi
++
++
++
++if [ $# == 2 ];then # no parameters, select config and build
++	get_config_file $2
++fi
++
++echo "Used build type:"$selected_build_type
++echo "Used config file:"[$selected_config_index]:$selected_config_file
++
++# parameter error
++if [[ ! -n $selected_build_type ]] || [[ ! -n $selected_config_file ]]; then
++	display_help
++	select_config
++fi
++
++echo "Used build type:"$selected_build_type
++echo "Used config file:"[$selected_config_index]:$selected_config_file
++
++
++work_board=$(grep -o 'WORK_BOARD=[^(]*' amlbian/$selected_config_file | sed 's/WORK_BOARD=//')
++echo "work_board:"$work_board
++
++
++###############################build yocto###################################
++datename=$(date +%Y%m%d)-$(date +%H%M%S)
++./build-yocto.sh $work_board "debian" $selected_build_type 2>&1 | tee log/build-yocto-$datename.txt
++
++./copy_debs_from_yocto.sh 2>&1 | tee log/build-copy-$datename.txt
++
++pwd
++
++
++###############################build amlbian###################################
++echo "build amlbian"
++if [ $selected_build_type == "cleanbuild" ]; then
++	echo "rm -rf build"
++	rm -rf build
++fi
++
++./docker-run-debian.sh $selected_config_file
++
++
++
+diff --git a/env/build-yocto.sh b/env/build-yocto.sh
+new file mode 100755
+index 0000000..5223855
+--- /dev/null
++++ b/env/build-yocto.sh
+@@ -0,0 +1,112 @@
++#!/bin/bash
++
++
++echo "build yocto:" $1 " " $2 " " $3
++
++
++SHELL_FILE_NAME=${BASH_SOURCE}
++SHELL_FILE_NAME=$(basename "$SHELL_FILE_NAME")
++TEST_CASE_NAME=${SHELL_FILE_NAME%.*}
++
++## Display parameters
++display_help() {
++	echo "\
++	***************************HELP start**************************
++	$TEST_CASE_NAME.sh [board] [os] [build type]
++	$TEST_CASE_NAME.sh [build type] [config index]
++	board:
++		T7/A311D/S905D3...
++	os:
++		yocto 	# build yocto only system
++		debian 	# build yocto part for amlbian system
++	build type:
++		rebuild 	# rebuild the project without delete the previous build result
++		cleanbuild 	# clean the previous build result and build the project
++
++	*********************************************************
++	EXAMPLES:
++		$TEST_CASE_NAME.sh T7_AN400 debian cleanbuild
++	***************************HELP end**************************
++	"
++}
++
++
++
++## select_config
++get_suitable_board() {
++echo "get_suitable_board:" $1 " " $2
++	TARGET_MACHINE=$1
++	BUILD_TARGET_OS=$2
++	if [ $BUILD_TARGET_OS == "debian" ]; then
++		BUILD_PATH="build-debs"
++		BUILD_TARGET="amlogic-debian"
++		if [ $TARGET_MACHINE == "T7-AN400" ]; then
++			TARGET_BOARD="mesont7-an400-debian-5.15"
++		elif [ $TARGET_MACHINE == "A311D-W400" ]; then
++			TARGET_BOARD="mesong12b-w400-debian-5.15"
++		elif [ $TARGET_MACHINE == "S905D3-AC200" ]; then
++			TARGET_BOARD="mesonsm1-ac200-debian-5.15"
++		elif [ $TARGET_MACHINE == "S905Y4-AP222" ]; then
++			TARGET_BOARD="mesons4-ap222-debian-5.15"
++		elif [ $TARGET_MACHINE == "S905X4-AH212" ]; then
++			TARGET_BOARD="mesonsc2-ah212-debian-5.15"
++		else
++			TARGET_BOARD="mesont7-an400-debian-5.15"
++		fi
++	else # yocto
++		BUILD_PATH="build"
++		BUILD_TARGET="amlogic-yocto"
++		if [ $TARGET_MACHINE == "T7-AN400" ]; then
++			TARGET_BOARD="mesont7-an400-5.15"
++		elif [ $TARGET_MACHINE == "A311D-W400" ]; then
++			TARGET_BOARD="mesong12b-w400-5.15"
++		elif [ $TARGET_MACHINE == "S905D3-AC200" ]; then
++			TARGET_BOARD="mesonsm1-ac200-5.15"
++		elif [ $TARGET_MACHINE == "S905Y4-AP222" ]; then
++			TARGET_BOARD="mesons4-ap222-5.15"
++		elif [ $TARGET_MACHINE == "S905X4-AH212" ]; then
++			TARGET_BOARD="mesonsc2-ah212-5.15"
++		else
++			TARGET_BOARD="mesont7-an400-5.15"
++		fi
++	fi
++	echo "BUILD_PATH:"$BUILD_PATH
++	echo "BUILD_TARGET:"$BUILD_TARGET
++	echo "TARGET_BOARD:"$TARGET_BOARD
++}
++
++
++
++build_type="rebuild"
++
++
++if [ $# == 1 ];then
++	get_suitable_board $1 "yocto"
++elif [ $# == 2 ];then
++	get_suitable_board $1 $2
++elif [ $# == 3 ];then
++	get_suitable_board $1 $2
++	build_type=$3
++else
++	display_help
++	exit 1
++fi
++
++echo "build_type:"$build_type
++if [ $build_type == "cleanbuild" ]; then
++	echo "rm -rf $BUILD_PATH"
++	rm -rf $BUILD_PATH
++	echo "rm -rf sstate-cache"
++	rm -rf sstate-cache
++fi
++
++
++
++export https_proxy=10.78.20.250:3128
++export BUILD_DIR=$PWD/$BUILD_PATH
++source meta-meson/aml-setenv.sh $TARGET_BOARD
++bitbake $BUILD_TARGET
++
++
++
++
+diff --git a/env/docker-run-debian.sh b/env/docker-run-debian.sh
+index 55bfb36..1e90432 100755
+--- a/env/docker-run-debian.sh
++++ b/env/docker-run-debian.sh
+@@ -13,7 +13,7 @@ echo "CONTAINER_NAME:"$CONTAINER_NAME
+ #docker inspect $CONTAINER_NAME -f '{{.Name}}' > /dev/null
+ if [ `docker inspect $CONTAINER_NAME &>>/dev/null &&  echo 0 || echo 1` -eq 0 ];then
+     echo "The container $CONTAINER_NAME is exist!, stop and rm it at first"
+-    
++
+     docker stop $CONTAINER_NAME
+     docker rm -f $CONTAINER_NAME
+ fi
+@@ -72,7 +72,7 @@ select_config() {
+ 	echo "Select the conf you need:"
+ 	declare -i NUM=0
+ 	for data in ${arr[@]}
+-	do 
++	do
+ 		echo -n $NUM
+ 		echo -n "    "
+ 		echo ${data}
+@@ -121,6 +121,14 @@ fi
+ echo "Used config file:"$DEFAULT_CONFIG_FILE
+ echo "command"="$command"
+ 
++#create link
++if [ -f amlbian/env/setenv.sh ]; then
++	[ ! -h setenv.sh ] && ln -sf  amlbian/env/setenv.sh
++fi
++if [ -f amlbian/env/build.sh ]; then
++	[ ! -h build.sh ] && ln -sf  amlbian/env/build.sh
++fi
++
+ #Execute the make parameter
+ if [[ $DOCKER_ACTION == "build" ]]; then # build all
+ 	echo "Build~~~"
+@@ -162,7 +170,7 @@ fi
+ # remove the container
+ if [ `docker inspect $CONTAINER_NAME &>>/dev/null &&  echo 0 || echo 1` -eq 0 ];then
+     echo "The container $CONTAINER_NAME is exist!, stop and rm it at last"
+-    
++
+     docker stop $CONTAINER_NAME
+     docker rm -f $CONTAINER_NAME
+ fi
+diff --git a/env/update-code.sh b/env/update-code.sh
+new file mode 100755
+index 0000000..acedb1d
+--- /dev/null
++++ b/env/update-code.sh
+@@ -0,0 +1,67 @@
++#!/bin/bash
++
++
++echo "update code"
++
++## download_rootfs_from_cache
++save-to-stash() {
++	CUR_PATH=($(pwd))
++	GIT_PATH=$1
++	cd $GIT_PATH
++
++
++	if [[ -n $(git diff --stat)  ]]; then
++		git stash save -u "auto update code save" --include-untracked
++		touch .git-auto-save
++		echo ""$GIT_PATH": save to stash"
++	else
++		echo ""$GIT_PATH": no update, needn't save"
++	fi
++	cd $CUR_PATH
++}
++
++
++restore-from-stash() {
++	CUR_PATH=($(pwd))
++	GIT_PATH=$1
++	cd $GIT_PATH
++
++	if [ -f .git-auto-save ]; then
++#		git stash pop
++		git stash apply stash@{0}
++		if [ $? -eq 0 ]
++		then
++			echo ""$GIT_PATH": restore from stash"
++			rm .git-auto-save
++			git stash remove stash@{0}
++		else
++			echo ""$GIT_PATH": git stash apply stash@{0} Failure"
++			exit 1
++		fi
++	else
++		echo ""$GIT_PATH": no update, need't restore"
++	fi
++	cd $CUR_PATH
++}
++
++
++All_changed_repo=($(repo status | grep 'project' | sed 's/project //' | sed 's/(\*\*\* NO BRANCH \*\*\*)//'))
++
++# save to stash
++for changed_repo in ${All_changed_repo[@]}
++do
++	save-to-stash ${changed_repo}
++done
++
++
++echo "repo sync..."
++repo sync
++
++
++
++# restore from stash
++for changed_repo in ${All_changed_repo[@]}
++do
++	restore-from-stash ${changed_repo}
++done
++
+-- 
+2.25.1
+

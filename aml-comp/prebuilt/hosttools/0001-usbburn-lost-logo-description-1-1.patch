@@ -1,0 +1,40 @@
+From 7e7d4b4b73a49ba7bda8b926d5df8e7b6c4e4e31 Mon Sep 17 00:00:00 2001
+From: "zongren.yin" <zongren.yin@amlogic.com>
+Date: Fri, 10 Nov 2023 09:54:04 +0800
+Subject: [PATCH 1/2] usbburn: lost logo description [1/1]
+
+PD#SH-17103
+
+Problem:
+usb burn failed in logo loading
+
+Solution:
+Add logo description
+
+Fixed conflicts:
+NA
+
+Verify:
+local t7c build
+
+Signed-off-by: zongren.yin <zongren.yin@amlogic.com>
+Change-Id: I8e7764cbe45dd7933f5ddd9cff9fdee9cfc0d057
+---
+ aml-image-packer/t7/aml_upgrade_package.conf | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/aml-image-packer/t7/aml_upgrade_package.conf b/aml-image-packer/t7/aml_upgrade_package.conf
+index a429625..9948def 100644
+--- a/aml-image-packer/t7/aml_upgrade_package.conf
++++ b/aml-image-packer/t7/aml_upgrade_package.conf
+@@ -9,6 +9,7 @@ file="platform.conf"                    main_type= "conf"           sub_type="pl
+ file="aml_sdc_burn.ini"                 main_type="ini"             sub_type="aml_sdc_burn"
+ file="dtb.img"                           main_type="dtb"             sub_type="meson1"
+ file="usb_flow.aml"                    main_type="aml"             sub_type="usb_flow"
++file="logo.img"                    main_type="logo"             sub_type="aml_sdc_burn"
+ 
+ [LIST_VERIFY]
+ #partition images needed verify
+-- 
+2.25.1
+

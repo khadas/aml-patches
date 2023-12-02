@@ -1,0 +1,37 @@
+From 19415c84e30806e86c817d60b2274e28ffb156bf Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Fri, 1 Dec 2023 18:03:50 +0800
+Subject: [PATCH 13/13] amlbian: Remobe tvserver deb when copy debs [1/1]
+
+PD#SWPL-148274
+
+Problem:
+building erro.
+
+Solution:
+Remobe tvserver deb when copy debs.
+
+Verify:
+local
+
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+Change-Id: I40c768a8837f6c0c10c6e5d8b10fca7f0f1fe778
+---
+ env/copy_debs_from_yocto.sh | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/env/copy_debs_from_yocto.sh b/env/copy_debs_from_yocto.sh
+index 4891a76..35c4dc7 100755
+--- a/env/copy_debs_from_yocto.sh
++++ b/env/copy_debs_from_yocto.sh
+@@ -205,7 +205,6 @@ case "$TARGET_BOARD" in
+                             h264bitstream \
+                             libgles-eabihf-dvalin-wayland-drm \
+                             mediactrlsrc \
+-                            aml-tvserver \
+                             brcm-patchram-plus)
+ 		kernel_mod_arr+=( npu dvalin ap6xxx)
+ 		;;
+-- 
+2.25.1
+

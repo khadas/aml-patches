@@ -1,0 +1,91 @@
+From 9786ab8c4e7023b53dfe45f7797132302f6238e9 Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Wed, 15 Nov 2023 10:35:29 +0800
+Subject: [PATCH 08/13] amlbian: Reset ENV partition [1/1]
+
+PD#SWPL-146130
+
+Problem:
+After uboot upgrade, the newly added environment variables will not take
+effect.
+
+Solution:
+Reset ENV partition after upgrading uboot.
+
+Verify:
+local
+
+Change-Id: I611f4fe19b4bf966cf2861f8a359d621815ad04e
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+---
+ config/boards/amlogic/uboot-201501-config.inc | 13 ++++++++-----
+ config/boards/amlogic/uboot-201901-config.inc | 13 ++++++++-----
+ 2 files changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/config/boards/amlogic/uboot-201501-config.inc b/config/boards/amlogic/uboot-201501-config.inc
+index 884f3b9..2dcd236 100644
+--- a/config/boards/amlogic/uboot-201501-config.inc
++++ b/config/boards/amlogic/uboot-201501-config.inc
+@@ -29,19 +29,22 @@ write_uboot_platform()
+ ## Write u-boot for vendor u-boot
+ write_uboot_platform_ext()
+ {
++	# upgrade uboot default partition
++	dd if="$1/u-boot.bin.signed" of=/dev/mmcblk0p1 conv=fsync bs=512 seek=1 > /dev/null 2>&1
++
+ 	# set mmcblk0boot* writable
+-	echo 0 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot0/force_ro
+-	echo 0 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot1/force_ro
++	echo 0 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot0/force_ro
++	echo 0 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot1/force_ro
+ 
+ 	dd if="$1/u-boot.bin" of=/dev/mmcblk0boot0 conv=fsync bs=512 seek=1 > /dev/null 2>&1
+ 	dd if="$1/u-boot.bin" of=/dev/mmcblk0boot1 conv=fsync bs=512 seek=1 > /dev/null 2>&1
+ 
+ 	echo "resetting u-boot environment variables ..."
+-	[ -b /dev/mmcblk0p2 ] && dd if=/dev/zero of=/dev/mmcblk0p2 bs=1M count=1 > /dev/null 2>&1
++	[ -b /dev/mmcblk0p5 ] && dd if=/dev/zero of=/dev/mmcblk0p2 bs=1M count=1 > /dev/null 2>&1
+ 
+ 	# set mmcblk0boot* read-only
+-	echo 1 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot0/force_ro
+-	echo 1 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot1/force_ro
++	echo 1 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot0/force_ro
++	echo 1 > /sys/devices/platform/*.emmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot1/force_ro
+ }
+ 
+ setup_write_uboot_platform()
+diff --git a/config/boards/amlogic/uboot-201901-config.inc b/config/boards/amlogic/uboot-201901-config.inc
+index 7958db7..7f7e155 100644
+--- a/config/boards/amlogic/uboot-201901-config.inc
++++ b/config/boards/amlogic/uboot-201901-config.inc
+@@ -39,19 +39,22 @@ write_uboot_platform()
+ ## Write u-boot for vendor u-boot
+ write_uboot_platform_ext()
+ {
++	# upgrade uboot default partition
++	dd if="$1/u-boot.bin.signed" of=/dev/mmcblk0p1 conv=fsync bs=512 seek=1 > /dev/null 2>&1
++
+ 	# set mmcblk0boot* writable
+-	echo 0 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot0/force_ro
+-	echo 0 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot1/force_ro
++	echo 0 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot0/force_ro
++	echo 0 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot1/force_ro
+ 
+ 	dd if="$1/u-boot.bin.signed" of=/dev/mmcblk0boot0 conv=fsync bs=512 seek=1 > /dev/null 2>&1
+ 	dd if="$1/u-boot.bin.signed" of=/dev/mmcblk0boot1 conv=fsync bs=512 seek=1 > /dev/null 2>&1
+ 
+ 	echo "resetting u-boot environment variables ..."
+-	[ -b /dev/mmcblk0p3 ] && dd if=/dev/zero of=/dev/mmcblk0p3 bs=1M count=1 > /dev/null 2>&1
++	[ -b /dev/mmcblk0p5 ] && dd if=/dev/zero of=/dev/mmcblk0p5 bs=1M count=1 > /dev/null 2>&1
+ 
+ 	# set mmcblk0boot* read-only
+-	echo 1 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot0/force_ro
+-	echo 1 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0boot1/force_ro
++	echo 1 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot0/force_ro
++	echo 1 > /sys/devices/platform/soc/*.*mmc/mmc_host/mmc0/mmc0:*/block/mmcblk0/mmcblk0boot1/force_ro
+ }
+ 
+ setup_write_uboot_platform()
+-- 
+2.25.1
+

@@ -1,0 +1,34 @@
+From 32d21126e9bbf8451971e0715e80650898c37965 Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Sat, 2 Dec 2023 00:56:56 +0800
+Subject: [PATCH 14/14] absystem: add vendor image  [1/1]
+
+PD#SWPL-
+
+Problem:
+
+Solution:
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: Ib7e348e65cf144b22673e66152b25d4272e8ab5e
+---
+ conf/machine/include/amlogic_aiot_common.inc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/conf/machine/include/amlogic_aiot_common.inc b/conf/machine/include/amlogic_aiot_common.inc
+index 1b16c022..8eb760d1 100644
+--- a/conf/machine/include/amlogic_aiot_common.inc
++++ b/conf/machine/include/amlogic_aiot_common.inc
+@@ -10,5 +10,6 @@ DISTRO_FEATURES_append = " dma-allocator"
+ DISTRO_FEATURES_append = " gst-aml-dma-allocator"
+ 
+ DISTRO_FEATURES_append = " gst-plugin-conv"
++DISTRO_FEATURES_append = " vendor-image"
+ 
+ 
+-- 
+2.25.1
+

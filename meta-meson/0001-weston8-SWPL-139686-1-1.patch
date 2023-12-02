@@ -1,0 +1,422 @@
+From c3181ec373f0f17bd5dc79fcea71063bceed1aec Mon Sep 17 00:00:00 2001
+From: "limin.tian" <limin.tian@amlogic.com>
+Date: Thu, 26 Oct 2023 07:19:42 +0000
+Subject: [PATCH 01/14] weston8: SWPL-139686 [1/1]
+
+PD#SWPL-139686
+
+Problem:
+video playback stuck when unplug HDMI
+
+Solution:
+release stranged buffers to client when unplug HDMI
+
+Verify:
+t7c
+
+Change-Id: I9839059d969a6a0718fb330f336f82021e4bb3f9
+Signed-off-by: limin.tian <limin.tian@amlogic.com>
+---
+ ...-buffer-to-client-when-output-remove.patch | 377 ++++++++++++++++++
+ recipes-graphics/wayland/weston_8.0.0.bb      |   1 +
+ 2 files changed, 378 insertions(+)
+ create mode 100755 recipes-graphics/wayland/weston/0033-release-buffer-to-client-when-output-remove.patch
+
+diff --git a/recipes-graphics/wayland/weston/0033-release-buffer-to-client-when-output-remove.patch b/recipes-graphics/wayland/weston/0033-release-buffer-to-client-when-output-remove.patch
+new file mode 100755
+index 00000000..36cd5aa4
+--- /dev/null
++++ b/recipes-graphics/wayland/weston/0033-release-buffer-to-client-when-output-remove.patch
+@@ -0,0 +1,377 @@
++diff --git a/compositor/main.c b/compositor/main.c
++index db25f31..7e9ad4b 100644
++--- a/compositor/main.c
+++++ b/compositor/main.c
++@@ -2271,8 +2271,16 @@ static void drm_head_changed(struct wet_compositor *wet, struct weston_head *hea
++ 		__FUNCTION__,__LINE__,head->name, connected, enabled,changed,forced,should_enable);
++ 	if (((connected || forced) && should_enable) && !enabled) {
++ 		drm_head_prepare_enable(wet, head);
+++		if (strcmp("HDMI-A-1", head->name) == 0) {
+++			weston_log("\n enable HDMI  and release stranded buffers\n");
+++			weston_release_stranded_buffers();
+++		}
++ 	} else if (!((connected || forced) && should_enable) && enabled) {
++ 		drm_head_disable(head);
+++		if (strcmp("HDMI-A-1", head->name) == 0) {
+++			weston_log("\n disable HDMI and release stranded buffers\n");
+++			weston_release_stranded_buffers();
+++		}
++ 	} else if (enabled && changed) {
++ 		weston_log("Detected a monitor change on head '%s', "
++ 				"not bothering to do anything about it.\n",
++diff --git a/desktop-shell/shell.c b/desktop-shell/shell.c
++index a6f286f..a54226a 100755
++--- a/desktop-shell/shell.c
+++++ b/desktop-shell/shell.c
++@@ -4818,9 +4818,10 @@ shell_reposition_view_on_output_change(struct weston_view *view)
++ 		first_output = container_of(ec->output_list.next,
++ 					    struct weston_output, link);
++ 
++-		x = first_output->x + first_output->width / 4;
++-		y = first_output->y + first_output->height / 4;
++-
+++		//x = first_output->x + first_output->width / 4;
+++		//y = first_output->y + first_output->height / 4;
+++		x= 0.0;
+++		y = 0.0;
++ 		weston_view_set_position(view, x, y);
++ 	} else {
++ 		weston_view_geometry_dirty(view);
++diff --git a/include/libweston/libweston.h b/include/libweston/libweston.h
++index 02076e3..0d1b1c2 100755
++--- a/include/libweston/libweston.h
+++++ b/include/libweston/libweston.h
++@@ -1130,6 +1130,7 @@ struct weston_buffer {
++ 	int32_t width, height;
++ 	uint32_t busy_count;
++ 	int y_inverted;
+++	bool commit_fail;
++ };
++ 
++ struct weston_buffer_reference {
++@@ -1693,6 +1694,7 @@ struct weston_surface *
++ weston_surface_create(struct weston_compositor *compositor);
++ 
++ void weston_view_opacity(struct weston_view *view, float opacity);
+++void weston_release_stranded_buffers();
++ 
++ struct weston_view *
++ weston_view_create(struct weston_surface *surface);
++diff --git a/libweston/backend-drm/drm-internal.h b/libweston/backend-drm/drm-internal.h
++index b6bd94a..353c2be 100644
++--- a/libweston/backend-drm/drm-internal.h
+++++ b/libweston/backend-drm/drm-internal.h
++@@ -292,6 +292,7 @@ struct drm_backend {
++ 	bool fb_modifiers;
++ 
++ 	struct weston_log_scope *debug;
+++	bool allow_modeset;
++ };
++ 
++ struct drm_mode {
++diff --git a/libweston/backend-drm/drm.c b/libweston/backend-drm/drm.c
++index 479c71f..7fc7a36 100755
++--- a/libweston/backend-drm/drm.c
+++++ b/libweston/backend-drm/drm.c
++@@ -214,9 +214,9 @@ drm_plane_is_available(struct drm_plane *plane, struct drm_output *output)
++ 		return false;
++ 
++ 	/* The plane is still active on another output. */
++-	if (plane->state_cur->output && plane->state_cur->output != output)
+++	/*if (plane->state_cur->output && plane->state_cur->output != output) {
++ 		return false;
++-
+++	*/
++ 	/* Check whether the plane can be used with this CRTC; possible_crtcs
++ 	 * is a bitmask of CRTC indices (pipe), rather than CRTC object ID. */
++ 	return !!(plane->possible_crtcs & (1 << output->pipe));
++@@ -712,6 +712,7 @@ drm_output_switch_mode(struct weston_output *output_base, struct weston_mode *mo
++ 	 *      content.
++ 	 */
++ 	b->state_invalid = true;
+++	b->allow_modeset = true;
++ 
++ 	if (b->use_pixman) {
++ 		drm_output_fini_pixman(output);
++@@ -1837,6 +1838,8 @@ drm_output_enable(struct weston_output *base)
++ 				continue;
++ 			if (plane->is_video_plane)
++ 				plane->video_plane = output->video_plane_count++;
+++			weston_log("drm_output_enable plane available id:%d is_video_plane:%d\n",
+++				plane->plane_id, plane->is_video_plane);
++ 		}
++ 
++ 	return 0;
++@@ -3036,6 +3039,7 @@ drm_backend_create(struct weston_compositor *compositor,
++ 		return NULL;
++ 
++ 	b->state_invalid = true;
+++	b->allow_modeset = true;
++ 	b->drm.fd = -1;
++ 	wl_array_init(&b->unused_crtcs);
++ 
++diff --git a/libweston/backend-drm/kms.c b/libweston/backend-drm/kms.c
++index 1b98f50..2f2484b 100644
++--- a/libweston/backend-drm/kms.c
+++++ b/libweston/backend-drm/kms.c
++@@ -1204,7 +1204,8 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
++ 			plane_add_prop(req, plane, WDRM_PLANE_FB_ID, 0);
++ 		}
++ 
++-		flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
+++		if (b->allow_modeset)
+++			flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
++ 	}
++ 
++ 	wl_list_for_each(output_state, &pending_state->output_list, link) {
++@@ -1228,6 +1229,22 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
++ 
++ 	/* Test commits do not take ownership of the state; return
++ 	 * without freeing here. */
+++	if (ret != 0)
+++	{
+++		struct drm_output_state *output_state_tmp;
+++		wl_list_for_each(output_state_tmp, &pending_state->output_list, link) {
+++			if (output_state->output->virtual)
+++				continue;
+++			struct drm_plane_state *plane_state_tmp;
+++			wl_list_for_each(plane_state_tmp, &output_state_tmp->plane_list, link) {
+++				if(plane_state_tmp && plane_state_tmp->fb && plane_state_tmp->fb->buffer_ref.buffer) {
+++					plane_state_tmp->fb->buffer_ref.buffer->commit_fail = true;
+++					weston_log("\n%s %d buffer :%p commit  fail\n", 
+++					__FUNCTION__,__LINE__, plane_state_tmp->fb->buffer_ref.buffer);
+++				}
+++			}
+++		}
+++	}
++ 	if (mode == DRM_STATE_TEST_ONLY) {
++ 		drmModeAtomicFree(req);
++ 		return ret;
++@@ -1244,6 +1261,8 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
++ 		drm_output_assign_state(output_state, mode);
++ 
++ 	b->state_invalid = false;
+++	if (b->allow_modeset)
+++		b->allow_modeset = false;
++ 
++ 	assert(wl_list_empty(&pending_state->output_list));
++ 
++@@ -1440,11 +1459,13 @@ atomic_flip_handler(int fd, unsigned int frame, unsigned int sec,
++ 	drm_output_update_msc(output, frame);
++ 
++ 	drm_debug(b, "[atomic][CRTC:%u] flip processing started\n", crtc_id);
++-	assert(b->atomic_modeset);
++-	assert(output->atomic_complete_pending);
++-	output->atomic_complete_pending = false;
+++	if ( b->atomic_modeset && output->atomic_complete_pending) {
+++		assert(b->atomic_modeset);
+++		assert(output->atomic_complete_pending);
+++		output->atomic_complete_pending = false;
++ 
++-	drm_output_update_complete(output, flags, sec, usec);
+++		drm_output_update_complete(output, flags, sec, usec);
+++		}
++ 	drm_debug(b, "[atomic][CRTC:%u] flip processing completed\n", crtc_id);
++ }
++ 
++diff --git a/libweston/compositor.c b/libweston/compositor.c
++index 3541d32..bc8ca40 100755
++--- a/libweston/compositor.c
+++++ b/libweston/compositor.c
++@@ -173,7 +173,14 @@ weston_mode_switch_send_events(struct weston_head *head,
++ 		zxdg_output_v1_send_done(resource);
++ 	}
++ }
++-
+++static uint64_t getCuerrntTimeMillis()
+++{
+++	struct timespec t;
+++	t.tv_sec = t.tv_nsec = 0;
+++	clock_gettime(CLOCK_MONOTONIC,&t);
+++	uint64_t mono_ns = ((uint64_t)(t.tv_sec))*1000000000LL + t.tv_nsec;
+++	return mono_ns/1000LL;
+++}
++ static void
++ weston_mode_switch_finish(struct weston_output *output,
++ 			  int mode_changed, int scale_changed)
++@@ -623,9 +630,6 @@ weston_surface_create(struct weston_compositor *compositor)
++ 	surface->protection_mode = WESTON_SURFACE_PROTECTION_MODE_RELAXED;
++ #if MESON_VIDEO_PLAN_SUPPORT
++     surface->is_video_surface = false;
++-    video_buffer_release[FRAME_CURR] = NULL;
++-    video_buffer_release[FRAME_PREV] = NULL;
++-    video_buffer_release[FRAME_FREE] = NULL;
++ #endif
++ 	surface->video_plane = 255;
++ 	return surface;
++@@ -2413,44 +2417,76 @@ weston_buffer_reference(struct weston_buffer_reference *ref,
++     ref->buffer = buffer;
++     ref->destroy_listener.notify = weston_buffer_reference_handle_destroy;
++ }
+++
+++WL_EXPORT void weston_release_stranded_buffers()
+++{
+++	if (video_buffer_release[FRAME_FREE] != NULL) {
+++		weston_log("\n weston_release_stranded_buffers  line:%d :%p, time:%lld \n", __LINE__,video_buffer_release[FRAME_FREE], getCuerrntTimeMillis());
+++		wl_buffer_send_release(video_buffer_release[FRAME_FREE]->resource);
+++		video_buffer_release[FRAME_FREE] = NULL;
+++	}
+++	if (video_buffer_release[FRAME_PREV] != NULL) {
+++		weston_log("\n weston_release_stranded_buffers  line:%d :%p, time:%lld \n", __LINE__,video_buffer_release[FRAME_PREV], getCuerrntTimeMillis());
+++		wl_buffer_send_release(video_buffer_release[FRAME_PREV]->resource);
+++		video_buffer_release[FRAME_PREV] = NULL;
+++	}
+++	if (video_buffer_release[FRAME_CURR] != NULL) {
+++		weston_log("\n weston_release_stranded_buffers  line:%d :%p, time:%lld \n", __LINE__,video_buffer_release[FRAME_CURR], getCuerrntTimeMillis());
+++		wl_buffer_send_release(video_buffer_release[FRAME_CURR]->resource);
+++		video_buffer_release[FRAME_CURR] = NULL;
+++	}
+++	release_cur = false;
+++	release_pre = false;
+++}
+++
++ static void buffer_send_release(struct weston_buffer_reference *ref)
++ {
++ 
++-    if (!is_video_buffer(ref->buffer)) {
++-        wl_buffer_send_release(ref->buffer->resource);
++-    } else {
++-        int fence_rc = -1;
++-        video_buffer_release[FRAME_FREE] = video_buffer_release[FRAME_PREV];
++-        video_buffer_release[FRAME_PREV] = video_buffer_release[FRAME_CURR];
++-        video_buffer_release[FRAME_CURR] = ref->buffer;
++-        if(video_buffer_release[FRAME_FREE]!=NULL && release_pre == false )
++-        {
++-            //no matter get fence or not,send release anyway
++-            wl_buffer_send_release(video_buffer_release[FRAME_FREE]->resource);
++-        }
++-        if(video_buffer_release[FRAME_PREV]!=NULL && release_cur == true) {
++-            release_pre = true;
++-        }
++-        if(video_buffer_release[FRAME_PREV]!=NULL && release_cur == false) {
++-            fence_rc = video_fence(video_buffer_release[FRAME_PREV]);
++-            if(fence_rc ==1) {
++-                wl_buffer_send_release(video_buffer_release[FRAME_PREV]->resource);
++-                release_pre = true;
++-            } else {
++-                release_pre = false;
++-            }
++-        }
++-        if(video_buffer_release[FRAME_CURR]!=NULL) {
++-            fence_rc = -1;
++-            fence_rc = video_fence(video_buffer_release[FRAME_CURR]);
++-            if(fence_rc ==1) {
++-                wl_buffer_send_release(video_buffer_release[FRAME_CURR]->resource);
++-                release_cur = true;
++-            } else {
++-                release_cur = false;
++-            }
++-        }
++-    }
+++	if (!is_video_buffer(ref->buffer)) {
+++		wl_buffer_send_release(ref->buffer->resource);
+++	} else {
+++		int fence_rc = -1;
+++		video_buffer_release[FRAME_FREE] = video_buffer_release[FRAME_PREV];
+++		video_buffer_release[FRAME_PREV] = video_buffer_release[FRAME_CURR];
+++		video_buffer_release[FRAME_CURR] = ref->buffer;
+++		if(video_buffer_release[FRAME_FREE]!=NULL && release_pre == false )
+++		{
+++			//no matter get fence or not,send release anyway
+++			wl_buffer_send_release(video_buffer_release[FRAME_FREE]->resource);
+++			video_buffer_release[FRAME_FREE] = NULL;
+++		}
+++		if(video_buffer_release[FRAME_PREV]!=NULL && release_cur == true) {
+++			release_pre = true;
+++		}
+++		if(video_buffer_release[FRAME_PREV]!=NULL && release_cur == false) {
+++			fence_rc = video_fence(video_buffer_release[FRAME_PREV]);
+++			if(fence_rc ==1) {
+++				wl_buffer_send_release(video_buffer_release[FRAME_PREV]->resource);
+++				video_buffer_release[FRAME_PREV] = NULL;
+++				release_pre = true;
+++			} else {
+++				release_pre = false;
+++			}
+++		}
+++		if(video_buffer_release[FRAME_CURR]!=NULL) {
+++			fence_rc = -1;
+++			fence_rc = video_fence(video_buffer_release[FRAME_CURR]);
+++			if(fence_rc ==1) {
+++				wl_buffer_send_release(video_buffer_release[FRAME_CURR]->resource);
+++				video_buffer_release[FRAME_CURR] = NULL;
+++				release_cur = true;
+++			} else {
+++				release_cur = false;
+++			}
+++		}
+++		if (!release_cur && video_buffer_release[FRAME_CURR]->commit_fail)
+++		{
+++			wl_buffer_send_release(video_buffer_release[FRAME_CURR]->resource);
+++			video_buffer_release[FRAME_CURR]->commit_fail = false;
+++			video_buffer_release[FRAME_CURR] = NULL;
+++			release_cur = true;
+++		}
+++	}
++ }
++ static void
++ weston_buffer_release_reference_handle_destroy(struct wl_listener *listener,
++@@ -2527,25 +2563,30 @@ weston_surface_attach(struct weston_surface *surface,
++ 			weston_surface_unmap(surface);
++ 	}
++ #if MESON_VIDEO_PLAN_SUPPORT
++-    struct linux_dmabuf_buffer *dmabuf = NULL;
++-    if (buffer) {
++-        dmabuf = linux_dmabuf_buffer_get(buffer->resource);
++-        if (dmabuf) {
++-            switch (dmabuf->attributes.format) {
++-                case DRM_FORMAT_NV12:
++-                case DRM_FORMAT_NV21:
++-                case DRM_FORMAT_YUV420:
++-                case DRM_FORMAT_YVU420:
++-                case DRM_FORMAT_YUYV:
++-                case DRM_FORMAT_YVYU:   
++-                    surface->is_video_surface = true;
++-                    break;
++-                default:
++-                    weston_log_scope_printf(surface->compositor->debug_scene, "[meson]===>dma buffer import drm format:%#x in [%s]%s:%d\n", dmabuf->attributes.format, __func__ , __FILE__, __LINE__);
++-                    break;
++-            }
++-        }
++-    }
+++	struct linux_dmabuf_buffer *dmabuf = NULL;
+++	if (buffer) {
+++		dmabuf = linux_dmabuf_buffer_get(buffer->resource);
+++		if (dmabuf) {
+++			switch (dmabuf->attributes.format) {
+++				case DRM_FORMAT_NV12:
+++				case DRM_FORMAT_NV21:
+++				case DRM_FORMAT_YUV420:
+++				case DRM_FORMAT_YVU420:
+++				case DRM_FORMAT_YUYV:
+++				case DRM_FORMAT_YVYU:	
+++					if (surface->is_video_surface == false) {
+++						video_buffer_release[FRAME_CURR] = NULL;
+++						video_buffer_release[FRAME_PREV] = NULL;
+++						video_buffer_release[FRAME_FREE] = NULL;
+++						surface->is_video_surface = true;
+++					}
+++					break;
+++				default:
+++					weston_log_scope_printf(surface->compositor->debug_scene, "[meson]===>dma buffer import drm format:%#x in [%s]%s:%d\n", dmabuf->attributes.format, __func__ , __FILE__, __LINE__);
+++					break;
+++			}
+++		}
+++	}
++ #endif
++ 	if (surface->is_video_surface && surface->video_plane == 255) {
++ 		surface->video_plane = surface->compositor->video_surface_count;
++@@ -5517,7 +5558,7 @@ weston_head_set_device_changed(struct weston_head *head)
++ 	head->device_changed = true;
++ 
++ 	if (head->compositor) {
++-		weston_try_disconnect_hdmi(head);
+++		//weston_try_disconnect_hdmi(head);
++ 		weston_compositor_schedule_heads_changed(head->compositor);
++ 	}
++ }
+diff --git a/recipes-graphics/wayland/weston_8.0.0.bb b/recipes-graphics/wayland/weston_8.0.0.bb
+index 08d2dd80..1352360b 100644
+--- a/recipes-graphics/wayland/weston_8.0.0.bb
++++ b/recipes-graphics/wayland/weston_8.0.0.bb
+@@ -27,6 +27,7 @@ SRC_URI = "https://wayland.freedesktop.org/releases/${BPN}-${PV}.tar.xz \
+            file://0030-8.0.0-modify-default-video-plane.patch \
+            file://0031-8.0.0-change-to-dummy-mode-when-suspend.patch \
+            file://0032-8.0.0-add-z-order-transparent-setting-flow.patch \
++		   file://0033-release-buffer-to-client-when-output-remove.patch \
+            "
+ 
+ SRC_URI[md5sum] = "53e4810d852df0601d01fd986a5b22b3"
+-- 
+2.25.1
+

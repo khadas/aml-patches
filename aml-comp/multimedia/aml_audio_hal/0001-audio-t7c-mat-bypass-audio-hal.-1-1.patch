@@ -1,0 +1,367 @@
+From b0bfd568968466c89e82820dcb0c3007fedd6515 Mon Sep 17 00:00:00 2001
+From: "dongyang.zhang" <dongyang.zhang@amlogic.com>
+Date: Thu, 9 Nov 2023 11:47:54 +0000
+Subject: [PATCH] audio: t7c mat bypass audio hal. [1/1]
+
+PD#SH-16531
+
+Problem:
+support t7c mat bypass.
+issue summary:
+1.mat files can't input from hdmi rx.
+2.mat need use tdm device to output but audio hal
+can't route to tdm.
+3.can't abtain sink capability when product is tv.
+4.c0d2 capture and playback use different config which
+leads to problem.
+
+Solution:
+1.update t7c edid to support mat input.
+2.in hdmi_rx and no_ms12 and format is MAT, set a flag
+to force open c0d2.
+3.add a new product platform names is_BDS.
+4.modify dts and tdm.c in driver.
+
+Verify:
+t7c-trunk
+
+Change-Id: Ic0edea5821e110e7a057f3a8d3adf8f224633aa3
+Signed-off-by: dongyang.zhang <dongyang.zhang@amlogic.com>
+---
+ audio_hal/alsa_manager.c             | 25 +++++++++++-
+ audio_hal/aml_audio_nonms12_render.c | 49 ++++++++++++++++++++++-
+ audio_hal/aml_audio_spdifout.c       | 12 +++++-
+ audio_hal/aml_audio_stream.c         |  4 +-
+ audio_hal/audio_format_parse.c       |  8 ++--
+ audio_hal/audio_hw.c                 |  9 +++++
+ audio_hal/audio_hw.h                 |  2 +
+ utils/alsa_device_parser.c           | 58 ++++++++++++++++++++++++++++
+ 8 files changed, 158 insertions(+), 9 deletions(-)
+
+diff --git a/audio_hal/alsa_manager.c b/audio_hal/alsa_manager.c
+index 3f9a8bfc..6b2f2202 100644
+--- a/audio_hal/alsa_manager.c
++++ b/audio_hal/alsa_manager.c
+@@ -915,7 +915,30 @@ int aml_alsa_output_open_new(void **handle, aml_stream_config_t * stream_config,
+         ALOGE("Wrong alsa_device ID\n");
+         return -1;
+     }
+-    pcm_index = alsa_device_update_pcm_index(alsa_port, PLAYBACK);
++
++    if (adev->hdmitx_src > 0 && format  == AUDIO_FORMAT_MAT && alsa_port == PORT_I2S2HDMI) {
++        char *name = "TDM-C";
++        switch (adev->hdmitx_src) {
++        case AML_TDM_A_TO_HDMITX:
++            name = "TDM-A";
++            break;
++        case AML_TDM_B_TO_HDMITX:
++            name = "TDM-B";
++            break;
++        case AML_TDM_C_TO_HDMITX:
++            name = "TDM-C";
++            break;
++        default:
++            break;
++        }
++        ALOGI("name of hdmitx_src:%s", name);
++        pcm_index = alsa_device_get_pcm_index_by_name(name);
++        config->period_count = 8;
++        config->period_size = 2048;
++        config->start_threshold = 0;
++    } else {
++        pcm_index = alsa_device_update_pcm_index(alsa_port, PLAYBACK);
++    }
+ 
+     ALOGI("In pcm open ch=%d rate=%d\n", config->channels, config->rate);
+     ALOGI("%s, audio open card(%d), device(%d) \n", __func__, card, pcm_index);
+diff --git a/audio_hal/aml_audio_nonms12_render.c b/audio_hal/aml_audio_nonms12_render.c
+index 90964e6d..0c13416a 100644
+--- a/audio_hal/aml_audio_nonms12_render.c
++++ b/audio_hal/aml_audio_nonms12_render.c
+@@ -118,6 +118,46 @@ ssize_t aml_audio_spdif_output(struct audio_stream_out *stream, void **spdifout_
+     return ret;
+ }
+ 
++int nonms12_mat_bypass_process(struct audio_stream_out *stream, void *buffer, size_t bytes) {
++    int ret = 0;
++    struct aml_stream_out *aml_out = (struct aml_stream_out *)stream;
++    spdif_config_t spdif_config = { 0 };
++
++    if (!buffer) {
++        ALOGE("%s buffer is NULL\n", __func__);
++        return -1;
++    }
++
++    if (bytes != 0 && buffer != NULL) {
++        /*
++         * if the alsa(use the spdif sound card) out handle is invalid, initialize it immediately.
++         */
++        if (aml_out->spdifout_handle == NULL) {
++            spdif_config.audio_format = AUDIO_FORMAT_IEC61937;
++            spdif_config.sub_format = aml_out->hal_internal_format;
++            /*
++             * FIXME:
++             *      here use the 4*48000(192k)Hz as the spdif config rate.
++             *      if input is 44.1kHz truehd, maybe there is abnormal sound.
++             *      If it is not suitable, please report it.
++             */
++            spdif_config.rate = MAT_OUTPUT_SAMPLE_RATE;
++            spdif_config.channel_mask = AUDIO_CHANNEL_OUT_7POINT1;
++            spdif_config.data_ch = 8;
++            ret = aml_audio_spdifout_open(&aml_out->spdifout_handle, &spdif_config);
++            if (ret != 0) {
++                ALOGE("%s open spdif out failed\n", __func__);
++                return ret;
++            }
++        }
++    }
++
++    /* send these IEC61937 data to alsa */
++    ret = aml_audio_spdifout_processs(aml_out->spdifout_handle, buffer, bytes);
++
++    return 0;
++}
++
+ int aml_audio_nonms12_render(struct audio_stream_out *stream, struct audio_buffer *abuffer)
+ {
+     int decoder_ret = -1,ret = -1;
+@@ -144,6 +184,12 @@ int aml_audio_nonms12_render(struct audio_stream_out *stream, struct audio_buffe
+     bool speed_enabled = false;
+     bool dts_pcm_direct_output = false;
+ 
++    if (adev->is_nonms12_mat_bypass) {
++        AM_LOGI_IF(adev->debug_flag,"[%s:%d] cur format:%#x", __func__, __LINE__, aml_out->hal_internal_format);
++        nonms12_mat_bypass_process(stream, abuffer->buffer, abuffer->size);
++        return;
++    }
++
+     /* handle HWSYNC audio data*/
+     /* to do: move this to before hw_write*/
+     if (aml_out->hw_sync_mode && aml_out->hwsync) {
+@@ -292,9 +338,10 @@ int aml_audio_nonms12_render(struct audio_stream_out *stream, struct audio_buffe
+         }
+     }
+ 
+-    if (aml_out->aml_dec == NULL) {
++    if (aml_out->aml_dec == NULL && adev->is_nonms12_mat_bypass) {
+         config_output(stream, true);
+     }
++
+     aml_dec_t *aml_dec = aml_out->aml_dec;
+ 
+     ainput.buffer = abuffer->buffer;
+diff --git a/audio_hal/aml_audio_spdifout.c b/audio_hal/aml_audio_spdifout.c
+index af290929..4bd5cf36 100644
+--- a/audio_hal/aml_audio_spdifout.c
++++ b/audio_hal/aml_audio_spdifout.c
+@@ -81,7 +81,7 @@ static int select_digital_device(struct spdifout_handle *phandle) {
+      *
+      */
+ 
+-    if (!aml_dev->is_TV) {
++    if (!aml_dev->is_TV || aml_dev->is_BDS) {
+         if (aml_dev->dual_spdif_support) {
+             if (phandle->audio_format == AUDIO_FORMAT_AC3 ||
+                 phandle->audio_format == AUDIO_FORMAT_DTS) {
+@@ -90,10 +90,18 @@ static int select_digital_device(struct spdifout_handle *phandle) {
+             } else {
+                 /*for ddp, we need use spdif_b, then select hdmi to spdif_b, then spdif can output dd*/
+                 device_id = DIGITAL_DEVICE2;
++                if (phandle->audio_format == AUDIO_FORMAT_MAT && aml_dev->hdmitx_src >= AML_TDM_A_TO_HDMITX) {
++                    device_id = TDM_DEVICE;
++                    ALOGI("%s hdmitx_src = %d", __func__, aml_dev->hdmitx_src);
++                }
+             }
+         } else {
+             /*defaut we only use spdif_a to output spdif/hdmi*/
+             device_id = DIGITAL_DEVICE;
++            if (phandle->audio_format == AUDIO_FORMAT_MAT && aml_dev->hdmitx_src >= AML_TDM_A_TO_HDMITX) {
++                device_id = TDM_DEVICE;
++                ALOGI("%s hdmitx_src = %d", __func__, aml_dev->hdmitx_src);
++            }
+         }
+         if (audio_is_linear_pcm(phandle->audio_format)) {
+             if (phandle->channel_mask == AUDIO_CHANNEL_OUT_5POINT1 || phandle->channel_mask == AUDIO_CHANNEL_OUT_7POINT1)
+@@ -388,7 +396,7 @@ int aml_audio_spdifout_open(void **pphandle, spdif_config_t *spdif_config)
+                 goto error;
+             }
+ 
+-        } else if (TDM_DEVICE == device_id) {
++        } else if (TDM_DEVICE == device_id && eDolbyMS12Lib == aml_dev->dolby_lib_type) {
+             /* MC PCM output from MS12 is hard coded to 8ch */
+             if (spdif_config->data_ch == 8) {
+                 phandle->post_process_type = MC_POST_PROCESS_COMPACT_CHANNEL;
+diff --git a/audio_hal/aml_audio_stream.c b/audio_hal/aml_audio_stream.c
+index 41b209da..c210240a 100644
+--- a/audio_hal/aml_audio_stream.c
++++ b/audio_hal/aml_audio_stream.c
+@@ -111,7 +111,7 @@ static audio_format_t get_sink_capability (struct aml_audio_device *adev)
+     audio_format_t sink_capability = AUDIO_FORMAT_PCM_16_BIT;
+ 
+     //STB case
+-    if (!adev->is_TV)
++    if (!adev->is_TV || adev->is_BDS)
+     {
+         char *cap = NULL;
+         /*we should get the real audio cap, so we need it report the correct truehd info*/
+@@ -371,7 +371,7 @@ void get_sink_format(struct audio_stream_out *stream)
+     // "adev->active_outport" was set when HDMI ARC cable plug in/off
+     // condition 1: ARC port, single output.
+     // condition 2: for STB case with dolby-ms12 libs
+-    if (adev->active_outport == OUTPORT_HDMI_ARC || !adev->is_TV) {
++    if (adev->active_outport == OUTPORT_HDMI_ARC || !adev->is_TV || adev->is_BDS) {
+         ALOGI("%s() HDMI ARC or mbox + dvb case", __FUNCTION__);
+         switch (adev->hdmi_format) {
+         case PCM:
+diff --git a/audio_hal/audio_format_parse.c b/audio_hal/audio_format_parse.c
+index 12b32a69..154c076d 100644
+--- a/audio_hal/audio_format_parse.c
++++ b/audio_hal/audio_format_parse.c
+@@ -540,6 +540,8 @@ static int audio_type_parse_init(audio_type_parse_t *status)
+     }
+ 
+     if (audio_type_status->soft_parser) {
++        ALOGI("%s soft_parser open card(%d) device(%d) \n", __FUNCTION__, audio_type_status->card, audio_type_status->device);
++        ALOGI("%s ALSA open configs: rate:%d channels:%d \n", __FUNCTION__, audio_type_status->config_in.rate, audio_type_status->config_in.channels);
+         in = pcm_open(audio_type_status->card, audio_type_status->device,
+                       PCM_IN| PCM_NONEBLOCK, &audio_type_status->config_in);
+         if (!pcm_is_ready(in)) {
+@@ -672,9 +674,9 @@ static int reconfig_pcm_by_packet_type(audio_type_parse_t *audio_type_status,
+             pcm_close(audio_type_status->in);
+             audio_type_status->in = NULL;
+         }
+-
+-        ALOGI("%s(), reopen channels %d",
+-            __func__, audio_type_status->config_in.channels);
++
++        ALOGI("%s reopen card(%d) device(%d) \n", __FUNCTION__, audio_type_status->card, audio_type_status->device);
++        ALOGI("%s ALSA open configs: rate:%d channels:%d \n", __FUNCTION__, audio_type_status->config_in.rate, audio_type_status->config_in.channels);
+         in = pcm_open(audio_type_status->card, audio_type_status->device,
+                       PCM_IN | PCM_NONEBLOCK, &audio_type_status->config_in);
+         if (!pcm_is_ready(in)) {
+diff --git a/audio_hal/audio_hw.c b/audio_hal/audio_hw.c
+index bd80dd51..34e0dcf0 100644
+--- a/audio_hal/audio_hw.c
++++ b/audio_hal/audio_hw.c
+@@ -8091,6 +8091,11 @@ ssize_t mixer_main_buffer_write(struct audio_stream_out *stream, struct audio_bu
+                 }
+                 aml_out->hal_rate = audio_samplerate;
+             }
++            if (cur_aformat == AUDIO_FORMAT_MAT && adev->patch_src == SRC_HDMIIN && eDolbyDcvLib == adev->dolby_lib_type) {
++                adev->is_nonms12_mat_bypass = true;
++            } else {
++                adev->is_nonms12_mat_bypass = false;
++            }
+             aml_out->hal_channel_mask = audio_parse_get_audio_channel_mask (patch->audio_parse_para);
+             ALOGI ("%s hal_channel_mask %#x\n", __FUNCTION__, aml_out->hal_channel_mask);
+ 
+@@ -11247,6 +11252,7 @@ static int adev_open(const hw_module_t* module, const char* name, hw_device_t**
+     adev->hw_device.dump = adev_dump;
+     adev->hdmi_format = AUTO;
+     adev->is_hdmi_arc_interact_done = false;
++    adev->is_nonms12_mat_bypass = false;
+ 
+     card = alsa_device_get_card_index();
+     if ((card < 0) || (card > 7)) {
+@@ -11483,6 +11489,9 @@ static int adev_open(const hw_module_t* module, const char* name, hw_device_t**
+ #endif
+ /*[SEI-zhaopf-2018-10-29] add for HBG remote audio support } */
+ #ifdef BUILD_LINUX
++    adev->is_BDS = check_chip_name("t7", 2, &adev->alsa_mixer) ? true : false;
++    if (adev->is_BDS)
++        ALOGI("[%s:%d] BDS platform", __func__, __LINE__);
+     adev->is_TV = aml_get_jason_int_value(TV_PLATFORM,0);
+     if (adev->is_TV ) {
+         adev->default_alsa_ch =  aml_audio_get_default_alsa_output_ch();
+diff --git a/audio_hal/audio_hw.h b/audio_hal/audio_hw.h
+index 013567c0..164d48f7 100644
+--- a/audio_hal/audio_hw.h
++++ b/audio_hal/audio_hw.h
+@@ -566,6 +566,7 @@ struct aml_audio_device {
+     struct subMixing *sm;
+     struct aml_audio_mixer *audio_mixer;
+     bool is_TV;
++    bool is_BDS;
+     bool is_STB;
+     bool is_SBR;
+     bool useSubMix;
+@@ -679,6 +680,7 @@ struct aml_audio_device {
+     bool user_setting_scaletempo;
+ 
+     bool is_hdmi_arc_interact_done;
++    bool is_nonms12_mat_bypass;
+ };
+ 
+ struct meta_data {
+diff --git a/utils/alsa_device_parser.c b/utils/alsa_device_parser.c
+index 5d8ff3b4..f7e67bb5 100644
+--- a/utils/alsa_device_parser.c
++++ b/utils/alsa_device_parser.c
+@@ -119,6 +119,64 @@ bool alsa_device_is_auge(void)
+ 	return false;
+ }
+ 
++int alsa_device_get_card_index_by_name(void *name)
++{
++	FILE *mCardFile = NULL;
++	int mCardIndex = -1;
++
++	if (!name)
++		return -1;
++
++	mCardFile = fopen(ALSASOUND_CARD_PATH, "r");
++	if (mCardFile) {
++		char tempbuffer[READ_BUFFER_SIZE];
++
++		while (!feof(mCardFile)) {
++			fgets(tempbuffer, READ_BUFFER_SIZE, mCardFile);
++
++			/* this line contain '[' character */
++			if (strchr(tempbuffer, '[')) {
++				char *Rch = strtok(tempbuffer, "[");
++				int id = atoi(Rch);
++				ALOGD("\tcurrent card id = %d, Rch = %s", id, Rch);
++				Rch = strtok(NULL, " ]");
++				ALOGD("\tcurrent sound card name = %s", Rch);
++				if (strcmp(Rch, name) == 0) {
++					ALOGD("\t sound cardIndex found = %d", id);
++					mCardIndex = id;
++					break;
++				}
++			}
++			memset((void *)tempbuffer, 0, READ_BUFFER_SIZE);
++		}
++		fclose(mCardFile);
++	}
++	return mCardIndex;
++}
++
++int alsa_device_get_pcm_index_by_name(void *name)
++{
++	FILE *mCardFile = NULL;
++	int mPcmIndex = -1;
++	char buf[100];
++	char str[2];
++
++	if (!name)
++		return -1;
++
++	mCardFile = fopen(ALSASOUND_PCM_PATH, "r");
++	while (fgets(buf, 100, mCardFile)) {
++		if (strstr(buf, name) != NULL) {
++			strncpy(str, buf + 3, 2);
++			mPcmIndex = atoi(str);
++			ALOGD("sound PcmIndex found = %d", mPcmIndex);
++			break;
++		}
++	}
++
++	return mPcmIndex;
++}
++
+ /*
+  * cat /proc/asound/cards
+  *	 0 [AMLAUGESOUND   ]: AML-AUGESOUND - AML-AUGESOUND
+-- 
+2.25.1
+

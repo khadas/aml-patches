@@ -1,0 +1,62 @@
+From f7121915f361869d431b8686332a587c34609d94 Mon Sep 17 00:00:00 2001
+From: "guoping.li" <guoping.li@amlogic.com>
+Date: Thu, 16 Nov 2023 09:55:47 +0800
+Subject: [PATCH 3/3] Multimedia: add depend between mkdir and cc [1/1]
+
+PD#SWPL-146290
+
+Problem:
+mkdir and cc maybe execute in difference thread, it will cause build failed.
+
+Solution:
+add depend between mkdir and cc
+
+Verify:
+local
+
+Signed-off-by: guoping.li <guoping.li@amlogic.com>
+Change-Id: I57149efff8418537ec2b4a0d117703c09e486c1d
+---
+ camctrl/Makefile | 6 ++++--
+ makefile_bin.inc | 5 +++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/camctrl/Makefile b/camctrl/Makefile
+index 738fa56..f65c7ef 100644
+--- a/camctrl/Makefile
++++ b/camctrl/Makefile
+@@ -29,9 +29,11 @@ $(TARGET): $(OUT_DIR)/$(OBJS)
+ 	@echo " [LINK] $@"
+ 	@$(CXX) $(LDFLAGS) $+ $(LDLIBS) -o $(OUT_DIR)/$@
+ 
+-$(OUT_DIR)/$(OBJDIR)/%.o: %.cc
+-	@echo " [CC] $<"
++CREATE_DIR:
+ 	@mkdir -p $(OUT_DIR)/$(OBJDIR)
++
++$(OUT_DIR)/$(OBJDIR)/%.o: %.cc CREATE_DIR
++	@echo " [CC] $<"
+ 	@$(CC) $(CFLAGS) -o $@ -c $<
+ 
+ .PHONY:clean
+diff --git a/makefile_bin.inc b/makefile_bin.inc
+index 79186eb..e4a147a 100644
+--- a/makefile_bin.inc
++++ b/makefile_bin.inc
+@@ -26,10 +26,11 @@ $(TARGET): $(OUT_DIR)/$(OBJS)
+ 	@echo " [LINK] $@"
+ 	@$(CXX) $(LDFLAGS) $+ $(LDLIBS) -o $(OUT_DIR)/$@
+ 
++CREATE_DIR:
++	@mkdir -p $(OUT_DIR)/$(OBJDIR)
+ 
+-$(OUT_DIR)/$(OBJDIR)/%.o: %.c
++$(OUT_DIR)/$(OBJDIR)/%.o: %.c CREATE_DIR
+ 	@echo " [Compile] $<"
+-	@mkdir -p $(OUT_DIR)/$(OBJDIR)
+ 	@$(CC) $(CFLAGS) -o $@ -c $<
+ 
+ 
+-- 
+2.25.1
+

@@ -1,0 +1,1289 @@
+From f9b45bc8a8726321616f1e4eb08ffdabfbfb8ac6 Mon Sep 17 00:00:00 2001
+From: Haotian Guo <haotian.guo@amlogic.com>
+Date: Tue, 24 Oct 2023 11:20:57 +0800
+Subject: [PATCH] hdmirx: update edid [1/1]
+
+PD#SH-16531
+
+Problem:
+Audio edit missing MAT format.
+
+Solution:
+update trunk edid.
+
+Verify:
+a311d2
+
+Signed-off-by: Haotian Guo <haotian.guo@amlogic.com>
+Change-Id: I69791fe732289f0ee2de06ed71cc8cd2cc8523b7
+---
+ etc/tvconfig/a311d2/tvconfig/hdmi/port1_14.bin  | Bin 256 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port1_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port1_20.bin  | Bin 256 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port1_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port1_dlg.bin | Bin 0 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port1_dv_dlg.bin       | Bin 0 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port2_14.bin  | Bin 256 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port2_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port2_20.bin  | Bin 256 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port2_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port2_dlg.bin | Bin 0 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port2_dv_dlg.bin       | Bin 0 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port3_14.bin  | Bin 256 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port3_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port3_20.bin  | Bin 256 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port3_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/a311d2/tvconfig/hdmi/port3_dlg.bin | Bin 0 -> 256 bytes
+ .../a311d2/tvconfig/hdmi/port3_dv_dlg.bin       | Bin 0 -> 256 bytes
+ etc/tvconfig/t950d4/tvconfig/hdmi/port1_14.bin  | Bin 256 -> 256 bytes
+ .../t950d4/tvconfig/hdmi/port1_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t950d4/tvconfig/hdmi/port1_20.bin  | Bin 256 -> 256 bytes
+ .../t950d4/tvconfig/hdmi/port1_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t950d4/tvconfig/hdmi/port2_14.bin  | Bin 256 -> 256 bytes
+ .../t950d4/tvconfig/hdmi/port2_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t950d4/tvconfig/hdmi/port2_20.bin  | Bin 256 -> 256 bytes
+ .../t950d4/tvconfig/hdmi/port2_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t950d4/tvconfig/hdmi/port3_14.bin  | Bin 256 -> 256 bytes
+ .../t950d4/tvconfig/hdmi/port3_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t950d4/tvconfig/hdmi/port3_20.bin  | Bin 256 -> 256 bytes
+ .../t950d4/tvconfig/hdmi/port3_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port1_14.bin  | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port1_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port1_20.bin  | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port1_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port1_dlg.bin | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port1_dv_dlg.bin       | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port2_14.bin  | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port2_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port2_20.bin  | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port2_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port2_dlg.bin | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port2_dv_dlg.bin       | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port3_14.bin  | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port3_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port3_20.bin  | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port3_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t962d4/tvconfig/hdmi/port3_dlg.bin | Bin 256 -> 256 bytes
+ .../t962d4/tvconfig/hdmi/port3_dv_dlg.bin       | Bin 256 -> 256 bytes
+ etc/tvconfig/t962e2/tvconfig/hdmi/port_14.bin   | Bin 256 -> 256 bytes
+ etc/tvconfig/t962e2/tvconfig/hdmi/port_20.bin   | Bin 256 -> 256 bytes
+ etc/tvconfig/t962x3/tvconfig/hdmi/port_14.bin   | Bin 256 -> 256 bytes
+ etc/tvconfig/t962x3/tvconfig/hdmi/port_20.bin   | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port1_14.bin  | Bin 256 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port1_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port1_20.bin  | Bin 256 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port1_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port1_dlg.bin | Bin 0 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port1_dv_dlg.bin       | Bin 0 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port2_14.bin  | Bin 256 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port2_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port2_20.bin  | Bin 256 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port2_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port2_dlg.bin | Bin 0 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port2_dv_dlg.bin       | Bin 0 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port3_14.bin  | Bin 256 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port3_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port3_20.bin  | Bin 256 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port3_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t965d4/tvconfig/hdmi/port3_dlg.bin | Bin 0 -> 256 bytes
+ .../t965d4/tvconfig/hdmi/port3_dv_dlg.bin       | Bin 0 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port1_14.bin  | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port1_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port1_20.bin  | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port1_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port1_dlg.bin | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port1_dv_dlg.bin       | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port2_14.bin  | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port2_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port2_20.bin  | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port2_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port2_dlg.bin | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port2_dv_dlg.bin       | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port3_14.bin  | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port3_14_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port3_20.bin  | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port3_20_dv.bin        | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port3_dlg.bin | Bin 256 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port3_dv_dlg.bin       | Bin 256 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port4_14.bin  | Bin 0 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port4_14_dv.bin        | Bin 0 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port4_20.bin  | Bin 0 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port4_20_dv.bin        | Bin 0 -> 256 bytes
+ etc/tvconfig/t968d4/tvconfig/hdmi/port4_dlg.bin | Bin 0 -> 256 bytes
+ .../t968d4/tvconfig/hdmi/port4_dv_dlg.bin       | Bin 0 -> 256 bytes
+ 94 files changed, 0 insertions(+), 0 deletions(-)
+ create mode 100755 etc/tvconfig/a311d2/tvconfig/hdmi/port1_dlg.bin
+ create mode 100755 etc/tvconfig/a311d2/tvconfig/hdmi/port1_dv_dlg.bin
+ create mode 100755 etc/tvconfig/a311d2/tvconfig/hdmi/port2_dlg.bin
+ create mode 100755 etc/tvconfig/a311d2/tvconfig/hdmi/port2_dv_dlg.bin
+ create mode 100755 etc/tvconfig/a311d2/tvconfig/hdmi/port3_dlg.bin
+ create mode 100755 etc/tvconfig/a311d2/tvconfig/hdmi/port3_dv_dlg.bin
+ create mode 100755 etc/tvconfig/t965d4/tvconfig/hdmi/port1_dlg.bin
+ create mode 100755 etc/tvconfig/t965d4/tvconfig/hdmi/port1_dv_dlg.bin
+ create mode 100755 etc/tvconfig/t965d4/tvconfig/hdmi/port2_dlg.bin
+ create mode 100755 etc/tvconfig/t965d4/tvconfig/hdmi/port2_dv_dlg.bin
+ create mode 100755 etc/tvconfig/t965d4/tvconfig/hdmi/port3_dlg.bin
+ create mode 100755 etc/tvconfig/t965d4/tvconfig/hdmi/port3_dv_dlg.bin
+ create mode 100755 etc/tvconfig/t968d4/tvconfig/hdmi/port4_14.bin
+ create mode 100755 etc/tvconfig/t968d4/tvconfig/hdmi/port4_14_dv.bin
+ create mode 100755 etc/tvconfig/t968d4/tvconfig/hdmi/port4_20.bin
+ create mode 100755 etc/tvconfig/t968d4/tvconfig/hdmi/port4_20_dv.bin
+ create mode 100755 etc/tvconfig/t968d4/tvconfig/hdmi/port4_dlg.bin
+ create mode 100755 etc/tvconfig/t968d4/tvconfig/hdmi/port4_dv_dlg.bin
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port1_14.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port1_14.bin
+index 319c8dce674288909df80f578ac22f0970656ef2..3994ddb7e6a704c4b023920666fbe67f807230fd 100755
+GIT binary patch
+delta 53
+zc${lsYG9hsr0Mt}SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nkm04IG4xBvhE
+
+delta 53
+zc${lsYG9hsq-OUaSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9k{04OI4y8r+H
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port1_14_dv.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port1_14_dv.bin
+index 018a5d09eace88c65d980bbc50ceb00da70aeb1e..5560cfe90a1310b161ed64286459d44e31dcc280 100755
+GIT binary patch
+delta 110
+zc${lsYG4v#_zwmQtZNJy7#SECw52Bs<@!xwV)p$IEFdq!D$JswWMd~J#>_4#%EZQK
+z#97ZO${rBT!f4BWAij<<orSp>s4b6~he3d0hmC$i10xeN%Oi&0uNmDgFt~&$cLZfm
+KnRwiYu@C@8*&M(C
+
+delta 110
+zc${lsYG4v#_zwmQtZNJy7#SEC*ySb)<$7#oVs`%!EFdq!D$JswWMd~J#>_4#%EZQ~
+z!&%QN${rBT&X~@^+zix^$IQbZz_7zcpP_+~iJ9dQ!|&IOZWkE5(zWK;$eo*b)`*<}
+H3@!oyBViiG
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port1_20.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port1_20.bin
+index b93f8e6a210fe583e96f0b321fd4db876d69a632..da14ab1a7c7fe59e83882b06ef680614cd3a8e23 100755
+GIT binary patch
+delta 157
+zc${lsYG9gR#>DYrqJ?F>!BY7i8wM@~Fks|kVlMm`lbD*8kd@7%pd=*5%q}R(#KssO
+zn<5~eBofCeY{Xg5D#{)Z&cbNRejvV%F`b3EnUR4ZkC}%-fMJJ?K0^Z|6EjQJjo2fM
+v6%E`>8VrwF9T*?++dpRGWqium-7<kOSBimwiQAxpfhE8vO2CBy1+)MF04N~i
+
+delta 157
+zc${lsYG9gR#>7%G(ZaIc+D*R4hJi}~3>a@QF~@(1h!>C-VHIXkP_nTT5@Ti;6lG##
+zj7>?3)90*b6=e?yXJ@o!KM-HX*v!blkjKo!Ai%K0M!%tfk%^fl<3{WeM(++rrpK%f
+vjL-QJ60@>X(;l<&GCpPOZkfQyD9cb3ctK7fPa~8;;gBH%gMb_Z3J?MS>rf%%
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port1_20_dv.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port1_20_dv.bin
+index ba12cd6e179ae32a712c0e3d52a27f44fdd2186c..eb7375fe33ea8fe122ed10b0ea8f430a539c7dd8 100755
+GIT binary patch
+delta 157
+zc${lsYG9gR#>DYrqJ?F>!BY7i8wM@~Fks|kVy^xem6)2Am5|M%pd`dBD9Xgf7$2J=
+zAfF@>$0}^ZS<foU9uUsLXv=;ezK$`Sg}IrLfgz8Xhe3d0hmAf%10xeNOV*9pBa9Ud
+z+)Nq_k69fUAMx8iX5(di&FFT4!6ihwBPe^yQ^xL=35>Z?KwV7S1{Dk}0X|VK3_!pP
+E0C+zn;{X5v
+
+delta 157
+zc${lsYG9gR#>7%G(ZaIc+D*R4hJi}~3>a@QF=u~>h!>C-VHIXkP_nTT5@Ti;6lG##
+zj7>?3)90*b6=e?yXJ@o!KM-HX*v!blkjKo!Ai%K0M!%tfk%^fl<3{WeM(++rrpK%f
+rjL-QJ6SA^X(;l<&GQMVXyTIU;t~JL-?%Y$x?v@Eay+9zqfC>r#3dADg
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port1_dlg.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port1_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..de28de3b70c4c33a463069bafe5bf954d21561fe
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6Lay$
+zxWv@7tb}Y91tlRdW_CeQCN{?S*c1WzB#}5)VF!C7&U#i+_JD8}MqBm+@pX*pEX>V7
+zr{*#9FbFX0u+e8|U}R!u$+{7Hgt4N5n@OYMF{=aPBYykGY`lz58M|91Fy=}zFfef&
+PR4}jv_(ZudAc0N*AKyCx
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port1_dv_dlg.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port1_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..341021347fe7cfae3f66bed4793e567bd5af610c
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsf~91tlS70Z}H#_}CNy`6Q7zR$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^Dqc7?6A>iXkcVwX34q{dxWu~ftyLA;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?V0@0Hh*60RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port2_14.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port2_14.bin
+index 3b75d2fa1553934cfa73c966e9df0b4c531fd5d0..e5bae4db9376780b651b77c540fc7478b2ded418 100755
+GIT binary patch
+delta 53
+zc${lsYG9hsr0Mt}SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nkw04Hq<r~m)}
+
+delta 53
+zc${lsYG9hsq-OUaSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9k<04Ns<s{jB1
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port2_14_dv.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port2_14_dv.bin
+index 46f48ea29ba1fed8b1f361bbf29ea313b3c5c972..7b3bd396c8cc43379f8abf221027b5dc8cc5bbb4 100755
+GIT binary patch
+delta 110
+zc${lsYG4v#_zwmQtZNJy7#SECw52Bs<@!xwV)p$IEFdq!D$JswWMd~J#>_4#%EZQK
+z#97ZO${rBT!f4BWAij<<orSp>s4b6~he3g1hmC$i10xeN%Oi&0uNmDgFt~&$cLZfm
+KnRwiYF%bYrxg5X%
+
+delta 110
+zc${lsYG4v#_zwmQtZNJy7#SEC*ySb)<$7#oVs`%!EFdq!D$JswWMd~J#>_4#%EZQ~
+z!&%QN${rBT&X~@^+zix^$IQc^z_7zcpP_+~iJ9dQ!|&IOZWkE5(zWK;$eo*b)`*<}
+H3=RSSC7~L|
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port2_20.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port2_20.bin
+index 72f028b25b763db5b4054067d046491a39e1b134..e52a56937b39262da48f4082a7b6c0cc3d81ec8d 100755
+GIT binary patch
+delta 157
+zc${lsYG9gR#>DYrqJ?F>!BY7i8wM@~Fks|kVlMm`lbD*8kd@7%pd=*5%q}R(#KssO
+zn<5~eBofCeY{Xg5D#{)Z&cbNRejvV%F`b3EnUR4ZkC}%-fnkS@K0^Z|6EjQJjo2fM
+v6%E`>8VrwF9T*?++dpRGWqium-7<kOSBimwiQAxpfhE8vO2CBy1(W~)1ZW`R
+
+delta 157
+zc${lsYG9gR#>7%G(ZaIc+D*R4hJi}~3>a@QF~@(1h!>C-VHIXkP_nTT5@Ti;6lG##
+zj7>?3)90*b6=e?yXJ@o!KM-HX*v!blkjKo!pun)hM!%tfk%^fl<3{WeM(++rrpK%f
+vjL-QJ60@>X(;l<&GCpPOZkfQyD9cb3ctK7fPa~8;;gBH%gMb_Z3Sa^N@Bks>
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port2_20_dv.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port2_20_dv.bin
+index ff8461824babd8fc0dcbf8404604601d4a24fabb..b50be48cbf0032cd80e894b97d0ef178a4aab644 100755
+GIT binary patch
+delta 157
+zc${lsYG9gR#>DYrqJ?F>!BY7i8wM@~Fks|kVy^xem6)2Akd@7%pd`dBD9Xgf7$2J=
+zAfF@>$0}^ZS<foU9uUsLXv=;ezK$`Sg}IrLfgz8Xhe3g1hmAf%10xeNOV*9pBa9Ud
+z+)Nq_k69fUAMx8iX5(di&FFT4!6ihwBPe^yQ^xL=35>Z?3<3;H+y)g4ECD`IE(}2M
+F8328iCF1}9
+
+delta 157
+zc${lsYG9gR#>7%G(ZaIc+D*R4hJi}~3>a@QF=u~>h!>C-VHIXkP_nTT5@Ti;6lG##
+zj7>?3)90*b6=e?yXJ@o!KM-HX*v!blkjKo!pun)hM!%tfk%^fl<3{WeM(++rrpK%f
+rjL-QJ6SA^X(;l<&GQMVXyTIU;t~JL-?%Y$x?v@Eay+9zqfC>@-4|F2q
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port2_dlg.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port2_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..fa67f07a54891dc245dd6aea497a7143dcfb75ab
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6Lay$
+zxWv@7gsf~91tlRdW_CeQCN`${*c1WzB#}5)VF!C7&U#i+_JD8}MqBm+@pX*pEX>V7
+zr{*#9FeotWu+e8|U}R!u$+{7Hgt4N5n@OYMF{=aPBYykGY`lz58M|91Fy=}zFfef&
+PR4}jv_(ZudAb|=1Bu+a4
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port2_dv_dlg.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port2_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..21b2270d87329fa78b5673b44ab0402c26889ba7
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsf~91tlS70Z}H#_}CNy`6Q7zR$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^Drnd?6A>iXkcVwX34q{dxWu~ftyLA;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?V0|0H|U=0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port3_14.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port3_14.bin
+index b01a965bdc3888a35d2812fb45262f2a5728df48..1a92f8a22eac4aae62dd0b5a7b1616d3931d7fc2 100755
+GIT binary patch
+delta 53
+zc${lsYG9hsr0Mt}SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(NkD0VrJym;e9(
+
+delta 53
+zc${lsYG9hsq-OUaSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9k@04N6vn*aa+
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port3_14_dv.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port3_14_dv.bin
+index fc730cb1b46f153aeea314703ae8f645aa13ed72..a1c5a9d05562f6cc1323f4ec9389ebf292f5e79a 100755
+GIT binary patch
+delta 110
+zc${lsYG4v#_zwmQtZNJy7#SECw52Bs<@!xwV)p$IEFdq!D$JswWMd~J#>_4#%EZQK
+z#97ZO${rBT!f4BWAij<<orSp>s4b6~hrxhhhmC$i10xeN%Oi&0uNmDgFt~&$cLZfm
+KnRwiYF%SSsnH<0X
+
+delta 110
+zc${lsYG4v#_zwmQtZNJy7#SEC*ySb)<$7#oVs`%!EFdq!D$JswWMd~J#>_4#%EZQ~
+z!&%QN${rBT&X~@^+zix^$IQcEz_7zcpP_+~iJ9dQ!|&IOZWkE5(zWK;$eo*b)`*<}
+H3^oD)C*c~#
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port3_20.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port3_20.bin
+index f9ab84cca8f18f7bc40f01a2d852435c9a9c5e70..b2dae78d410990036b6e5ced5cc15f939f3c657b 100755
+GIT binary patch
+delta 157
+zc${lsYG9gR#>DYrqJ?F>!BY7i8wM@~Fks|kVlMm`lbD*8kd@7%pd=*5%q}R(#KssO
+zn<5~eBofCeY{Xg5D#{)Z&cbNRejvV%F`b3EnUR4ZkC}(TfMJJ?K0^Z|6EjQJjo2fM
+v6%E`>8VrwF9T*?++dpRGWqium-7<kOSBimwiQAxpfhE8vO2CBy1*8A~2&f?A
+
+delta 157
+zc${lsYG9gR#>7%G(ZaIc+D*R4hJi}~3>a@QF~@(1h!>C-VHIXkP_nTT5@Ti;6lG##
+zj7>?3)90*b6=e?yXJ@o!KM-HX*v!blkjKo!V8F1$M!%tfk%^fl<3{WeM(++rrpK%f
+vjL-QJ60@>X(;l<&GCpPOZkfQyD9cb3ctK7fPa~8;;gBH%gMb_Z3it#7^{^u2
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port3_20_dv.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port3_20_dv.bin
+index 17f78bcd4090ea8d54353d04152e4a4e1b727048..3b99390610d09751692a06d5cfe6c2d8c4915f1e 100755
+GIT binary patch
+delta 157
+zc${lsYG9gR#>DYrqJ?F>!BY7i8wM@~Fks|kVy^xem6)2Akd@7%pd`dBD9Xgf7$2J=
+zAfF@>$0}^ZS<foU9uUsLXv=;ezK$`Sg}IrLfgz8XhrxhhhmAf%10xeNOV*9pBa9Ud
+z+)Nq_k69fUAMx8iX5(di&FFT4!6ihwBPe^yQ^xL=35>Z?3<3;H+y)g4ECD`IE(}2M
+F7yyCwCF1}9
+
+delta 157
+zc${lsYG9gR#>7%G(ZaIc+D*R4hJi}~3>a@QF=u~>h!>C-VHIXkP_nTT5@Ti;6lG##
+zj7>?3)90*b6=e?yXJ@o!KM-HX*v!blkjKo!V8F1$M!%tfk%^fl<3{WeM(++rrpK%f
+rjL-QJ6SA^X(;l<&GQMVXyTIU;t~JL-?%Y$x?v@Eay+9zqfC>Tt6eJ?!
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port3_dlg.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port3_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..5954da7b22335ec70f2f16952c23f0af5fe70fe1
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6Lay$
+zxWv@7gsf~91tlRdW_CeQCN{?S*c1WzB#}5)VF!C7&U#i+_JD8}MqBm+@pX*pEX>V7
+zr{*#9Fc>iGu+e8|U}R!u$+{7Hgt4N5n@OYMF{=aPBYykGY`lz58M|91Fy=}zFfef&
+PR4}jv_(ZudAc0H(C-pl4
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/a311d2/tvconfig/hdmi/port3_dv_dlg.bin b/etc/tvconfig/a311d2/tvconfig/hdmi/port3_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..7bc2173c1ca4bd9950a3f9c72a11915779a5848f
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsf~91tlS70Z}H#_}CNy`6Q7zR$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^Dr1N?6A>iXkcVwX34q{dxWu~ftyLA;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?ZlS0Ii}x0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port1_14.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port1_14.bin
+index 0940135e80f0850a72630121d3f1f7b5f6686987..23591d6962eb4b3f895a6d1e4867b6a132ccec67 100644
+GIT binary patch
+delta 21
+cc${lsYG9hMkdwid{Xl#jV`9j}RiTVA07u#e!vFvP
+
+delta 21
+cc${lsYG9hMkdx7t{Xl#jV>-*kRiTVa0Y-ZU!vFvP
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port1_14_dv.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port1_14_dv.bin
+index a0270687af2f61a7bae62ab01464ac3c78a36227..a82f25f9a6906a8b65305f46b1b0d11a8ee12a11 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsq~`S@SU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoxzs<KztqJ#ML1z
+I3=9m90V<yhB>(^b
+
+delta 53
+zc${lsYG9hsr0M%1SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvoza&4KztozIt#<Z
+I6(Nj;04gC1A^-pY
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port1_20.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port1_20.bin
+index 5444fecc53f22cf6ad2b224b2ea339df614ce647..78586ddfafe47ec6cdc9ed15770daeefb2f7a837 100644
+GIT binary patch
+delta 64
+zc${lsYG9hsWSIORE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-PD~vz}FyJs_N&
+T!Iu3%d>!M&ZJsO)3=Cob^CAw&
+
+delta 64
+zc${lsYG9hsWRmtFE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-TxJvz}FyJs_N&
+T(U$!{d>vyt3&X_Co{UQX^X3o5
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port1_20_dv.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port1_20_dv.bin
+index 1c63aebcd8cb74d60e167d48a218110de5b0ab54..3d623564a78bc54980ce3b36f2a521e15b798e1a 100644
+GIT binary patch
+delta 64
+zc${lsYG9hsWSIXUE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-PD~vz}FyJs_N&
+T!Iu3%d>!M&ZJsO)3=H)E_BRhb
+
+delta 64
+zc${lsYG9hsWK#4YE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-TxJvz}FyJs_N&
+T(U$!{d>vyt3&X_Co{YQz_4^Mx
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port2_14.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port2_14.bin
+index e2714b1902665ffb89c871b5347142ae3a79a895..747e94958d0a0ab4ebbd4cf2f809d7045eac9ed1 100644
+GIT binary patch
+delta 21
+cc${lsYG9hMkdwid{Xl#jV`9j}RiTVN07uFOvj6}9
+
+delta 21
+cc${lsYG9hMkdx7t{Xl#jV>-*kRiTVi0Y+;Evj6}9
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port2_14_dv.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port2_14_dv.bin
+index 024c09db26450cdf5550f408ae056f70f3b3a858..a61ca3df5c2655a0c6c51bca151fc1ea27d44f4d 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsq~`S@SU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoxzs<KztqJ#ML1z
+I3=9mH0V<CR6#xJL
+
+delta 53
+zc${lsYG9hsr0M%1SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvoza&4KztozIt#<Z
+I6(Nj?04fm+5&!@I
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port2_20.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port2_20.bin
+index 2ee95ade6e9b1b5b67b26d58ac654bdcf6b5e33f..48c18273cb9cc23c6a05cbe9bf2383f8031e724a 100644
+GIT binary patch
+delta 64
+zc${lsYG9hsWSIORE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-PD~vz}FyJs_N&
+T!Iu3%d>!M&ZJsO)3=C`l^AZlY
+
+delta 64
+zc${lsYG9hsWRmtFE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-TxJvz}FyJs_N&
+T(U$!{d>vyt3&X_Co{Uof^VScw
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port2_20_dv.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port2_20_dv.bin
+index 26bdd3c24eef9e8688e67b43ab4e77018fa24981..2fff7145547cbe9b62b86699e91bf49cb2bff190 100644
+GIT binary patch
+delta 64
+zc${lsYG9hsWSIXUE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-PD~vz}FyJs_N&
+T!Iu3%d>!M&ZJsO)3=H`I_9qW5
+
+delta 64
+zc${lsYG9hsWK#4YE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-TxJvz}FyJs_N&
+T(U$!{d>vyt3&X_Co{WD1_UjNT
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port3_14.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port3_14.bin
+index 3a6e8767e483ff3f3b2ab904cb68ef2d45bc137f..52d74522da2c6561a59b0bde91146971d7feff82 100644
+GIT binary patch
+delta 21
+cc${lsYG9hMkdwid{Xl#jV`9j}RiTVF07tq8qW}N^
+
+delta 21
+cc${lsYG9hMkdx7t{Xl#jV>-*kRiTWn07hE|qW}N^
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port3_14_dv.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port3_14_dv.bin
+index 9fb280a3a3349268c99546cd04bfbef093977e93..1a71c389b5b2722c73c1aebbaf42cef544afc074 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsq~`S@SU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoxzs<KztqJ#ML1z
+I3=9m10V;nB1poj5
+
+delta 53
+zc${lsYG9hsr0M%1SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvoza&4KztozIt#<Z
+I6(Nj)04f0s0ssI2
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port3_20.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port3_20.bin
+index d6832844eadbfc59f1a919e8cb8731475a284345..174cba0f91ba14bae659e42b2de79483ac929fb9 100644
+GIT binary patch
+delta 64
+zc${lsYG9hsWSIORE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-PD~vz}FyJs_N&
+T!Iu3%d>!M&ZJsO)3=H1@^a2m4
+
+delta 64
+zc${lsYG9hsWRmtFE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-TxJvz}FyJs_N&
+T(U$!{d>vyt3&X_Co{TL3^TrRQ
+
+diff --git a/etc/tvconfig/t950d4/tvconfig/hdmi/port3_20_dv.bin b/etc/tvconfig/t950d4/tvconfig/hdmi/port3_20_dv.bin
+index 7e065b6488fe1566b40147f3c2f1bbb9a7fe64e7..e732b05d3b468a3f591a917b73dd5f3e06dc2209 100644
+GIT binary patch
+delta 64
+zc${lsYG9hsWSIXUE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-PD~vz}FyJs_N&
+T!Iu3%d>!M&ZJsO)3=HuA_7@Kw
+
+delta 64
+zc${lsYG9hsWK#4YE?z)hgjJYDLCMBWNQ{|XP?U*{F)=nJH7zM2E-TxJvz}FyJs_N&
+T(U$!{d>vx~3&X_Co{V1r_NovX
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port1_14.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port1_14.bin
+index 7c1452d593053eb1f5374a38119eb6991f9caf01..3994ddb7e6a704c4b023920666fbe67f807230fd 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z=1@037fG-T(jq
+
+delta 13
+Uc${lsYG9hMfRTOT!Z=0&0381V-T(jq
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port1_14_dv.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port1_14_dv.bin
+index 514b615f51ba3696bcc9f0a8689f82f8d23e2fb5..5560cfe90a1310b161ed64286459d44e31dcc280 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^l403A*QJOBUy
+
+delta 13
+Uc${lsYG9hMfRTOT!Z^k}03BTfJOBUy
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port1_20.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port1_20.bin
+index b11c486c621c8278b95ba12252ad319273768b82..93f31a16814eed94573560b23ceff8a6069b8ace 100644
+GIT binary patch
+delta 135
+zc$@);0C@j^0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iL@@m*nM
+zW?*V-1Rx?376S(n6#@nUUtMGnA7T_<1rt9q34a9@2T)f80X+x6Uw#2+1OtNs003?S
+p3;+-SxI8ZafB^yn1Zvn_!~uAK3j!#3;{`wg;txNO+#>@30LwEoBt!rJ
+
+delta 135
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TM1pA7bJK<V9G8
+zSrn9n#F*IyMVZ(b6Jt|S(~=V6va*dh>sdwF1H#!EZP^dR*D<EEFgG(YFyt}wFbFX0
+nu+eX5U}R!u$+{7Hgt4N7naRNBF{=aPQ+@`96yAxqlo{IqI6)#p
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port1_20_dv.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port1_20_dv.bin
+index 9d242039e576cb535925b1b75f97320ae48e8e5a..617b567f74b046bae158bcf3637c3833dcb82ab0 100644
+GIT binary patch
+delta 133
+zc$@)+0DAv`0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iG0@mpbK
+zW?*V-1Rx?30}&Mh1_57PWDp->6kY`rKQak_1r-NSR|Ek)2f$x`0cQjQg8={lZUYPe
+n5CFJ5F93i60s{nU*j>Z{cz_E6D0t%qKmp<pKatuc0{{R@2UR1i
+
+delta 133
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TJ$(AEM#~<V9G8
+zSrn9nm<2_d*ccOIQ&Q8C65_J5jX3LBMcD(w*%@uw55(6orn4|NGcqvbG4n78Fzm3=
+lZ)jj-VrI#@5qpHOqJx>qz~(Wl1LISE28KxHi8oXkr2rE-A*uiX
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port1_dlg.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port1_dlg.bin
+index c5d2cd84366693d9a8258f6d071a3b6cf75c59ed..ba3ca9e04069bb4ee31399c820d656631613a1e7 100755
+GIT binary patch
+delta 113
+zc${lsYG9gR#>DYrqJ?`*8xwQ!$GF7Qw1li|76m0CF=lo_Q6@IV_}CNy`6Q7zR$&Kw
+zBhGqOQTBjv7Dik41Mzi?=`766j0_BU%sdPN3_EP}85$Uwm|3!J#2#U+Xy9hjsCdlk
+R!1##Ye&Rhv76t}}P5>tY8%zKI
+
+delta 113
+zc${lsYG9gR#>7%G(ZW6c9}{!g$GCU_c@b7&76m0CF=lo_Q6@IV#MqS7w4{W%tZWB+
+zBhGqOQTBjvc1BzF1Mzi?=`766j0_BU%sdPN3_EP}8yXmym|3!J#2#U+=wN0tsCdlk
+R!1$D(fgy!=;%!C7V*nAw97zBG
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port1_dv_dlg.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port1_dv_dlg.bin
+index 72860a42e64ab3a98beb8729966a0fb9f056ebb6..6032afa16cb8c1f1d2e7731d092db60a722941a6 100755
+GIT binary patch
+delta 110
+zc${lsYG9gR#>DYrqJ?{88xwQQ$LPe=w5)_|76m0CW&u$q#`xG20r@16I96c?dn3+z
+zR#EnVa27^e_5<;CjOi@Q&5R5TdCWWv0t`EB^cfl$nV4C!Zp0p8tZ3k7(x`aM>cIGj
+O-+tn46&3~t20;J-P#UuU
+
+delta 110
+zc${lsYG9gR#>7%G(ZW6E9}{!^$LM$gc@b7&76m0CW&u$q#>Ci^)U>38xU6gkdn3+z
+zR#EnVaCSyp_5<;CjOi@Q&5R5TdCWWv0t`EB^cxx&nV4C!Zp0p8tmt57GN^dW>cIGv
+OpP^w5<HQ>(jFSNM(HyV<
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port2_14.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port2_14.bin
+index 6e7fc1b16b28a9e1a4bd1e430d8ce8cdf5ef7569..e5bae4db9376780b651b77c540fc7478b2ded418 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z=1|036^0&Hw-a
+
+delta 13
+Uc${lsYG9hMfRTOT!Z=0-037cF&Hw-a
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port2_14_dv.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port2_14_dv.bin
+index 3d99a18050e868050643b4295836353888bd6ec7..7b3bd396c8cc43379f8abf221027b5dc8cc5bbb4 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^l603ALAEC2ui
+
+delta 13
+Uc${lsYG9hMfRTOT!Z^k_03A&PEC2ui
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port2_20.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port2_20.bin
+index 5e0ec868c66ff4595b99b31cf191395ec5aafa4b..981c86e85395a1a86f82acd9363963ec32fb50cf 100644
+GIT binary patch
+delta 135
+zc$@);0C@j^0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iL@@m*nM
+zW@=z-1Rx?376S(n6#@nUUtMGnA7T_<1rt9q34a9@2T)f80X+x6Uw#2+1OtNs003?S
+p3;-YixI8ZafB^yn1Zvn_!~uAK3j!#3;{`wg;txNO+#>@30J}A9Bt!rJ
+
+delta 135
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TM1pA7bJK<V9G8
+zSrn9n#F*IyMVZ(b6Jt|S(~=V6va*dh>sdwF1H#!EZP^dR*D<EEFgG(YFyt}wFeotW
+nu+eX5U}R!u$+{7Hgt4N7naRNBF{=aPQ+@`96yAxqlo`taI)NfW
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port2_20_dv.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port2_20_dv.bin
+index b77d96f65dcefe98222fec7c26483e8022779e74..ee652d8ba48376911338ef9dd0c4b60eddaa7415 100644
+GIT binary patch
+delta 133
+zc$@)+0DAv`0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iG0@mpbK
+zW?*V-1Rx?30}&Mh1_57PWDp->6kY`rKQak_1r-NSR|Ek)2f$x`0cQjQg8={lZUYPe
+nAON^LF93i60s{nU*j>Z{cz_E6D0t%qKmp<pKatuc0{{Rz356r9
+
+delta 133
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TJ$(AEM#~<V9G8
+zSrn9nm<2_d*ccOIQ&Q8C65_J5jX3LBMcD(w*%@uw55(6orn4|NGcqvbG4n7eFzm3=
+lZ)jj-VrI#@5qpHOqJx>qz~(Wl1LISE28KxHi8oXkxd0V;A*uiX
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port2_dlg.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port2_dlg.bin
+index ff03e1d5d61ea11daa00cae145e1844243c922a6..a8bd23ccb766b03d7684b102238272818c814a70 100755
+GIT binary patch
+delta 113
+zc${lsYG9gR#>DYrqJ?`*8xwQ!$GF7Qw1li|76m0CF=lo_Q6@IV_}CNy`6Q7zR$&Kw
+zBhGqOQTBjv7Dik41Mzi?=`766j0_BU%sdPV3_EP}85$Uwm|3!J#2#U+Xy9hjsCdlk
+R!1##Ye&Rhv76t}}N&qQB8%zKI
+
+delta 113
+zc${lsYG9gR#>7%G(ZW6c9}{!g$GCU_c@b7&76m0CF=lo_Q6@IV#MqS7w4{W%tZWB+
+zBhGqOQTBjvc1BzF1Mzi?=`766j0_BU%sdPV3_EP}8yXmym|3!J#2#U+=wN0tsCdlk
+R!1$D(fgy!=;%!C7Z2%Mn97zBG
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port2_dv_dlg.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port2_dv_dlg.bin
+index 405b387d61db336ec5dc005de38ff8374877c2e6..21b2270d87329fa78b5673b44ab0402c26889ba7 100755
+GIT binary patch
+delta 110
+zc${lsYG9gR#>DYrqJ?{88xwQQ$LPe=w1li|76m0CW&u$q#`xG20r@16I96c?dn3+z
+zR#EnVa27^e_5<;CjOi@Q&5R5TdCWWv3Jg1J^cfl$nV4C!Zp0p8tZ3k7(x`aM>cIGj
+O-+tn46&3~t21Wn^h8nW~
+
+delta 110
+zc${lsYG9gR#>7%G(ZW6E9}{!^$LM$gc@b7&76m0CW&u$q#>Ci^)U>38xU6gkdn3+z
+zR#EnVaCSyp_5<;CjOi@Q&5R5TdCWWv3Jg1J^cxx&nV4C!Zp0p8tmt57GN^dW>cIGv
+OpP^w5<HQ>(j7<Re5gf1p
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port3_14.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port3_14.bin
+index f52e30a5df330b73a24ae4119cfa1709f7c76865..1a92f8a22eac4aae62dd0b5a7b1616d3931d7fc2 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^my03FZ-z5oCK
+
+delta 13
+Uc${lsYG9hMfRTOT!Z^kc03F{1z5oCK
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port3_14_dv.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port3_14_dv.bin
+index 963095f6dca3f784393de8c57acd879006ebaec5..a1c5a9d05562f6cc1323f4ec9389ebf292f5e79a 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^l2039v_8~^|S
+
+delta 13
+Uc${lsYG9hMfRTOT!Z=1h03AI98~^|S
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port3_20.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port3_20.bin
+index 7a29c7a421c5d6af56002b79c5acf019b9af5a59..e0a42b552cdc34f5c5a81eb9972ce5cc07a4ab25 100644
+GIT binary patch
+delta 135
+zc$@);0C@j^0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iL@@m*nM
+zW?*V-1Rx?376S(n6#@nUUtMGnA7T_<1rt9q34a9@2T)f80X+x6Uw#2+1OtNs003?S
+p3;-|yxI8ZafB^yn1Zvn_!~uAK3j!#3;{`wg;txNO+#>@30IN5XBt!rJ
+
+delta 135
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TM1pA7bJK<V9G8
+zSrn9n#F*IyMVZ(b6Jt|S(~=V6va*dh>sdwF1H#!EZP^dR*D<EEFgG(YFyt}wFc>iG
+nu+eX5U}R!u$+{7Hgt4N7naRNBF{=aPQ+@`96yAxqlo`_iJi#JD
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port3_20_dv.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port3_20_dv.bin
+index fb3c1d81227e3bd70b28ca3732b3f34a13f9d3cd..3deea83fb39aaa76f7806ad353da29d10fc2a225 100644
+GIT binary patch
+delta 133
+zc$@)+0DAv`0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iG0@mpbK
+zW?*V-1Rx?30}&Mh1_57PWDp->6kY`rKQak_1r-NSR|Ek)2f$x`0cQjQg8={lZUYPe
+nFaWqbF93i60s{nU*j>Z{cz_E6D0t%qKmp<pKatuc0{{Rj3$-Jx
+
+delta 133
+zc$@)+0DAv`0)PULHXQ_X05I}!T7a-viU1(OF#rG_0y=;gaX2kNSS&@6Q!iM4@LFFG
+z9~1=>1Rx?30}&Mh1_5DRWMyVzU|wo#G6{bL6$emP2LU|?z+Zj=X9NR-0RRAQ0}KE#
+n0JuCafPeu40|aW=UBm%+hywyJJmUpG0p$+>09gZ(*d+n_7`Y;<
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port3_dlg.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port3_dlg.bin
+index 2f65a1e121e5f9d01f4a067fbd5a68e8da2081d9..df2ee3b1bfd1edfc386601359d33f9dfa501a639 100755
+GIT binary patch
+delta 113
+zc${lsYG9gR#>DYrqJ?`*8xwQ!$GF7Qw1li|76m0CF=lo_Q6@IV_}CNyr6iF!R$&Kw
+zBhGqOQTBjv7Dik41Mzi?=`766j0_BU%sdPR3_EP}85$Uwm|3!J#2#U+Xy9hjsCdlk
+R!1##Ye&Rhv76t}}Gyp7D8%zKI
+
+delta 113
+zc${lsYG9gR#>7%G(ZW6c9}{!g$GCU_c@b7&76m0CF=lo_Q6@IV#MqS7w4{W%tZWB+
+zBhGqOQTBjvc1BzF1Mzi?=`766j0_BU%sdPR3_EP}8yXmym|3!J#2#U+=wN0tsCdlk
+R!1$D(fgy!=;%!C7WdIgM97zBG
+
+diff --git a/etc/tvconfig/t962d4/tvconfig/hdmi/port3_dv_dlg.bin b/etc/tvconfig/t962d4/tvconfig/hdmi/port3_dv_dlg.bin
+index 29e6e953354f3b0d4d74f4ff2b2ef248dae5c9fd..23f455ff729f8a1c3b9fb509f4ab6099056d2a64 100755
+GIT binary patch
+delta 110
+zc${lsYG9gR#>DYrqJ?{88xwQQ$LPe=w1li|76m0CW?@k##`xG20r@16I96c?dn3+z
+zR#EnVa27^e_5<;CjOi@Q&5R5TdCWWv1`IoF^cfl$nV4C!Zp0p8tZ3k7(x`aM>cIGj
+O-+tn46&3~thIar4vm3Jj
+
+delta 110
+zc${lsYG9gR#>7%G(ZW6E9}{!^$LM$gc@b7&76m0CW&u$q#>Ci^)U>38xU6gkdn3+z
+zR#EnVaCSyp_5<;CjOi@Q&5R5TdCWWv1`IoF^cxx&nV4C!Zp0p8tmt57GN^dW>cIGv
+OpP^w5<HQ>(j70$YQ5>)U
+
+diff --git a/etc/tvconfig/t962e2/tvconfig/hdmi/port_14.bin b/etc/tvconfig/t962e2/tvconfig/hdmi/port_14.bin
+index 319c8dce674288909df80f578ac22f0970656ef2..d3a9a7b0fac058f7b09f0929eca16984e83519b7 100644
+GIT binary patch
+delta 67
+zc${lsYG9hsWbXJOSU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozItz0%
+XBLhPoGY^9R!wwsLhKbwU7$*Y&#rF+*
+
+delta 67
+zc${lsYG9hsWMcOrSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztozGa~~-
+W9y1Sv0K*O&{f3D<-B=hH7+L_z<qdrR
+
+diff --git a/etc/tvconfig/t962e2/tvconfig/hdmi/port_20.bin b/etc/tvconfig/t962e2/tvconfig/hdmi/port_20.bin
+index 54c47af8a1da16b3119a86de101f8bea5462dec7..b6a2efc2e966daf0e8a3ec5621ec328944d49337 100644
+GIT binary patch
+delta 159
+zc${lsYG4v#_zwmQtZNJy7#SEC6eK4K`PMu7`Y42iaVdZSQ1mZ@wVQm84Fgn!@fH(v
+z>W8>^0eKNtVHO1?8#^H}W_CeQCN{>z*p$??q=dMvY$MKkR#EnVa27^e_5<;CjOi@Q
+y%|ILSn0Xik7<Sm`Gc+(VF|(xKh&{qs(ZT$f)q(LTKLf)A)5mPQ6HhBLY5)L@OD6vS
+
+delta 156
+zc${lsYG4v#_zwmQtZNJy7#SECcw{FE`DS`Jdb$QFgoJS^00B_+FN3w4e2)zSn6IF~
+zIGc$%=tD%jfV>E+FpGkcjh&DfGrOQD6B}b}N>ZFMXFY2((6Bsa9tHu19X9$64UA08
+iEa^95k1%?7Fg|8=V0_M(keHR7nl|yaiU<QHxD5dFC?gpF
+
+diff --git a/etc/tvconfig/t962x3/tvconfig/hdmi/port_14.bin b/etc/tvconfig/t962x3/tvconfig/hdmi/port_14.bin
+index 319c8dce674288909df80f578ac22f0970656ef2..d3a9a7b0fac058f7b09f0929eca16984e83519b7 100644
+GIT binary patch
+delta 67
+zc${lsYG9hsWbXJOSU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozItz0%
+XBLhPoGY^9R!wwsLhKbwU7$*Y&#rF+*
+
+delta 67
+zc${lsYG9hsWMcOrSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztozGa~~-
+W9y1Sv0K*O&{f3D<-B=hH7+L_z<qdrR
+
+diff --git a/etc/tvconfig/t962x3/tvconfig/hdmi/port_20.bin b/etc/tvconfig/t962x3/tvconfig/hdmi/port_20.bin
+index 54c47af8a1da16b3119a86de101f8bea5462dec7..b6a2efc2e966daf0e8a3ec5621ec328944d49337 100644
+GIT binary patch
+delta 159
+zc${lsYG4v#_zwmQtZNJy7#SEC6eK4K`PMu7`Y42iaVdZSQ1mZ@wVQm84Fgn!@fH(v
+z>W8>^0eKNtVHO1?8#^H}W_CeQCN{>z*p$??q=dMvY$MKkR#EnVa27^e_5<;CjOi@Q
+y%|ILSn0Xik7<Sm`Gc+(VF|(xKh&{qs(ZT$f)q(LTKLf)A)5mPQ6HhBLY5)L@OD6vS
+
+delta 156
+zc${lsYG4v#_zwmQtZNJy7#SECcw{FE`DS`Jdb$QFgoJS^00B_+FN3w4e2)zSn6IF~
+zIGc$%=tD%jfV>E+FpGkcjh&DfGrOQD6B}b}N>ZFMXFY2((6Bsa9tHu19X9$64UA08
+iEa^95k1%?7Fg|8=V0_M(keHR7nl|yaiU<QHxD5dFC?gpF
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port1_14.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port1_14.bin
+index 319c8dce674288909df80f578ac22f0970656ef2..3994ddb7e6a704c4b023920666fbe67f807230fd 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsr0Mt}SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nkm04IG4xBvhE
+
+delta 53
+zc${lsYG9hsq-OUaSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9k{04OI4y8r+H
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port1_14_dv.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port1_14_dv.bin
+index 54c35a3f155808a5c86e9768be2d627cb48dc068..5560cfe90a1310b161ed64286459d44e31dcc280 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsr0M%1SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nj;04f6uA^-pY
+
+delta 53
+zc${lsYG9hsq~`S@SU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9m904l8uB>(^b
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port1_20.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port1_20.bin
+index 7304c6c77a59fd5e3a0d2a72afcd3b5c1f678a55..93f31a16814eed94573560b23ceff8a6069b8ace 100644
+GIT binary patch
+delta 210
+zc${lsYG9gRR?qQ*!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?M6=7gt_`~4n>!T17
+z#-#uTK#{);22168Y#5*-jBQNJMIU1mQ_~W%vRM?Agv6NH1x1<I7~^A81mu%M;#h_4
+zjX3LBMcD(wSr~2E55(6orn4}6H#0IY<T3Lw2r%rh(PwC2WMXE?x)FPXv7&*SNu%O1
+ms{`XBe*4F4yo^s7yIUqO=1MUzFmW4HFt7ypM7b~^gVO-yjxdw}
+
+delta 210
+zc${lsYG9gRR?kwxVDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2pw0b2m=Gd9|lKXABB)G
+zE(I_Eiu`4;c9ZY1VStJ--eO`-{SX%~ATPoy%%Y%VV<#lW%q}R(#KxEyo06KAln|Gd
+zt<PD{D#{)Z&dzAdejvV%v6<1Efgz8Xhe3d0hmC$i10xeNOV*9pBa9Ut%uEtCk69fU
+lpYk&>OfY@S#>@DWvAbmgBcm)sQQ!qRg*=T=gzLayF93jLFq8lQ
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port1_20_dv.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port1_20_dv.bin
+index d3b5ea5ad63f94b9e49799051f3a6eaf3814d7aa..617b567f74b046bae158bcf3637c3833dcb82ab0 100644
+GIT binary patch
+delta 210
+zc${lsYG9gRR?qQ*!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?M6=7gt_`~4n>!T17
+z#-#uTK#{);22168Y#5*-jBQNJH6NoBQ_~W%vRM?AgqQ_Inb;WPV^aj=lSJZJh3$<v
+z>sdwF1HxGtZP^dR*D<EEFgG)LGce>a^Dqc7?6A>iXkcVwX34q{dxWu~ftyLA;xVfO
+w<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`GJ!Eyih+TN+n|DhCBP@j1?V6z09PM0lmGw#
+
+delta 210
+zc${lsYG9gRR?kwxVDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2pw0b2m=Gd9|lKXABB)G
+zE(I_Eiu`4;c9ZY1VStJ--eO`d{16u}ATPoy%%Y%VV<#lW%q}R(#KxEyo06KAln|Gd
+zt<PD{D#{)Z&dzAdejvV%v6<1Efgz8Xhe3d0hmC$i10xeNOV*9pBa9Ut%uEtCk69fU
+lpYk&>OfY@S#>@Dc(d`0*ONequQ1+CkjNL607#UE28UUF{Fq8lQ
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port1_dlg.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port1_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..ba3ca9e04069bb4ee31399c820d656631613a1e7
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6Lay$
+zxWv@7gsf~91tlRdW_CeQCN{?S*c1WzB#}5)VF!C7&U#i+_JD8}MqBm+@pX*pEX>V7
+zr{*#9FbFX0u+e8|U}R!u$+{7Hgt4N5n@OYMF{=aPBYykGY`lz58M|91Fy=}zFfef&
+PR4}jv_(ZudAc0N*AJsbn
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port1_dv_dlg.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port1_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..341021347fe7cfae3f66bed4793e567bd5af610c
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsf~91tlS70Z}H#_}CNy`6Q7zR$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^Dqc7?6A>iXkcVwX34q{dxWu~ftyLA;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?V0@0Hh*60RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port2_14.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port2_14.bin
+index 3b75d2fa1553934cfa73c966e9df0b4c531fd5d0..e5bae4db9376780b651b77c540fc7478b2ded418 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsr0Mt}SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nkw04Hq<r~m)}
+
+delta 53
+zc${lsYG9hsq-OUaSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9k<04Ns<s{jB1
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port2_14_dv.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port2_14_dv.bin
+index d721bcc91e2167448c1eea22fc938408448d7428..7b3bd396c8cc43379f8abf221027b5dc8cc5bbb4 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsr0M%1SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nj?04ehe5&!@I
+
+delta 53
+zc${lsYG9hsq~`S@SU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9mH04kje6#xJL
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port2_20.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port2_20.bin
+index 2566c2b41e91468d31c626f1060fbf46d9678e29..86c033d12817073773a136be321bd559c212b321 100644
+GIT binary patch
+delta 210
+zc${lsYG9gRR?qQ*!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?M6=7gt_`~4n>!T17
+z#-#uTK#{);22168Y#5*-jBQNJMIU1mQ_~W%vRM?Agv6NH1x1<I7~^A81mu%M;#h_4
+zjX3LBMcD(wSr~2E55(6orn4}6H#0IY<T3LwC@}1>(PwC2WMXE?x)FPXv7&*SNu%O1
+ms{`XBe*4F4yo^s7yIUqO=1MUzFmW4HFt7ypM7b~^gWUk=t}v7U
+
+delta 210
+zc${lsYG9gRR?kwxVDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2pw0b2m=Gd9|lKXABB)G
+zE(I_Eiu`4;c9ZY1VStJ--eO`-{SX%~ATPoy%%Y%VV<#lW%q}R(#KxEyo06KAln|Gd
+zt<PD{D#{)Z&dzAdejvV%v6<1Efgz8Xhe3g1hmC$i10xeNOV*9pBa9Ut%uEtCk69fU
+lpYk&>OfY@S#>@DWvAbmgBcm)sQQ!qRg*=T=gzLayEdYe2Fq8lQ
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port2_20_dv.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port2_20_dv.bin
+index 3afe8ad0876ec4ab4b28a1eec64a17a0bd5cfc06..c8dbfc390faddd64da926cc746539de71fb84785 100644
+GIT binary patch
+delta 210
+zc${lsYG9gRR?qQ*!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?M6=7gt_`~4n>!T17
+z#-#uTK#{);22168Y#5*-jBQNJH6NoBQ_~W%vRM?AgqQ_Inb;WPV^aj=l0@QIh3$<v
+z>sdwF1HxGtZP^dR*D<EEFgG)LGce>a^Drnd?6A>iXkcVwX34q{dxWu~ftyLA;xVfO
+w<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`GJ!Eyih+TN+n|DhCBP@j1?V7a09yDolmGw#
+
+delta 210
+zc${lsYG9gRR?kwxVDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2pw0b2m=Gd9|lKXABB)G
+zE(I_Eiu`4;c9ZY1VStJ--eO`d{16u}ATPoy%%Y%VV<#lW%q}R(#KxEyo06KAln|Gd
+zt<PD{D#{)Z&dzAdejvV%v6<1Efgz8Xhe3g1hmC$i10xeNOV*9pBa9Ut%uEtCk69fU
+lpYk&>OfY@S#>@Dc(d`0*ONequQ1+CkjNL607#UE27yzA!Fq8lQ
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port2_dlg.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port2_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..a8bd23ccb766b03d7684b102238272818c814a70
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6Lay$
+zxWv@7gsf~91tlRdW_CeQCN{?S*c1WzB#}5)VF!C7&U#i+_JD8}MqBm+@pX*pEX>V7
+zr{*#9FeotWu+e8|U}R!u$+{7Hgt4N5n@OYMF{=aPBYykGY`lz58M|91Fy=}zFfef&
+PR4}jv_(ZudAc0B%Bjq~*
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port2_dv_dlg.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port2_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..21b2270d87329fa78b5673b44ab0402c26889ba7
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsf~91tlS70Z}H#_}CNy`6Q7zR$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^Drnd?6A>iXkcVwX34q{dxWu~ftyLA;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?V0|0H|U=0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port3_14.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port3_14.bin
+index b01a965bdc3888a35d2812fb45262f2a5728df48..1a92f8a22eac4aae62dd0b5a7b1616d3931d7fc2 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsr0Mt}SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(NkD0VrJym;e9(
+
+delta 53
+zc${lsYG9hsq-OUaSU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9k@04N6vn*aa+
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port3_14_dv.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port3_14_dv.bin
+index 4a42ee4de1b8e61873122791f3c02d67fb77f7ac..a1c5a9d05562f6cc1323f4ec9389ebf292f5e79a 100644
+GIT binary patch
+delta 53
+zc${lsYG9hsr0M%1SU_HcRhUIV$;M7djG0|fl!=Yeh_jwmlszDvh0&J%KztozIt%l}
+I6(Nj)04d`O0ssI2
+
+delta 53
+zc${lsYG9hsq~`S@SU_HcRhUIV$;M7djG0|fl!=W|pR=A-lszDvoza&4KztqJ#ML1z
+I3=9m104j|O1poj5
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port3_20.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port3_20.bin
+index 4dddfbe35b53246d967093fa09ffa2b5a26dd874..e0a42b552cdc34f5c5a81eb9972ce5cc07a4ab25 100644
+GIT binary patch
+delta 210
+zc${lsYG9gRR?qQ*!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?M6=7gt_`~4n>!T17
+z#-#uTK#{);22168Y#5*-jBQNJMIU1mQ_~W%vRM?Agv6NH1x1<I7~^A81mu%M;#h_4
+zjX3LBMcD(wSr~2E55(6orn4}6H#0IY<T3Lw7%=Rx(PwC2WMXE?x)FPXv7&*SNu%O1
+ms{`XBe*4F4yo^s7yIUqO=1MUzFmW4HFt7ypM7b~^gVg}+&M=e!
+
+delta 210
+zc${lsYG9gRR?kwxVDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2pw0b2m=Gd9|lKXABB)G
+zE(I_Eiu`4;c9ZY1VStJ--eO`-{SX%~ATPoy%%Y%VV<#lW%q}R(#KxEyo06KAln|Gd
+zt<PD{D#{)Z&dzAdejvV%v6<1Efgz8XhrxhhhmC$i10xeNOV*9pBa9Ut%uEtCk69fU
+lpYk&>OfY@S#>@DWvAbmgBcm)sQQ!qRg*=T=gzLayE&zz-Fq8lQ
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port3_20_dv.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port3_20_dv.bin
+index 40b1b236e37d91b954020c5b2473bc572d7a55ec..3deea83fb39aaa76f7806ad353da29d10fc2a225 100644
+GIT binary patch
+delta 210
+zc${lsYG9gRR?qQ*!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?M6=7gt_`~4n>!T17
+z#-#uTK#{);22168Y#5*-jBQNJH6NoBQ_~W%vRM?AgqQ_Inb;WPV^aj=lSJZJh3$<v
+z>sdwF1HxGtZP^dR*D<EEFgG)LGce>a^Dr1N?6A>iXkcVwX34q{dxWu~ftyLA;xVfO
+w<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`GJ!Eyih+TN+n|DhCBP@j1?V6x0AHUplmGw#
+
+delta 210
+zc${lsYG9gRR?kwxVDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2pw0b2m=Gd9|lKXABB)G
+zE(I_Eiu`4;c9ZY1VStJ--eO`d{16u}ATPoy%%Y%VV<#lW%q}R(#KxEyo06KAln|Gd
+zt<PD{D#{)Z&dzAdejvV%v6<1Efgz8XhrxhhhmC$i10xeNOV*9pBa9Ut%uEtCk69fU
+lpYk&>OfY@S#>@Dc(d`0*ONequQ1+CkjNL607#UCi8vvomFq8lQ
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port3_dlg.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port3_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..5954da7b22335ec70f2f16952c23f0af5fe70fe1
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6Lay$
+zxWv@7gsf~91tlRdW_CeQCN{?S*c1WzB#}5)VF!C7&U#i+_JD8}MqBm+@pX*pEX>V7
+zr{*#9Fc>iGu+e8|U}R!u$+{7Hgt4N5n@OYMF{=aPBYykGY`lz58M|91Fy=}zFfef&
+PR4}jv_(ZudAc0H(C-pl4
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t965d4/tvconfig/hdmi/port3_dv_dlg.bin b/etc/tvconfig/t965d4/tvconfig/hdmi/port3_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..7bc2173c1ca4bd9950a3f9c72a11915779a5848f
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsf~91tlS70Z}H#_}CNy`6Q7zR$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^Dr1N?6A>iXkcVwX34q{dxWu~ftyLA;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?ZlS0Ii}x0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port1_14.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port1_14.bin
+index 7c1452d593053eb1f5374a38119eb6991f9caf01..3994ddb7e6a704c4b023920666fbe67f807230fd 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z=1@037fG-T(jq
+
+delta 13
+Uc${lsYG9hMfRTOT!Z=0&0381V-T(jq
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port1_14_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port1_14_dv.bin
+index 514b615f51ba3696bcc9f0a8689f82f8d23e2fb5..5560cfe90a1310b161ed64286459d44e31dcc280 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^l403A*QJOBUy
+
+delta 13
+Uc${lsYG9hMfRTOT!Z^k}03BTfJOBUy
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port1_20.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port1_20.bin
+index b11c486c621c8278b95ba12252ad319273768b82..93f31a16814eed94573560b23ceff8a6069b8ace 100644
+GIT binary patch
+delta 135
+zc$@);0C@j^0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iL@@m*nM
+zW?*V-1Rx?376S(n6#@nUUtMGnA7T_<1rt9q34a9@2T)f80X+x6Uw#2+1OtNs003?S
+p3;+-SxI8ZafB^yn1Zvn_!~uAK3j!#3;{`wg;txNO+#>@30LwEoBt!rJ
+
+delta 135
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TM1pA7bJK<V9G8
+zSrn9n#F*IyMVZ(b6Jt|S(~=V6va*dh>sdwF1H#!EZP^dR*D<EEFgG(YFyt}wFbFX0
+nu+eX5U}R!u$+{7Hgt4N7naRNBF{=aPQ+@`96yAxqlo{IqI6)#p
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port1_20_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port1_20_dv.bin
+index 9d242039e576cb535925b1b75f97320ae48e8e5a..617b567f74b046bae158bcf3637c3833dcb82ab0 100644
+GIT binary patch
+delta 133
+zc$@)+0DAv`0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iG0@mpbK
+zW?*V-1Rx?30}&Mh1_57PWDp->6kY`rKQak_1r-NSR|Ek)2f$x`0cQjQg8={lZUYPe
+n5CFJ5F93i60s{nU*j>Z{cz_E6D0t%qKmp<pKatuc0{{R@2UR1i
+
+delta 133
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TJ$(AEM#~<V9G8
+zSrn9nm<2_d*ccOIQ&Q8C65_J5jX3LBMcD(w*%@uw55(6orn4|NGcqvbG4n78Fzm3=
+lZ)jj-VrI#@5qpHOqJx>qz~(Wl1LISE28KxHi8oXkr2rE-A*uiX
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port1_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port1_dlg.bin
+index c5d2cd84366693d9a8258f6d071a3b6cf75c59ed..ba3ca9e04069bb4ee31399c820d656631613a1e7 100755
+GIT binary patch
+delta 113
+zc${lsYG9gR#>DYrqJ?`*8xwQ!$GF7Qw1li|76m0CF=lo_Q6@IV_}CNy`6Q7zR$&Kw
+zBhGqOQTBjv7Dik41Mzi?=`766j0_BU%sdPN3_EP}85$Uwm|3!J#2#U+Xy9hjsCdlk
+R!1##Ye&Rhv76t}}P5>tY8%zKI
+
+delta 113
+zc${lsYG9gR#>7%G(ZW6c9}{!g$GCU_c@b7&76m0CF=lo_Q6@IV#MqS7w4{W%tZWB+
+zBhGqOQTBjvc1BzF1Mzi?=`766j0_BU%sdPN3_EP}8yXmym|3!J#2#U+=wN0tsCdlk
+R!1$D(fgy!=;%!C7V*nAw97zBG
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port1_dv_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port1_dv_dlg.bin
+index 72860a42e64ab3a98beb8729966a0fb9f056ebb6..341021347fe7cfae3f66bed4793e567bd5af610c 100755
+GIT binary patch
+delta 110
+zc${lsYG9gR#>DYrqJ?{88xwQQ$LPe=w1li|76m0CW&u$q#`xG20r@16I96c?dn3+z
+zR#EnVa27^e_5<;CjOi@Q&5R5TdCWWv0t`EB^cfl$nV4C!Zp0p8tZ3k7(x`aM>cIGj
+O-+tn46&3~t20;J-MjEpK
+
+delta 110
+zc${lsYG9gR#>7%G(ZW6E9}{!^$LM$gc@b7&76m0CW&u$q#>Ci^)U>38xU6gkdn3+z
+zR#EnVaCSyp_5<;CjOi@Q&5R5TdCWWv0t`EB^cxx&nV4C!Zp0p8tmt57GN^dW>cIGv
+OpP^w5<HQ>(jFSNM(HyV<
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port2_14.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port2_14.bin
+index 6e7fc1b16b28a9e1a4bd1e430d8ce8cdf5ef7569..e5bae4db9376780b651b77c540fc7478b2ded418 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z=1|036^0&Hw-a
+
+delta 13
+Uc${lsYG9hMfRTOT!Z=0-037cF&Hw-a
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port2_14_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port2_14_dv.bin
+index 3d99a18050e868050643b4295836353888bd6ec7..7b3bd396c8cc43379f8abf221027b5dc8cc5bbb4 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^l603ALAEC2ui
+
+delta 13
+Uc${lsYG9hMfRTOT!Z^k_03A&PEC2ui
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port2_20.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port2_20.bin
+index 5e0ec868c66ff4595b99b31cf191395ec5aafa4b..86c033d12817073773a136be321bd559c212b321 100644
+GIT binary patch
+delta 135
+zc$@);0C@j^0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iL@@m*nM
+zW?*V-1Rx?376S(n6#@nUUtMGnA7T_<1rt9q34a9@2T)f80X+x6Uw#2+1OtNs003?S
+p3;-YixI8ZafB^yn1Zvn_!~uAK3j!#3;{`wg;txNO+#>@30J}9~Bt!rJ
+
+delta 135
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TM1pA7bJK<V9G8
+zSrn9n#F*IyMVZ(b6Jt|S(~=V6va*dh>sdwF1H#!EZP^dR*D<EEFgG(YFyt}wFeotW
+nu+eX5U}R!u$+{7Hgt4N7naRNBF{=aPQ+@`96yAxqlo`taI)NfW
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port2_20_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port2_20_dv.bin
+index b77d96f65dcefe98222fec7c26483e8022779e74..ee652d8ba48376911338ef9dd0c4b60eddaa7415 100644
+GIT binary patch
+delta 133
+zc$@)+0DAv`0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!iG0@mpbK
+zW?*V-1Rx?30}&Mh1_57PWDp->6kY`rKQak_1r-NSR|Ek)2f$x`0cQjQg8={lZUYPe
+nAON^LF93i60s{nU*j>Z{cz_E6D0t%qKmp<pKatuc0{{Rz356r9
+
+delta 133
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TJ$(AEM#~<V9G8
+zSrn9nm<2_d*ccOIQ&Q8C65_J5jX3LBMcD(w*%@uw55(6orn4|NGcqvbG4n7eFzm3=
+lZ)jj-VrI#@5qpHOqJx>qz~(Wl1LISE28KxHi8oXkxd0V;A*uiX
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port2_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port2_dlg.bin
+index ff03e1d5d61ea11daa00cae145e1844243c922a6..a8bd23ccb766b03d7684b102238272818c814a70 100755
+GIT binary patch
+delta 113
+zc${lsYG9gR#>DYrqJ?`*8xwQ!$GF7Qw1li|76m0CF=lo_Q6@IV_}CNy`6Q7zR$&Kw
+zBhGqOQTBjv7Dik41Mzi?=`766j0_BU%sdPV3_EP}85$Uwm|3!J#2#U+Xy9hjsCdlk
+R!1##Ye&Rhv76t}}N&qQB8%zKI
+
+delta 113
+zc${lsYG9gR#>7%G(ZW6c9}{!g$GCU_c@b7&76m0CF=lo_Q6@IV#MqS7w4{W%tZWB+
+zBhGqOQTBjvc1BzF1Mzi?=`766j0_BU%sdPV3_EP}8yXmym|3!J#2#U+=wN0tsCdlk
+R!1$D(fgy!=;%!C7Z2%Mn97zBG
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port2_dv_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port2_dv_dlg.bin
+index 405b387d61db336ec5dc005de38ff8374877c2e6..21b2270d87329fa78b5673b44ab0402c26889ba7 100755
+GIT binary patch
+delta 110
+zc${lsYG9gR#>DYrqJ?{88xwQQ$LPe=w1li|76m0CW&u$q#`xG20r@16I96c?dn3+z
+zR#EnVa27^e_5<;CjOi@Q&5R5TdCWWv3Jg1J^cfl$nV4C!Zp0p8tZ3k7(x`aM>cIGj
+O-+tn46&3~t21Wn^h8nW~
+
+delta 110
+zc${lsYG9gR#>7%G(ZW6E9}{!^$LM$gc@b7&76m0CW&u$q#>Ci^)U>38xU6gkdn3+z
+zR#EnVaCSyp_5<;CjOi@Q&5R5TdCWWv3Jg1J^cxx&nV4C!Zp0p8tmt57GN^dW>cIGv
+OpP^w5<HQ>(j7<Re5gf1p
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port3_14.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port3_14.bin
+index f52e30a5df330b73a24ae4119cfa1709f7c76865..1a92f8a22eac4aae62dd0b5a7b1616d3931d7fc2 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^my03FZ-z5oCK
+
+delta 13
+Uc${lsYG9hMfRTOT!Z^kc03F{1z5oCK
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port3_14_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port3_14_dv.bin
+index 963095f6dca3f784393de8c57acd879006ebaec5..a1c5a9d05562f6cc1323f4ec9389ebf292f5e79a 100644
+GIT binary patch
+delta 13
+Uc${lsYG9hMfRSb5!Z^l2039v_8~^|S
+
+delta 13
+Uc${lsYG9hMfRTOT!Z=1h03AI98~^|S
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port3_20.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port3_20.bin
+index 7a29c7a421c5d6af56002b79c5acf019b9af5a59..f9cf4b8bd9205aafcc53232bc13e29b154b12f87 100644
+GIT binary patch
+delta 138
+zc$@)>0CoR>0)PULHXR7)05I}!T7a-viU1(OF#rG_Z^8heprBPyFd#LNQ!ib2@n2zO
+zW?*V-1Rx?376S(n6#@nUUtMGnA7T_<1rtAYb}|Wn1r-NSR|Ek)2f$x`0cQjQg8={l
+sZUYPeFaWqbF93i60s{nX*j>Z{cz|mHD0t6jAL9i;0pbrok=!5w0n`j8L;wH)
+
+delta 119
+zc${lsYG9gRCd*R7VDPCRs$oM!7lXnfLk0#pCaVUCLJM7o2p!jn!TK5{A7bJK<V9G8
+zSrn9n#F*IyMVZ(b6Jt|S(~=V6va*dh>sdwF1H#!St`(PVXkcVwX34q{dxWu~gPF;|
+X<}s@S<5PYHh7{h3_Z3(e7#Pw3Y&Ra@
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port3_20_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port3_20_dv.bin
+index fb3c1d81227e3bd70b28ca3732b3f34a13f9d3cd..01f620cae25e317410592cf827aab9e732ab6c55 100644
+GIT binary patch
+delta 133
+zc${lsYG9gRCd=`H!QfLtRKtddE(V1|h71gH`G*)5ELad4V4z?+F<3vi@?&UXYFa{8
+zHcM$4OMGmKfP9ij9ILRs5obNCD0@IS3!^Rjf%rPcbQb1jMh1pFW*!Cuh8;Hg3=ND-
+k%q+P#VvjIZG-NYrRGd$jf6VH@_=w+r;w@D+1`rSe0H~HFtN;K2
+
+delta 133
+zc$@)+0DAv`0)PULHXQ_X05I}!T7a-viU1(OF#rG_0y=;gaX2kNSS&@6Q!iM4@LFFG
+z9~1=>1Rx?30}&Mh1_5DRWMyVzU|wo#G6{bL6$emP2LU|?z+Zj=X9NR-0RRAQ0}KE#
+n0JuCafPeu40|aW=UBm%+hywyJJmUpG0p$+>09gZ()g=M?7_B0w
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port3_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port3_dlg.bin
+index 2f65a1e121e5f9d01f4a067fbd5a68e8da2081d9..56f61504d38e76a80dae68ba5abd891cc52a75a5 100755
+GIT binary patch
+delta 114
+zc${lsYG9gR#>DYrqJ?`x8xwQ+$N0q5w1li|mQp1lF=lo_Q6@IV_}CNy`6Q7zR$&MG
+zG9%7<R#EnVa27^e_5<;CjOi@Q&5R5TdCWWv1`IoF^cfl$nV4B}Z^Ry9tZ2w)(x^C}
+SF8`R-f$<T){lt3;j1K{Y)E-O#
+
+delta 95
+zc${lsYG9gR#>7%G(ZXH#9}{!g$GCU_c@b7&76m0CF=lo_Q6@IV#MqS7w4{W%tZWB+
+zBhGqOQTBjv_K9o7r5hR;nV4C!Zp0p8tmt57GN^dW>cIGvpMfETcjA2oCWd7Id@UH}
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port3_dv_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port3_dv_dlg.bin
+index 29e6e953354f3b0d4d74f4ff2b2ef248dae5c9fd..c4e1da787272e38384b83b1af21a7a4d2df44c85 100755
+GIT binary patch
+delta 110
+zc${lsYG9gR#>DYrqJ?{S8xwQY$FRiIw1li|meMkT_}CNy`6QV*R$&KwBhGqOQTBjv
+z7Dik41Mzi?=`766j0_BU%sdPR3_EP}85$Uwm|1df#2#U+Xvk*Ls5qZ4|CrT*@e#lM
+M#M>%t3?Q%v0GwVOvj6}9
+
+delta 110
+zc${lsYG9gR#>7%G(ZW6E9}{!^$LM$gc@b7&76m0CW&u$q#>Ci^)U>38xU6gkdn3+z
+zR#EnVaCSyp_5<;CjOi@Q&5R5TdCWWv1`IoF^cxx&nV4C!Zp0p8tmt57GN^dW>cIGv
+OpP^w5<HTz!j70$YNgS>K
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port4_14.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port4_14.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..ac8a4c44dc7fc8c81bd97c21322e2e6e5f8f70ab
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kI}r5TwUiXAJs&X+6>_t~J#>EWZu!N7<Hn5-Hk3N3UUB6M6C
+z6b>0OFvu~=GVBSuAg8cHBh&#R0yOLogQKsHLP!{w0vG^A{xVp*$@kbWKt&j*FfluR
+z2o{hRVHIXkP_nTT5@Ti;6lG##G~%ph6=e?yXJNEuKM-HXn9jo740K-}GY^9U!wwt$
+vh6Y9^W|l_`zkwDP1p+P3(+Gt+rHAW6m%;;G0Rg*d48nbi3=9$sIKg88xGFON
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port4_14_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port4_14_dv.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..afe1ca0d79b9861afb8ab7a6ed292f0e7c8ce84f
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kI}r5TwUiXAJs&X+6>_t~J#>EWZu!N7<Hn5-Hk3N3UUB6M6C
+z6b>0OFvu~=GVBSuAg8cHBh&#R0yOLogQKsHLP!{w0vG^A{xVp*$@kbWKt&j*Ffsdn
+z2o{hRVHIXkP_nTT5@Ti;6lG##G~%ph6=e?yXJNEuKM-HXn9jo740K-}GY^9U!wwt$
+zh6Y9^W|l_`zh5)DU0`qtQSJ!Jo&t14Q6SI}c^aWmXZ3Jh=u&u~D<EJujX}6ik%2*i
+I0R=b$09p4p0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port4_20.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port4_20.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..a3227f07d727d26e4a6216e159b5264399be2856
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6La~;
+z_{7w-gsf~91tlRdW_CeQCN{?S*c1WzB#}5)Vf)fDBhGqOQTBjv7Dik41Mzi?=`766
+zK)2>G^DsCt?6A>iXkcVwX34z~dxWu~A)85~;(WUNV^#;oNBs7W*?1YBGIqC2V9b?b
+TU|`}ls9<0T@QHF^fP#+zj5<C6
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port4_20_dv.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port4_20_dv.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..93618f38e564ce9d72e5c4b8f3993c644c0aa8b9
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsg0q(lQ}tK~W|)#`xG20r@16I96eMBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^DsCt?6A>iXkcVwX34q{dxWu~A)85~;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?V0@0Qj^(0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port4_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port4_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..fb4b4e91d860cbb49d8f020260db826f978ace07
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZPO
+z_{7w-gsg0qQY9fVW_CeQCN{?S*c1WzB#}5)VF&v%BhGqOQTBjv7Dik41Mzi?=`766
+zK)2>G^DsCt?6A>iXkcVwX34q{dxWu~A)85~;xVfO<0F3i$85ZePZ_&gCNSnoF)%Q3
+Q8&oi`1o%X`Fd%>q0DQJQ0RR91
+
+literal 0
+Hc$@<O00001
+
+diff --git a/etc/tvconfig/t968d4/tvconfig/hdmi/port4_dv_dlg.bin b/etc/tvconfig/t968d4/tvconfig/hdmi/port4_dv_dlg.bin
+new file mode 100755
+index 0000000000000000000000000000000000000000..6e4f230548d569b2d748d18f295112ba3ab75012
+GIT binary patch
+literal 256
+zc${PS4+adZYYZ3|85kH8BpI0-iXAJs&X+6>_t~J#>EWZu!N7<HI9@Oqd@6`)*bvdh
+zpm4~Lfk7_+5W|863qk`76ilHaK*RnpIQsf1goJS^fB{hCFN48S`5qevs0d>l6LZbS
+z=)}~tgsg0q(lQ}t0Z}H#_}CNy`6QV*R$&KwBhGqOQTBjv7Dik41Mzi?=`766KzHUb
+z^DsCt?6A>iXkcVwX34q{dxWu~A)85~;xVfO<0F3i$85ZeuNmDgFt~&$cLZfmdCJ(`
+YGJ!Eyih+TN+n|DhCBP@j1?Zj&02FXR0RR91
+
+literal 0
+Hc$@<O00001
+
+-- 
+2.25.1
+

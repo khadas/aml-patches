@@ -1,0 +1,53 @@
+From 077dd4b9ba156aa976efc15948243aea1b964596 Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Wed, 29 Nov 2023 18:42:02 +0800
+Subject: [PATCH 09/13] amlbian: install source egl error [1/1]
+
+PD#SWPL-147975
+
+Problem:
+use apt install source egl deb fail.
+
+Solution:
+we preinstall the deb.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: I2310ad0952192188831f400761bb8ae69fae41e1
+---
+ config/functions/build-base-rootfs | 3 ++-
+ config/functions/common-functions  | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/config/functions/build-base-rootfs b/config/functions/build-base-rootfs
+index 4022ac3..5487e87 100755
+--- a/config/functions/build-base-rootfs
++++ b/config/functions/build-base-rootfs
+@@ -44,7 +44,8 @@ if [[ "$DISTRIB_TYPE" != "minimal" ]]; then
+ 	PACKAGE_LIST+=" bridge-utils build-essential fbset iw wpasupplicant unicode-data \
+ 		expect iptables mc abootimg libc6 libdrm2 libgcc1 libstdc++6 libx11-6 libx11-xcb1 libxcb-dri2-0 \
+ 		libxcb1 html2text automake libwrap0-dev libnl-3-dev libnl-genl-3-dev \
+-		keyboard-configuration rsyslog"
++		keyboard-configuration rsyslog \
++        	libegl1 libgles1 libgles2 libwayland-egl1 libwayland-dev libgbm1 libgles-dev libgbm-dev"
+ 
+ 	PACKAGE_LIST_ADDITIONAL+=" btrfs-progs dosfstools iotop stress sysbench screen \
+ 		ntfs-3g vim pciutils evtest pv libfuse2 libdigest-sha-perl libproc-processtable-perl aptitude \
+diff --git a/config/functions/common-functions b/config/functions/common-functions
+index 2e0c5ce..f30fbc9 100755
+--- a/config/functions/common-functions
++++ b/config/functions/common-functions
+@@ -393,7 +393,7 @@ install_debs_chroot()
+ 
+ 	info_msg "Installing  $deb_dir debs in chroot..."
+ 	mount_chroot "$ROOTFS_TEMP"
+-	chroot $ROOTFS_TEMP /bin/bash -c "dpkg -i --force-bad-version,confdef /.deb-temp/${deb_dir}/*.deb" || exit 1
++	chroot $ROOTFS_TEMP /bin/bash -c "dpkg -i --force-bad-version,confdef,overwrite /.deb-temp/${deb_dir}/*.deb" || exit 1
+ 	umount_chroot "$ROOTFS_TEMP"
+ 	#rm -f $ROOTFS_TEMP/root/$name
+ 
+-- 
+2.25.1
+

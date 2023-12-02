@@ -1,0 +1,419 @@
+From 00f3e284c2333c98b52920b19e8794e084589921 Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Fri, 17 Nov 2023 11:52:00 +0800
+Subject: [PATCH 5/9] transcoding: app can not quit [1/1]
+
+PD#SWPL-146506
+
+Problem:
+1.app can not quit normal.
+2.build dir modify.
+
+Solution:
+1.add new func to quit.
+2.change the Makefile out_dir.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: I793e83fa6c0797b0c8495be2160b2b85380c67d9
+---
+ gst-aml-videotranscoding/Makefile             | 11 +--
+ .../inc/video_transcoding.h                   |  2 +-
+ gst-aml-videotranscoding/video_transcoding.c  | 60 +++++++++-------
+ videotranscoding-demo/Makefile                |  8 +--
+ videotranscoding-demo/videotranscoding_demo.c | 69 ++++++++++---------
+ 5 files changed, 86 insertions(+), 64 deletions(-)
+
+diff --git a/gst-aml-videotranscoding/Makefile b/gst-aml-videotranscoding/Makefile
+index ae624e6..38a8268 100644
+--- a/gst-aml-videotranscoding/Makefile
++++ b/gst-aml-videotranscoding/Makefile
+@@ -1,4 +1,5 @@
+ OBJ = *.c
++OUT_DIR ?= .
+ 
+ TARGET = libvideotranscoding.so
+ 
+@@ -17,15 +18,15 @@ LDFLAGS += -lpthread
+ 
+ 
+ $(TARGET): $(OBJ)
+-	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $@
++	$(CC) $(TARGET_CFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -Wall -I$(STAGING_DIR)/usr/include/ -L$(STAGING_DIR)/usr/lib $(LDFLAGS) $(OBJ) -shared -fPIC -o $(OUT_DIR)/$@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET) $(TEST)
++	rm -f *.o $(OUT_DIR)/$(TARGET)
+ 
+ install:
+-	cp inc/*.h $(STAGING_DIR)/usr/include/
+-	cp $(TARGET) $(TARGET_DIR)/usr/lib/
+-	rm $(TARGET)
++	install -m 644 inc/*.h $(STAGING_DIR)/usr/include
++	install -m 644 $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/lib
++
+ 
+diff --git a/gst-aml-videotranscoding/inc/video_transcoding.h b/gst-aml-videotranscoding/inc/video_transcoding.h
+index 01177ce..fcc51c8 100644
+--- a/gst-aml-videotranscoding/inc/video_transcoding.h
++++ b/gst-aml-videotranscoding/inc/video_transcoding.h
+@@ -48,7 +48,7 @@ typedef enum {
+ 
+ //use gstreamer enum
+ typedef void* HANDLE;
+-typedef int (*video_transcoding_callback)(HANDLE *handle, void *buffer, gint size);
++typedef int (*video_transcoding_callback)(void *buffer, gint size);
+ 
+ typedef struct _CustomData {
+   GstElement *pipeline, *app_source, *v4l2_dec, *app_sink;
+diff --git a/gst-aml-videotranscoding/video_transcoding.c b/gst-aml-videotranscoding/video_transcoding.c
+index 04927e5..f3ba15e 100644
+--- a/gst-aml-videotranscoding/video_transcoding.c
++++ b/gst-aml-videotranscoding/video_transcoding.c
+@@ -43,6 +43,7 @@ GST_DEBUG_CATEGORY_STATIC(video_transcoding);
+ static void *video_transcoding_workloop(HANDLE *handle);
+ 
+ static GstFlowReturn appsink_pull_data_callback(GstElement *sink, CustomData *data );
++void send_eos_event_to_app (GstElement* sink, CustomData *data);
+ 
+ HANDLE video_transcoding_init( video_transcoding_param *param, int argc, char **argv){
+     GstCaps* src_caps = NULL;
+@@ -84,54 +85,54 @@ HANDLE video_transcoding_init( video_transcoding_param *param, int argc, char **
+     switch (param->src_codec)
+     {
+     case AV1:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2av1dec", "v4l2_av1_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2av1dec", "transcoding-v4l2_av1_dec");
+         break;
+     case AVS2:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2avs2dec", "v4l2_avs2_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2avs2dec", "transcoding-v4l2_avs2_dec");
+         break;
+     case AVS3:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2avs3dec", "v4l2_avs3_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2avs3dec", "transcoding-v4l2_avs3_dec");
+         break;
+     case AVS:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2avsdec", "v4l2_avs_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2avsdec", "transcoding-v4l2_avs_dec");
+         break;
+     case H264:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2h264dec", "v4l2_h264_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2h264dec", "transcoding-v4l2_h264_dec");
+         src_caps = gst_caps_new_simple("video/x-h264",
+                                         "width", G_TYPE_INT, param->src_size.width,
+                                         "height", G_TYPE_INT, param->src_size.height,
+-                                        "framerate", GST_TYPE_FRACTION, param->src_framerate,
++                                        //"framerate", GST_TYPE_FRACTION, param->src_framerate,1,
+                                         NULL);
+         break;
+     case H265:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2h265dec", "v4l2_h265_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2h265dec", "transcoding-v4l2_h265_dec");
+         src_caps = gst_caps_new_simple("video/x-h265",
+                                         "width", G_TYPE_INT, param->src_size.width,
+                                         "height", G_TYPE_INT, param->src_size.height,
+-                                        "framerate", GST_TYPE_FRACTION, param->src_framerate,
++                                        //"framerate", GST_TYPE_FRACTION, param->src_framerate,1,
+                                         NULL);
+         break;
+     case JPEG:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2jpegdec", "v4l2_jpeg_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2jpegdec", "transcoding-v4l2_jpeg_dec");
+         break;
+     case MPEG4:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2mpeg4dec", "v4l2_mpeg4_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2mpeg4dec", "transcoding-v4l2_mpeg4_dec");
+         src_caps = gst_caps_new_simple("video/mpeg",
+                                         "mpegversion", G_TYPE_INT, 2,
+                                         "systemstream", G_TYPE_BOOLEAN, FALSE,
+                                         // "width", G_TYPE_INT, param->src_size.width,
+                                         // "height", G_TYPE_INT, param->src_size.height,
+-                                        // "framerate", GST_TYPE_FRACTION, param->src_framerate,
++                                        //"framerate", GST_TYPE_FRACTION, param->src_framerate,1,
+                                         NULL);
+ 
+         //src_caps = gst_caps_new_simple("video/mpeg",NULL);
+         //src_caps = gst_caps_new_any();
+         break;
+     case VC1:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2vc1dec", "v4l2_vc1_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2vc1dec", "transcoding-v4l2_vc1_dec");
+         break;
+     case VP9:
+-        data->v4l2_dec = gst_element_factory_make ("amlv4l2vp9dec", "v4l2_vp9_dec");
++        data->v4l2_dec = gst_element_factory_make ("amlv4l2vp9dec", "transcoding-v4l2_vp9_dec");
+         break;
+     default:
+         GST_ERROR("%s No match dec codec : %d\n", __func__, param->src_codec);
+@@ -145,19 +146,19 @@ HANDLE video_transcoding_init( video_transcoding_param *param, int argc, char **
+     switch (param->dst_codec)
+     {
+     case JPEG:
+-        data->video_enc = gst_element_factory_make ("amljpegenc", "video_jpeg_enc");
++        data->video_enc = gst_element_factory_make ("amljpegenc", "transcoding-video_jpeg_enc");
+         break;
+     case H264:
+-        data->video_enc = gst_element_factory_make ("amlvenc", "video_h264_enc");
++        data->video_enc = gst_element_factory_make ("amlvenc", "transcoding-video_h264_enc");
+                     //sink_caps = gst_caps_new_simple("video/x-raw",
+         sink_caps = gst_caps_new_simple("video/x-h264",
+                                         "width", G_TYPE_INT, param->dst_size.width,
+                                         "height", G_TYPE_INT, param->dst_size.height,
+-                                        "framerate", GST_TYPE_FRACTION, param->dst_framerate,
++                                        "framerate", GST_TYPE_FRACTION, param->dst_framerate,1,
+                                         NULL);
+         break;
+     case H265:
+-        data->video_enc = gst_element_factory_make ("amlvenc", "video_h265_enc");
++        data->video_enc = gst_element_factory_make ("amlvenc", "transcoding-video_h265_enc");
+         sink_caps = gst_caps_new_simple("video/x-h265",
+                                         "width", G_TYPE_INT, param->dst_size.width,
+                                         "height", G_TYPE_INT, param->dst_size.height,
+@@ -174,10 +175,10 @@ HANDLE video_transcoding_init( video_transcoding_param *param, int argc, char **
+ 
+     /* Create the elements */
+     // data->app_queue = gst_element_factory_make ("queue", "app_queue");
+-    data->app_sink = gst_element_factory_make ("appsink", "app_sink");
+-    data->app_source = gst_element_factory_make ("appsrc", "app_source");
++    data->app_sink = gst_element_factory_make ("appsink", "transcoding-app_sink");
++    data->app_source = gst_element_factory_make ("appsrc", "transcoding-app_source");
+     // data->ts_demux = gst_element_factory_make ("tsdemux", "ts_demux");
+-    data->video_convert = gst_element_factory_make ("amlvconv", "video_convert");
++    data->video_convert = gst_element_factory_make ("amlvconv", "transcoding-video_convert");
+     // data->src_parse = gst_element_factory_make ("mpegvideoparse", "src_parse");
+     // data->video_queue = gst_element_factory_make ("queue", "video_queue");
+     //data->video_rate = gst_element_factory_make ("videorate", "video_rate");
+@@ -203,6 +204,8 @@ HANDLE video_transcoding_init( video_transcoding_param *param, int argc, char **
+ 
+     /*configure the app sink */
+     g_object_set (data->app_sink, "emit-signals", TRUE, "caps", sink_caps, NULL);
++    g_signal_connect (data->app_sink, "eos", G_CALLBACK (send_eos_event_to_app), data);
++
+     //"async", FALSE,
+     GST_DEBUG("%s sink_caps we set : %s\n",__func__, gst_caps_to_string(sink_caps));
+     gst_caps_unref(sink_caps);
+@@ -239,8 +242,14 @@ void video_transcoding_deinit(HANDLE *handle){
+     /* free resources */
+     data->init = FALSE;
+     data->playing = FALSE;
+-    g_main_loop_quit(data->main_loop);
+-    g_main_loop_unref(data->main_loop);
++    if (pthread_join(data->tid, NULL) ==0) {
++        printf("workloop thread exited successful\n");
++    } else {
++        printf("workloop thread exited fail\n");
++    }
++
++    //g_main_loop_quit(data->main_loop);
++    //g_main_loop_unref(data->main_loop);
+     gst_object_unref(data->pipeline);
+     free(data);
+ 
+@@ -357,7 +366,7 @@ static GstFlowReturn appsink_pull_data_callback(GstElement *sink, CustomData *da
+         //video_transcoding_pulldata_callback(handle, buffer, out_size);
+ 
+         /* app pull data callback */
+-        data->cus_pull_data_callback((HANDLE *)data, out_buffer, out_size);
++        data->cus_pull_data_callback(out_buffer, out_size);
+         gst_sample_unref (sample);
+         return GST_FLOW_OK;
+     }
+@@ -420,6 +429,11 @@ int video_transcoding_stop(HANDLE *handle) {
+     return 0;
+ }
+ 
++void send_eos_event_to_app (GstElement* sink, CustomData *data){
++    printf("%s we got eos event\n",__func__);
++    data->cus_pull_data_callback(NULL, -1);
++    return;
++}
+ 
+ 
+ 
+diff --git a/videotranscoding-demo/Makefile b/videotranscoding-demo/Makefile
+index 1fb61f0..fab8721 100644
+--- a/videotranscoding-demo/Makefile
++++ b/videotranscoding-demo/Makefile
+@@ -1,5 +1,6 @@
+ TARGET =videotranscoding_demo
+ OBJ = videotranscoding_demo.c
++OUT_DIR ?= .
+ 
+ all: $(TARGET)
+ 
+@@ -15,13 +16,12 @@ LDFLAGS += -L$(STAGING_DIR)/usr/lib/ -lvideotranscoding
+ # rules
+ 
+ $(TARGET): $(OBJ)
+-	$(CC) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $@
++	$(CC) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $(OUT_DIR)/$@
+ 
+ .PHONY: clean
+ 
+ clean:
+-	rm -f *.o $(TARGET)
++	rm -f *.o $(OUT_DIR)/$(TARGET)
+ 
+ install:
+-	cp $(TARGET) $(TARGET_DIR)/usr/bin
+-	rm $(TARGET)
++	cp $(OUT_DIR)/$(TARGET) $(TARGET_DIR)/usr/bin
+diff --git a/videotranscoding-demo/videotranscoding_demo.c b/videotranscoding-demo/videotranscoding_demo.c
+index bd91752..a1056d7 100644
+--- a/videotranscoding-demo/videotranscoding_demo.c
++++ b/videotranscoding-demo/videotranscoding_demo.c
+@@ -112,11 +112,11 @@ void parseConfigFile(const char *filename, video_transcoding_param *param){
+     //fscanf(file, "src_codec=%d\n", &param->src_codec);
+     fscanf(file, "src_codec=%s\n", src_codec_value);
+     param->src_codec = mapStringToCodec(src_codec_value);
+-    fscanf(file, "src_framerate=%d/1\n,", &param->src_framerate);
++    fscanf(file, "src_framerate=%d\n,", &param->src_framerate);
+     fscanf(file, "dst_size={%d, %d}\n", &param->dst_size.width, &param->dst_size.height);
+     fscanf(file, "dst_codec=%s\n", dst_codec_value);
+     param->dst_codec = mapStringToCodec(dst_codec_value);
+-    fscanf(file, "dst_framerate=%d/1\n", &param->dst_framerate);
++    fscanf(file, "dst_framerate=%d\n", &param->dst_framerate);
+     fscanf(file, "bitrate_kb=%d\n", &param->bitrate_kb);
+     fscanf(file, "gop_size=%d\n", &param->gop_size);
+ 
+@@ -211,18 +211,9 @@ exit:
+   gst_object_unref (sink_pad);
+ }
+ 
+-int video_transcoding_pulldata_callback(HANDLE *handle, void *buffer, gint size){
++int video_transcoding_pulldata_callback(void *buffer, gint size){
+   CustomData_App *data = (CustomData_App *)handle_app;
+-  GstStateChangeReturn ret=GST_FLOW_OK;;
+-  /* create a GstBuffer containing data */
+-  //GstBuffer *mybuffer = gst_buffer_new_allocate(NULL, size, NULL);
+-  //GstMapInfo map;
+-  //gst_buffer_map(mybuffer, &map, GST_MAP_WRITE);
+-
+-  /* fill data into GstBuffer */
+-  //memcpy(map.data, buffer, size);
+-  //gst_buffer_unmap(mybuffer, &map);
+-
++  GstStateChangeReturn ret=GST_FLOW_OK;
+   if (NULL != buffer) {
+     /* The only thing we do in this example is print a * to indicate a received buffer */
+     g_print ("%s : ****** \n", __func__);
+@@ -236,9 +227,18 @@ int video_transcoding_pulldata_callback(HANDLE *handle, void *buffer, gint size)
+     printf("%s : write data func done\n", __func__);
+     return 0;
+   }
++  gst_element_send_event(data->app_source, gst_event_new_eos());
+   return 0;
+ }
+ 
++void send_eos_event (GstElement* appsink, HANDLE handle){
++    printf("%s we send eos enent to lib\n",__func__);
++    CustomData *data = (CustomData *)handle;
++    gst_element_send_event(data->app_source, gst_event_new_eos());
++    return;
++}
++
++
+ 
+ int main(int argc, char *argv[]) {
+     CustomData_App *data = (CustomData_App *)malloc(sizeof(CustomData_App));
+@@ -263,35 +263,35 @@ int main(int argc, char *argv[]) {
+     /* init the gstreamer library */
+     gst_init(&argc, &argv);
+ 
+-    data->pipeline = gst_pipeline_new("my-pipeline");
++    data->pipeline = gst_pipeline_new("demo-pipeline");
+ 
+-    data->source = gst_element_factory_make("filesrc", "file-source");
++    data->source = gst_element_factory_make("filesrc", "demo-file-source");
+     g_object_set(G_OBJECT(data->source), "location", argv[1], NULL);
+ 
+-    data->demuxer = gst_element_factory_make("tsdemux", "ts-demuxer");
++    data->demuxer = gst_element_factory_make("tsdemux", "demo-ts-demuxer");
+ 
+-    data->videoparser = gst_element_factory_make("mpegvideoparse", "mpegvideo-parser");
++    data->videoparser = gst_element_factory_make("mpegvideoparse", "demo-mpegvideo-parser");
+ 
+     //data->videoparser1 = gst_element_factory_make("h264parse", "h264parse-parser");
+ 
+-    data->video_queue = gst_element_factory_make ("queue", "video_queue");
++    data->video_queue = gst_element_factory_make ("queue", "demo-video_queue");
+ 
+-    data->audio_queue = gst_element_factory_make ("queue", "audio_queue");
++    data->audio_queue = gst_element_factory_make ("queue", "demo-audio_queue");
+ 
+-    data->sink = gst_element_factory_make("appsink", "my-sink");
++    data->sink = gst_element_factory_make("appsink", "demo-my-sink");
+ 
+-    data->audioparser = gst_element_factory_make("ac3parse", "ac3audio-parser");
++    data->audioparser = gst_element_factory_make("ac3parse", "demo-ac3audio-parser");
+ 
+-    data->muxer = gst_element_factory_make("mpegtsmux", "ts-muxer");
++    data->muxer = gst_element_factory_make("mpegtsmux", "demo-ts-muxer");
+ 
+-    data->filesink = gst_element_factory_make("filesink", "my-filesink");
++    data->filesink = gst_element_factory_make("filesink", "demo-my-filesink");
+     g_object_set(G_OBJECT(data->filesink), "location", "/data/test.ts", NULL);
+-    data->app_source = gst_element_factory_make ("appsrc", "app_source_test");
++    data->app_source = gst_element_factory_make ("appsrc", "demo-app_source_test");
+ 
+     switch (global_video_transcoding_param.dst_codec)
+     {
+     case H264:
+-        data->videoparser1 = gst_element_factory_make("h264parse", "h264parse-parser");
++        data->videoparser1 = gst_element_factory_make("h264parse", "demo-h264parse-parser");
+         src_caps = gst_caps_new_simple("video/x-h264",
+                                     "stream-format", G_TYPE_STRING, "byte-stream",
+                                         "alignment",G_TYPE_STRING,"au",
+@@ -302,7 +302,7 @@ int main(int argc, char *argv[]) {
+         break;
+ 
+     case H265:
+-        data->videoparser1 = gst_element_factory_make("h265parse", "h265parse-parser");
++        data->videoparser1 = gst_element_factory_make("h265parse", "demo-h265parse-parser");
+         src_caps = gst_caps_new_simple("video/x-h265",
+                                         "stream-format", G_TYPE_STRING, "byte-stream",
+                                         "alignment",G_TYPE_STRING,"nal",
+@@ -364,6 +364,9 @@ int main(int argc, char *argv[]) {
+         gst_object_unref(data->pipeline);
+         return -1;
+     }
++    /* send eos event */
++    g_signal_connect(G_OBJECT(data->sink), "eos", G_CALLBACK(send_eos_event), handle);
++
+ 
+     /* Set pipeline status to playing */
+     ret = gst_element_set_state(data->pipeline, GST_STATE_PLAYING);
+@@ -378,16 +381,20 @@ int main(int argc, char *argv[]) {
+ 
+     /* main loop */
+     bus = gst_element_get_bus(data->pipeline);
+-    msg = gst_bus_poll(bus, GST_MESSAGE_EOS, GST_CLOCK_TIME_NONE);
+-    gst_message_unref(msg);
++    msg = gst_bus_timed_pop_filtered(bus, GST_CLOCK_TIME_NONE, GST_MESSAGE_EOS);
++    //msg = gst_bus_poll(bus, GST_MESSAGE_EOS, GST_CLOCK_TIME_NONE);
++    //gst_message_unref(msg);
++
++    if (msg != NULL) {
++        printf("release the source demo to do\n");
++        video_transcoding_stop(handle);
++        video_transcoding_deinit(handle);
++    }
+ 
+     /* release source */
+     gst_element_set_state(data->pipeline, GST_STATE_NULL);
+     gst_object_unref(data->pipeline);
+ 
+-    video_transcoding_stop(handle);
+-    video_transcoding_deinit(handle);
+-
+     return 0;
+ }
+ 
+-- 
+2.25.1
+
