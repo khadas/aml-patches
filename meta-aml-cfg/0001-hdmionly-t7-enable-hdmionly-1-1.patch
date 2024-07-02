@@ -1,0 +1,37 @@
+From 642c1e2ffce332e9112a0852e51a2ff5c8a8b434 Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Mon, 24 Jun 2024 20:40:03 +0800
+Subject: [PATCH 1/2] hdmionly: t7 enable hdmionly [1/1]
+
+PD#
+
+Problem:
+t7 enable hdmionly.
+
+Solution:
+t7 enable hdmionly.
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: I35dca9d61afefe2fd2f632e33f93f19f58bfd659
+---
+ conf/machine/mesont7-an400-common.inc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/conf/machine/mesont7-an400-common.inc b/conf/machine/mesont7-an400-common.inc
+index 86f46dc..67f6aaf 100644
+--- a/conf/machine/mesont7-an400-common.inc
++++ b/conf/machine/mesont7-an400-common.inc
+@@ -43,6 +43,7 @@ DISTRO_FEATURES:append = " aml-libamvenc"
+ DISTRO_FEATURES:append = " aml-isp arm-isp "
+ DISTRO_FEATURES:append = " amlogic-tv "
+ DISTRO_FEATURES:append = " softap"
++DISTRO_FEATURES:append = " hdmionly"
+ 
+ DISTRO_FEATURES:append = " mediactrlsrc-cam"
+ DISTRO_FEATURES:append = " mediactrlsrc-hdmi"
+-- 
+2.25.1
+

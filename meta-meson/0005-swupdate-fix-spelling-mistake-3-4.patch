@@ -1,0 +1,47 @@
+From a1da71515c0900cbf38358e371096b2dc2a60e7b Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Fri, 31 May 2024 14:15:42 +0800
+Subject: [PATCH 5/9] swupdate: fix spelling mistake [3/4]
+
+PD#SWPL-169950
+
+Problem:
+Fix spelling mistake.
+
+Solution:
+Fix spelling mistake.
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: Ied64aaada5d90241f66419471c802e52a390f0e5
+---
+ .../swupdate/0001-amlogic-update-based-on-2021.04.patch       | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/recipes-core/swupdate/swupdate/0001-amlogic-update-based-on-2021.04.patch b/recipes-core/swupdate/swupdate/0001-amlogic-update-based-on-2021.04.patch
+index 465f3089..e1161150 100644
+--- a/recipes-core/swupdate/swupdate/0001-amlogic-update-based-on-2021.04.patch
++++ b/recipes-core/swupdate/swupdate/0001-amlogic-update-based-on-2021.04.patch
+@@ -342,7 +342,7 @@ index 31d0de89..96787c64 100644
+ +						swupdate_progress_end(VER_SAME);
+ +					} else {
+ +						notify(FAILURE, RECOVERY_ERROR, INFOLEVEL, "higher version image has installed, skipping...");
+-+						swupdate_progress_end(VER_OLER);
+++						swupdate_progress_end(VER_OLDER);
+ +					}
+ +					return -1;
+ +				}
+@@ -1532,7 +1532,7 @@ index 8ac9af1b..e6bd0ecc 100644
+ +	FAIL_LOAD,
+ +	FAIL_SIGN,
+ +	FAIL_FLASH_WRITE,
+-+	VER_OLER,
+++	VER_OLDER,
+ +	VER_SAME,
+  } RECOVERY_STATUS;
+  
+-- 
+2.25.1
+

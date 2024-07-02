@@ -1,0 +1,48 @@
+From 933d55a3562bc5cd559f03864b6d80a287ad33da Mon Sep 17 00:00:00 2001
+From: dezhi kong <dezhi.kong@amlogic.com>
+Date: Tue, 28 May 2024 09:24:32 +0000
+Subject: [PATCH 3/4] uvm: add check for fbc-dec map [1/1]
+
+PD#SWPL-171199
+
+Problem:
+cts fail for p010 format
+
+Solution:
+add fbc-dec map check condition
+
+Verify:
+T7 android-u
+
+Change-Id: Id121108c30d88b85f4902089777d31c8026f7674
+Signed-off-by: dezhi kong <dezhi.kong@amlogic.com>
+---
+ drivers/media/common/uvm/meson_uvm_core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/common/uvm/meson_uvm_core.c b/drivers/media/common/uvm/meson_uvm_core.c
+index 6ffb2084d..c9a9d0154 100644
+--- a/drivers/media/common/uvm/meson_uvm_core.c
++++ b/drivers/media/common/uvm/meson_uvm_core.c
+@@ -236,7 +236,8 @@ static int meson_uvm_vmap(struct dma_buf *dmabuf, struct dma_buf_map *map)
+ 
+ 	handle = dmabuf->priv;
+ 	if (handle->ua && ((handle->ua->flags & BIT(UVM_IMM_ALLOC)) ||
+-	    !handle->ua->sgt[1]))
++	    !handle->ua->sgt[1]) &&
++	    !(handle->ua->flags & BIT(UVM_FBC_DEC)))
+ 		sgt = handle->ua->sgt[0];
+ 	else
+ 		sgt = handle->ua->sgt[1];
+@@ -297,7 +298,7 @@ static int meson_uvm_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ 	UVM_PRINTK(UVM_INFO, "%s called.\n", __func__);
+ 
+ 	if (handle->ua && ((handle->ua->flags & BIT(UVM_IMM_ALLOC)) ||
+-	    !handle->ua->sgt[1]))
++	    !handle->ua->sgt[1]) && !(handle->ua->flags & BIT(UVM_FBC_DEC)))
+ 		table = handle->ua->sgt[0];
+ 	else
+ 		table = handle->ua->sgt[1];
+-- 
+2.25.1
+

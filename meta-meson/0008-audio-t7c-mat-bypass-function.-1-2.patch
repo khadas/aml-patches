@@ -1,0 +1,54 @@
+From a939262db7da31cba3b6376ab21b7524f3323440 Mon Sep 17 00:00:00 2001
+From: "dongyang.zhang" <dongyang.zhang@amlogic.com>
+Date: Mon, 27 May 2024 16:36:21 +0800
+Subject: [PATCH 8/9] audio: t7c mat bypass function. [1/2]
+
+PD#SWPL-170436
+
+Problem:
+In order to configure tx src.
+
+Solution:
+add HDMITX_HBR_Src_Select.
+add HDMITX_HBR_PCM_INDEX.
+
+Verify:
+t7c-trunk
+
+Change-Id: I6aa5332b90c3be9944a6789f85cf4c2c36061eb1
+Signed-off-by: dongyang.zhang <dongyang.zhang@amlogic.com>
+---
+ recipes-multimedia/aml-audio-hal/aml-audio-hal_git.bb         | 4 ++--
+ .../{aml_audio_config.tv.json => aml_audio_config.t7.json}    | 0
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ rename recipes-multimedia/aml-audio-hal/files/{aml_audio_config.tv.json => aml_audio_config.t7.json} (100%)
+
+diff --git a/recipes-multimedia/aml-audio-hal/aml-audio-hal_git.bb b/recipes-multimedia/aml-audio-hal/aml-audio-hal_git.bb
+index e9f401ac..e9f09933 100644
+--- a/recipes-multimedia/aml-audio-hal/aml-audio-hal_git.bb
++++ b/recipes-multimedia/aml-audio-hal/aml-audio-hal_git.bb
+@@ -47,7 +47,7 @@ SRC_URI  += "\
+   file://aml_audio_config.bh201.json \
+   file://aml_audio_config.bm201.json \
+   file://aml_audio_config.u212.json \
+-  file://aml_audio_config.tv.json \
++  file://aml_audio_config.t7.json \
+   file://aml_audio_config.t3x.json \
+   file://aml_audio_config.s1a.json \
+   file://mixer_paths.xml \
+@@ -71,7 +71,7 @@ PROPERTY_SET_CONF:u212 = "aml_audio_config.u212.json"
+ PROPERTY_SET_CONF:am301 = "aml_audio_config.am301.json"
+ PROPERTY_SET_CONF:at301 = "aml_audio_config.at301.json"
+ PROPERTY_SET_CONF:ap222 = "aml_audio_config.ap222.json"
+-PROPERTY_SET_CONF:t7 = "aml_audio_config.tv.json"
++PROPERTY_SET_CONF:t7 = "aml_audio_config.t7.json"
+ PROPERTY_SET_CONF:t3x = "aml_audio_config.t3x.json"
+ PROPERTY_SET_CONF:bh201 = "aml_audio_config.bh201.json"
+ PROPERTY_SET_CONF:bm201 = "aml_audio_config.bm201.json"
+diff --git a/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json b/recipes-multimedia/aml-audio-hal/files/aml_audio_config.t7.json
+similarity index 100%
+rename from recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
+rename to recipes-multimedia/aml-audio-hal/files/aml_audio_config.t7.json
+-- 
+2.25.1
+

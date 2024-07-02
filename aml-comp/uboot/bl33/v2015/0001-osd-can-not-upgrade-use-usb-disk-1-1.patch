@@ -1,0 +1,38 @@
+From 0980542b6aa1850a50909f5f432e408ad38503a5 Mon Sep 17 00:00:00 2001
+From: "hai.cao" <hai.cao@amlogic.com>
+Date: Tue, 4 Jun 2024 20:53:26 +0800
+Subject: [PATCH] osd: can not upgrade use usb disk [1/1]
+
+PD#SWPL-170555
+
+Problem:
+can not upgrade use usb disk
+
+Solution:
+restore display layer to osd0,avoid setting viu2 reg
+
+Verify:
+g12b
+
+Change-Id: I0d8a90ca016c39094b8961b025ac04992081bb0c
+Signed-off-by: hai.cao <hai.cao@amlogic.com>
+---
+ drivers/usb/gadget/v2_burning/v2_common/optimus_progress_ui.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/gadget/v2_burning/v2_common/optimus_progress_ui.c b/drivers/usb/gadget/v2_burning/v2_common/optimus_progress_ui.c
+index 6277326de85..8af808fbfac 100644
+--- a/drivers/usb/gadget/v2_burning/v2_common/optimus_progress_ui.c
++++ b/drivers/usb/gadget/v2_burning/v2_common/optimus_progress_ui.c
+@@ -19,7 +19,7 @@ extern int lcd_drawchars (ushort x, ushort y, uchar *str, int count);
+ #endif// #ifdef CONFIG_VIDEO_AMLLCD
+ 
+ #ifdef CONFIG_AML_VOUT
+-#define _VIDEO_DEV_OPEN "hdmitx hpd;echo 1;osd open;echo 2; osd clear; echo 3;vout output ${outputmode};echo 4;bmp scale;"
++#define _VIDEO_DEV_OPEN "hdmitx hpd;echo 1;setenv display_layer osd0;osd open;echo 2; osd clear; echo 3;vout output ${outputmode};echo 4;bmp scale;"
+ #else
+ #define _VIDEO_DEV_OPEN "video dev bl_on;"
+ #endif// #ifdef CONFIG_VIDEO_AMLTVOUT
+-- 
+2.25.1
+

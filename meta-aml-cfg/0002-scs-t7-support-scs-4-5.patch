@@ -1,0 +1,70 @@
+From 021f536cf44f9b651c05795cd2134f2bc6688eb4 Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Tue, 18 Jun 2024 13:54:05 +0800
+Subject: [PATCH 2/2] scs: t7 support scs [4/5]
+
+PD#SWPL-172150
+
+Problem:
+t7 support scs.
+
+Solution:
+t7 support scs.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: Iac3a4ba860d053d01a0f4618c4d9e396d14e4a71
+---
+ conf/machine/mesont7-an400-k5.15.conf | 3 +--
+ recipes-core/images/aml-security.inc  | 1 +
+ recipes-core/images/amlogic-yocto.bb  | 6 +++++-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
+ create mode 120000 recipes-core/images/aml-security.inc
+
+diff --git a/conf/machine/mesont7-an400-k5.15.conf b/conf/machine/mesont7-an400-k5.15.conf
+index cde0b22..e430d4e 100644
+--- a/conf/machine/mesont7-an400-k5.15.conf
++++ b/conf/machine/mesont7-an400-k5.15.conf
+@@ -1,3 +1,2 @@
+ include conf/machine/include/mesont7_k5.15_64b.inc
+-include conf/machine/mesont7-an400-common.inc
+-
++include conf/machine/mesont7-an400-common.inc
+\ No newline at end of file
+diff --git a/recipes-core/images/aml-security.inc b/recipes-core/images/aml-security.inc
+new file mode 120000
+index 0000000..94c4cfd
+--- /dev/null
++++ b/recipes-core/images/aml-security.inc
+@@ -0,0 +1 @@
++../../../meta-meson/recipes-core/images/aml-security.inc
+\ No newline at end of file
+diff --git a/recipes-core/images/amlogic-yocto.bb b/recipes-core/images/amlogic-yocto.bb
+index e19a344..ac48680 100755
+--- a/recipes-core/images/amlogic-yocto.bb
++++ b/recipes-core/images/amlogic-yocto.bb
+@@ -3,6 +3,11 @@ SUMMARY = "Amlogic Yocto Image"
+ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+ 
+ IMAGECLASS ?= " ${@bb.utils.contains('DISTRO_FEATURES', 'selinux', 'selinux-image', 'core-image', d)} "
++
++# Variables should be set before including aml-security.inc
++PARTITION_NAME = "system"
++PARTITION_ENCRYPTION_KEY = "${PARTITION_NAME}.bin"
++require aml-security.inc
+ inherit ${IMAGECLASS}
+ 
+ IMAGE_FSTYPES = "${@bb.utils.contains('DISTRO_FEATURES', 'nand', \
+@@ -191,7 +196,6 @@ process_for_read_only_rootfs(){
+ 
+ ROOTFS_POSTPROCESS_COMMAND += "${@bb.utils.contains('DISTRO_FEATURES', 'OverlayFS', '', 'process_for_read_only_rootfs; ', d)}"
+ 
+-inherit avb-dm-verity
+ # The following is needed only if chained
+ AVB_DMVERITY_SIGNINING_KEY = "system_rsa2048.pem"
+ AVB_DMVERITY_SIGNINING_ALGORITHM = "SHA256_RSA2048"
+-- 
+2.25.1
+

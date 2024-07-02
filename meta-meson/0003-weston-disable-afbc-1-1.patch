@@ -1,0 +1,37 @@
+From afdf94b7e9d7bd9a593bbab4848f719382911334 Mon Sep 17 00:00:00 2001
+From: "yi.liu" <yi.liu@amlogic.com>
+Date: Tue, 2 Apr 2024 11:00:06 +0800
+Subject: [PATCH 3/9] weston: disable afbc [1/1]
+
+PD#SWPL-162466
+
+Problem:
+the screen displays abnormally when weston-terminal started
+
+Solution:
+disable afbc
+
+Verify:
+local
+
+Signed-off-by: yi.liu <yi.liu@amlogic.com>
+Change-Id: Ia1a94a25fc54997800608556f9a0df9419bea8bf
+---
+ recipes-graphics/wayland/weston-init/weston-start | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/recipes-graphics/wayland/weston-init/weston-start b/recipes-graphics/wayland/weston-init/weston-start
+index b91bcfad..7c8aaf4c 100755
+--- a/recipes-graphics/wayland/weston-init/weston-start
++++ b/recipes-graphics/wayland/weston-init/weston-start
+@@ -3,6 +3,7 @@
+ # Copyright (C) 2016 Freescale Semiconductor
+ 
+ export PATH="/sbin:/usr/sbin:/bin:/usr/bin"
++export WESTON_USE_GBM_MODIFIERS=0
+ 
+ usage() {
+ 	cat <<EOF
+-- 
+2.25.1
+

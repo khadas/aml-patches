@@ -1,0 +1,231 @@
+From 92f4c1664088496fd861f91953660c980760785d Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Fri, 28 Jun 2024 15:35:43 +0800
+Subject: [PATCH 6/9] scs: t7 support scs [1/1]
+
+PD#SWPL-172150
+
+Problem:
+t7 support scs.
+
+Solution:
+t7 support scs.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: Ic167c7a7a0d1eac82ff927448a7aba2eb38ee945
+---
+ conf/machine/include/amlogic_common.inc       |  2 +-
+ conf/machine/include/amlogic_scs.inc          | 11 +++++++++++
+ recipes-bsp/u-boot/files/scs.cfg              |  1 +
+ recipes-bsp/u-boot/u-boot_2019.01.bb          |  7 ++-----
+ recipes-core/base_files/base-files_%.bbappend | 17 ++++++++++++++++-
+ recipes-core/images/aml-package.inc           |  2 ++
+ recipes-core/images/recovery-image.bb         |  6 +++---
+ recipes-core/images/vbmeta-image.bb           | 19 ++++++++++---------
+ .../aml-tools/aml-linux-scs-native_1.0.bb     |  5 +++++
+ 9 files changed, 51 insertions(+), 19 deletions(-)
+ create mode 100644 conf/machine/include/amlogic_scs.inc
+ create mode 100644 recipes-bsp/u-boot/files/scs.cfg
+
+diff --git a/conf/machine/include/amlogic_common.inc b/conf/machine/include/amlogic_common.inc
+index fa5e1a9d..7e4281e0 100644
+--- a/conf/machine/include/amlogic_common.inc
++++ b/conf/machine/include/amlogic_common.inc
+@@ -98,7 +98,7 @@ HOSTTOOLS_NONFATAL += "bc cc c++ bison repo python crc32"
+ DISABLE_STATIC:pn-libevent = ""
+ 
+ AML_RDK_PREBUILT_SITE ?= "http://10.18.11.6/shanghai/image/linux-distro/Public/YOCTO/prebuilt/"
+-AML_TOOLS_SITE ?= "http://10.18.11.120:8000/Tools"
++AML_TOOLS_SITE ?= "http://10.8.9.5/amlogic/tools/release/plain/Tools_Common/0002.AML_ETOOL/Aml_Linux_SCS_SignTool/"
+ # define sign tool
+ #AML_SCS_SIGN_TOOL = "${COREBASE}/../aml-comp/prebuilt/hosttools/aml-linux-scs/Aml_Linux_SCS_SignTool/amlogic_scs_sign_whole_pkg.bash"
+ # define config files device-keys and fw_arb.cfg
+diff --git a/conf/machine/include/amlogic_scs.inc b/conf/machine/include/amlogic_scs.inc
+new file mode 100644
+index 00000000..cde84df0
+--- /dev/null
++++ b/conf/machine/include/amlogic_scs.inc
+@@ -0,0 +1,11 @@
++DISTRO_FEATURES:append = " AVB"
++DISTRO_FEATURES:append = " AVB READONLY dm-verity"
++DISTRO_FEATURES:append = " scs"
++
++DEVICE_PROPERTY_BOOT_PARTITION_SIZE="0x4000000"
++DEVICE_PROPERTY_VBMETA_ROLLBACK_INDEX="0"
++DEVICE_PROPERTY_RECOVERY_PARTITION_SIZE="0x2800000"
++DEVICE_PROPERTY_RECOVERY_ROLLBACK_LOCATION="31"
++DEVICE_PROPERTY_RECOVERY_ROLLBACK_INDEX="0"
++
++DM_VERITY_IMAGE_TYPE = "ext4"
+diff --git a/recipes-bsp/u-boot/files/scs.cfg b/recipes-bsp/u-boot/files/scs.cfg
+new file mode 100644
+index 00000000..a7622fdc
+--- /dev/null
++++ b/recipes-bsp/u-boot/files/scs.cfg
+@@ -0,0 +1 @@
++CONFIG_SCS = y
+\ No newline at end of file
+diff --git a/recipes-bsp/u-boot/u-boot_2019.01.bb b/recipes-bsp/u-boot/u-boot_2019.01.bb
+index 8d5ea00d..45c4ccfc 100644
+--- a/recipes-bsp/u-boot/u-boot_2019.01.bb
++++ b/recipes-bsp/u-boot/u-boot_2019.01.bb
+@@ -20,6 +20,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
+ SRC_URI:append = " file://merge_config.sh"
+ SRC_URI:append = "${@bb.utils.contains('DISTRO_FEATURES', 'absystem', ' file://absystem.cfg', '', d)}"
+ SRC_URI:append = "${@bb.utils.contains('DISTRO_FEATURES', 'hdmionly', ' file://hdmitx_only.cfg', '', d)}"
++SRC_URI:append = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', ' file://scs.cfg', '', d)}"
+ 
+ #SRC_URI = "git://${AML_GIT_ROOT}/firmware/bin/bl2.git;protocol=${AML_GIT_PROTOCOL};branch=amlogic-dev;destsuffix=uboot-repo/bl2/bin;name=bl2"
+ #SRC_URI:append = " git://${AML_GIT_ROOT}/firmware/bin/bl30.git;protocol=${AML_GIT_PROTOCOL};branch=amlogic-dev;destsuffix=uboot-repo/bl30/bin;name=bl30"
+@@ -118,6 +119,7 @@ SOC = "TBD"
+ SOC_aq2432 = "s805c3"
+ SOC_ap222 = "s905y4"
+ SOC_ah212 = "s905x4"
++SOC_a311d2 = "a311d2"
+ 
+ FINAL_DEFCONFIG_PATH = "${S}/bl33/v2019/board/amlogic/defconfigs"
+ DEFCONFIG = "${UBOOT_TYPE%_config}_defconfig"
+@@ -146,11 +148,6 @@ do_compile () {
+     LDFLAGS= ./mk ${UBOOT_TYPE%_config} ${BL30_ARG} ${BL2_ARG} ${BL32_ARG} ${BL33_ARG} ${VMX_UBOOT_ARG} ${NAGRA_UBOOT_ARG} ${IRDETO_UBOOT_ARG}
+     cp -rf build/* fip/
+ 
+-    if [ "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', 'true', 'false', d)}" = "true" ] &&\
+-           [ "${@bb.utils.contains('DISTRO_FEATURES', 'verimatrix', 'true', 'false', d)}" = "true" ] ; then
+-        mkdir -p ${DEPLOY_DIR_IMAGE}
+-        cp ${S}/bl33/v2019/board/amlogic/${UBOOT_TYPE%_config}/device-keys/fip/rsa/${SOC}/rootrsa-0/key/bl33-level-3-rsa-priv.pem ${DEPLOY_DIR_IMAGE}
+-    fi
+ 
+     if [ -f "${FINAL_DEFCONFIG_PATH}/${DEFCONFIG}.temp" ]; then
+         mv -f ${FINAL_DEFCONFIG_PATH}/${DEFCONFIG}.temp ${FINAL_DEFCONFIG_PATH}/${DEFCONFIG}
+diff --git a/recipes-core/base_files/base-files_%.bbappend b/recipes-core/base_files/base-files_%.bbappend
+index 5c24f9ee..36923c3c 100644
+--- a/recipes-core/base_files/base-files_%.bbappend
++++ b/recipes-core/base_files/base-files_%.bbappend
+@@ -357,10 +357,25 @@ dirs755:append:t3 = " /vendor /factory "
+ do_install:append:t7 () {
+     mkdir -p ${D}/vendor
+     mkdir -p ${D}/factory
++    vendor_dev="vendor"
++    if ${@bb.utils.contains('DISTRO_FEATURES', 'dm-verity', 'true', 'false', d)}; then
++        vendor_dev="dm-1"
++    elif ${@bb.utils.contains('DISTRO_FEATURES', 'absystem', 'true', 'false', d)}; then
++        vendor_dev="vendor_a"
++    fi
++
++    if ${@bb.utils.contains('DISTRO_FEATURES', 'vendor-partition', 'true', 'false', d)}; then
++    cat >> ${D}${sysconfdir}/fstab <<EOF
++ /dev/${vendor_dev}     /vendor                    auto       defaults              0  0
++EOF
++    fi
++
+     cat >> ${D}${sysconfdir}/fstab <<EOF
+- /dev/vendor            /vendor                    auto       defaults              0  0
+  /dev/factory           /factory                   auto       defaults              0  0
+ EOF
++
++
++
+ }
+ FILES:${PN}:append:t7 = " /vendor/* /factory/* "
+ dirs755:append:t7 = " /vendor /factory "
+diff --git a/recipes-core/images/aml-package.inc b/recipes-core/images/aml-package.inc
+index ba6aa320..4e4ea506 100644
+--- a/recipes-core/images/aml-package.inc
++++ b/recipes-core/images/aml-package.inc
+@@ -1,4 +1,5 @@
+ DEPENDS:append = " aml-img-packer-native"
++DEPENDS:append = " ncurses ncurses-native"
+ DEPENDS:append:onepass = " core-image-minimal"
+ DEPENDS:append = "${@bb.utils.contains('DISTRO_FEATURES', 'vendor-partition', ' vendor-image', '', d)}"
+ DEPENDS:append = "${@bb.utils.contains('DISTRO_FEATURES', 'swupdate', ' aml-swupdate-native', '', d)}"
+@@ -254,6 +255,7 @@ do_aml_pack() {
+         if ${@bb.utils.contains('DISTRO_FEATURES', 'swupdate', 'true', 'false', d)}; then
+             ${AML_SCS_SIGN} --soc ${chipset_name} \
+                 --aml_key ${DEPLOY_DIR_IMAGE}/device-keys \
++                --fw_arb_cfg ${DEPLOY_DIR_IMAGE}/fw_arb.cfg \
+                 --ota_key ${DEPLOY_DIR_IMAGE}/swupdate-priv.pem  \
+                 --ota_swu ${DEPLOY_DIR_IMAGE}/software.swu  \
+                 --bootloader_zip ${DEPLOY_DIR_IMAGE}/${UBOOT_TYPE%_config}-u-boot.aml.zip \
+diff --git a/recipes-core/images/recovery-image.bb b/recipes-core/images/recovery-image.bb
+index 3713caa8..51915ff2 100644
+--- a/recipes-core/images/recovery-image.bb
++++ b/recipes-core/images/recovery-image.bb
+@@ -68,13 +68,13 @@ IMAGE_INSTALL:append= "${@bb.utils.contains("DISTRO_FEATURES", "irdeto-downloade
+ 
+ IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
+ 
+-AVB_RECOVERY_RSA_KEY = "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', \
++AVB_RECOVERY_RSA_KEY = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', \
+     bb.utils.contains('DISTRO_FEATURES', 'verimatrix', 'bl33-level-3-rsa-priv.pem', 'vbmeta_rsa2048.pem', d), \
+     'vbmeta_rsa2048.pem', d)}"
+-AVB_RECOVERY_RSA_KEY_PATH = "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', \
++AVB_RECOVERY_RSA_KEY_PATH = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', \
+     bb.utils.contains('DISTRO_FEATURES', 'verimatrix', '${DEPLOY_DIR_IMAGE}', '${STAGING_DIR_NATIVE}/${sysconfdir_native}', d), \
+     '${STAGING_DIR_NATIVE}/${sysconfdir_native}', d)}"
+-AVB_RECOVERY_ALGORITHM = "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', \
++AVB_RECOVERY_ALGORITHM = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', \
+     bb.utils.contains('DISTRO_FEATURES', 'verimatrix', 'SHA256_RSA4096', 'SHA256_RSA2048', d), \
+     'SHA256_RSA2048', d)}"
+ SIGN_RECOVERY = " --key ${AVB_RECOVERY_RSA_KEY_PATH}/${AVB_RECOVERY_RSA_KEY} --algorithm ${AVB_RECOVERY_ALGORITHM} "
+diff --git a/recipes-core/images/vbmeta-image.bb b/recipes-core/images/vbmeta-image.bb
+index 705b6262..372d18c5 100644
+--- a/recipes-core/images/vbmeta-image.bb
++++ b/recipes-core/images/vbmeta-image.bb
+@@ -15,15 +15,16 @@ AVB_DM_VERITY_VENDOR_PARTITION_NAME = "vendor"
+ AVB_DM_VERITY_SYSTEM_PARTITION_PUBKEY = "system_rsa2048.avbpubkey"
+ AVB_DM_VERITY_VENDOR_PARTITION_PUBKEY = "vendor_rsa2048.avbpubkey"
+ 
+-AVB_VBMETA_RSA_KEY = "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', \
+-    bb.utils.contains('DISTRO_FEATURES', 'verimatrix', 'bl33-level-3-rsa-priv.pem', 'vbmeta_rsa2048.pem', d), \
+-    'vbmeta_rsa2048.pem', d)}"
+-AVB_VBMETA_RSA_KEY_PATH = "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', \
+-    bb.utils.contains('DISTRO_FEATURES', 'verimatrix', '${DEPLOY_DIR_IMAGE}', '${STAGING_DIR_NATIVE}/${sysconfdir_native}', d), \
+-    '${STAGING_DIR_NATIVE}/${sysconfdir_native}', d)}"
+-AVB_VBMETA_ALGORITHM = "${@bb.utils.contains('DISTRO_FEATURES', 'secureboot', \
+-    bb.utils.contains('DISTRO_FEATURES', 'verimatrix', 'SHA256_RSA4096', 'SHA256_RSA2048', d), \
+-    'SHA256_RSA2048', d)}"
++AVB_VBMETA_RSA_KEY = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', 'bl33-level-3-rsa-priv.pem', 'vbmeta_rsa2048.pem', d)}"
++
++
++AVB_VBMETA_RSA_KEY_PATH = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', \
++    '${DEPLOY_DIR_IMAGE}', '${STAGING_DIR_NATIVE}/${sysconfdir_native}', d)}"
++
++
++AVB_VBMETA_ALGORITHM = "${@bb.utils.contains('DISTRO_FEATURES', 'scs', \
++    'SHA256_RSA4096', 'SHA256_RSA2048', d)}"
++
+ 
+ SIGN_VBMETA = " --key ${AVB_VBMETA_RSA_KEY_PATH}/${AVB_VBMETA_RSA_KEY} --algorithm ${AVB_VBMETA_ALGORITHM} --padding_size 4096 "
+ 
+diff --git a/recipes-support/aml-tools/aml-linux-scs-native_1.0.bb b/recipes-support/aml-tools/aml-linux-scs-native_1.0.bb
+index 53776f92..748250f4 100644
+--- a/recipes-support/aml-tools/aml-linux-scs-native_1.0.bb
++++ b/recipes-support/aml-tools/aml-linux-scs-native_1.0.bb
+@@ -17,9 +17,12 @@ SOC_FAMILY:s4 = "s4"
+ S = "${WORKDIR}/aml-linux-scs"
+ 
+ do_install () {
++    local chipset_name=$(echo ${CHIPSET_NAME} | tr 'A-Z' 'a-z')
+     install -d ${D}${bindir}/aml-linux-scs/
+     if [ "${AML_SCS_SIGN_CONFIG_PATH}" = "" ];then
+         cp -rf ${S}/${SOC_FAMILY}/${CHIPSET_NAME}/* ${D}${bindir}/aml-linux-scs/
++        mkdir -p ${DEPLOY_DIR_IMAGE}
++        cp -rf ${S}/${SOC_FAMILY}/${CHIPSET_NAME}/device-keys/fip/rsa/${chipset_name}/rootrsa-0/key/bl33-level-3-rsa-priv.pem ${DEPLOY_DIR_IMAGE}
+     else
+         cp -rf ${AML_SCS_SIGN_CONFIG_PATH}/${SOC_FAMILY}/${CHIPSET_NAME}/* ${D}${bindir}/aml-linux-scs/
+     fi
+@@ -34,6 +37,8 @@ do_install () {
+         wget -q -N ${AML_TOOLS_SITE}/Aml_Linux_SCS_SignTool.zip
+         unzip -q -u ${WORKDIR}/aml-linux-scs-${PV}/Aml_Linux_SCS_SignTool.zip
+ 
++        sed -i 's|#!/usr/bin/env python2|#!/usr/bin/env python3|' ${WORKDIR}/aml-linux-scs-${PV}/bin/recovery-sign.py
++
+         install -m 0755 ${WORKDIR}/aml-linux-scs-${PV}/amlogic_scs_sign_whole_pkg.bash ${D}${bindir}/aml-linux-scs/
+         cp -rf ${WORKDIR}/aml-linux-scs-${PV}/bin/* ${D}${bindir}/aml-linux-scs/bin/
+         cp -rf ${WORKDIR}/aml-linux-scs-${PV}/exe4Android/* ${D}${bindir}/aml-linux-scs/exe4Android/
+-- 
+2.25.1
+

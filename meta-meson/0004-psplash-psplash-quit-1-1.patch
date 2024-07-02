@@ -1,0 +1,103 @@
+From e90948ab43737a079019914ebae4bf41320758b5 Mon Sep 17 00:00:00 2001
+From: "hui.jin" <hui.jin@amlogic.com>
+Date: Fri, 7 Jun 2024 18:02:35 +0800
+Subject: [PATCH 4/9] psplash: psplash quit [1/1]
+
+PD#SWPL-173111
+
+Problem:
+fb1 memory was hold after splash screen quit
+
+Solution:
+1.force fb1 memory release after splash screen quit.
+2.Provides a method for actively exiting psplash.
+
+Verify:
+local
+
+Signed-off-by: hui.jin <hui.jin@amlogic.com>
+Change-Id: Ie966eebb40f2af4e2d3e2245e28a5b543617dccf
+---
+ recipes-core/psplash/files/psplash-quit       | 22 +++++++++++++++++++
+ .../psplash/files/psplash-quit.service        | 15 +++++++++++++
+ recipes-core/psplash/psplash_%.bbappend       | 15 +++++++++++++
+ 3 files changed, 52 insertions(+)
+ create mode 100644 recipes-core/psplash/files/psplash-quit
+ create mode 100644 recipes-core/psplash/files/psplash-quit.service
+
+diff --git a/recipes-core/psplash/files/psplash-quit b/recipes-core/psplash/files/psplash-quit
+new file mode 100644
+index 00000000..3c7ce95a
+--- /dev/null
++++ b/recipes-core/psplash/files/psplash-quit
+@@ -0,0 +1,22 @@
++#!/bin/sh
++
++PSPLASH_WRITE="/usr/bin/psplash-write"
++
++fb_release() {
++  GRAPH="/sys/class/graphics"
++  FB_BLANK="${GRAPH}/fb$1/blank"
++  FB_FREE_MEM="${GRAPH}/fb$1/force_free_mem"
++  if [ -e "$FB_BLANK" ]; then
++    echo 1 > "$FB_BLANK"
++  fi
++
++  if [ -e "$FB_FREE_MEM" ]; then
++    echo 1 > "$FB_FREE_MEM"
++  fi
++}
++
++if [ -f "$PSPLASH" ]; then
++  $PSPLASH_WRITE QUIT
++fi
++
++fb_release 1
+diff --git a/recipes-core/psplash/files/psplash-quit.service b/recipes-core/psplash/files/psplash-quit.service
+new file mode 100644
+index 00000000..90d88911
+--- /dev/null
++++ b/recipes-core/psplash/files/psplash-quit.service
+@@ -0,0 +1,15 @@
++[Unit]
++Description=Actively exit psplash
++DefaultDependencies=no
++After=psplash-start.service
++Requires=psplash-start.service
++RequiresMountsFor=/run
++ConditionFileIsExecutable=/usr/bin/psplash-quit
++
++[Service]
++User=root
++ExecStart=/usr/bin/psplash-quit
++ExecStartPre=/bin/sleep 10
++
++[Install]
++WantedBy=multi-user.target
+\ No newline at end of file
+diff --git a/recipes-core/psplash/psplash_%.bbappend b/recipes-core/psplash/psplash_%.bbappend
+index 1f648e67..759a7b63 100644
+--- a/recipes-core/psplash/psplash_%.bbappend
++++ b/recipes-core/psplash/psplash_%.bbappend
+@@ -3,3 +3,18 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+ FILESEXTRAPATHS:prepend := "${@bb.utils.contains('DISTRO_FEATURES', 'amlogic-tv', '${THISDIR}/files/tv:', '${THISDIR}/files/stb:', d)}"
+ 
+ SRC_URI:append = " file://0001-use-fb1-set-alpha-ff.patch"
++SRC_URI:append = " file://psplash-quit"
++SRC_URI:append = " file://psplash-quit.service"
++
++do_install:append () {
++    if ${@bb.utils.contains('DISTRO_FEATURES', 'psplash-force-timedout', 'true', 'false', d)}; then
++        install -Dm 0755 ${WORKDIR}/psplash-quit ${D}/${bindir}/
++        install -Dm 0644 ${WORKDIR}/psplash-quit.service ${D}${systemd_unitdir}/system/
++    fi
++}
++
++SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'psplash-force-timedout', 'psplash-quit.service', '', d)}"
++
++FILES:${PN} += " \
++    ${systemd_unitdir}/system/ \
++"
+-- 
+2.25.1
+

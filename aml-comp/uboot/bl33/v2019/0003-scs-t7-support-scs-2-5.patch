@@ -1,0 +1,41 @@
+From a2cbd3fa6040405ae3c5b192f859a00f705aec9b Mon Sep 17 00:00:00 2001
+From: "yi.zhang1" <yi.zhang1@amlogic.com>
+Date: Wed, 19 Jun 2024 09:46:45 +0800
+Subject: [PATCH 3/3] scs: t7 support scs [2/5]
+
+PD#SWPL-172150
+
+Problem:
+t7 support scs.
+
+Solution:
+t7 support scs.
+
+Verify:
+local
+
+Signed-off-by: yi.zhang1 <yi.zhang1@amlogic.com>
+Change-Id: Idb8fd814beb644d39f13519b7a6b8f8c9970a64d
+---
+ board/amlogic/configs/t7_an400_lpddr4x.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/board/amlogic/configs/t7_an400_lpddr4x.h b/board/amlogic/configs/t7_an400_lpddr4x.h
+index f323844c0c4..2fbe38db7af 100644
+--- a/board/amlogic/configs/t7_an400_lpddr4x.h
++++ b/board/amlogic/configs/t7_an400_lpddr4x.h
+@@ -613,7 +613,10 @@
+ 
+ /* unify build for generate encrypted bootloader "u-boot.bin.encrypt" */
+ #define CONFIG_AML_CRYPTO_UBOOT   1
+-//#define CONFIG_AML_SIGNED_UBOOT   1
++
++#ifdef CONFIG_SCS
++    #define CONFIG_AML_SIGNED_UBOOT   1
++#endif
+ /* unify build for generate encrypted kernel image
+    SRC : "board/amlogic/(board)/boot.img"
+    DST : "fip/boot.img.encrypt" */
+-- 
+2.25.1
+

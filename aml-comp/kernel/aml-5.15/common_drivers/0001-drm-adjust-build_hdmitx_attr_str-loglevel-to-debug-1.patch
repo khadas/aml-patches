@@ -1,0 +1,42 @@
+From 1f007f4920d84bf3330a3436c13ad192fa443a56 Mon Sep 17 00:00:00 2001
+From: "wenlong.zhang" <wenlong.zhang@amlogic.com>
+Date: Mon, 20 May 2024 06:13:25 +0000
+Subject: [PATCH 1/4] drm: adjust build_hdmitx_attr_str loglevel to debug [1/1]
+
+PD#SWPL-170103
+
+Problem:
+build_hdmitx_attr_str will print always when add any connector
+property
+
+Solution:
+adjust build_hdmitx_attr_str loglevel to debug
+
+Verify:
+t7c
+
+Test:
+DRM-OSD-65
+
+Change-Id: I25e48a1bee2e0b465442be1856a85bfb2ba3f657
+Signed-off-by: wenlong.zhang <wenlong.zhang@amlogic.com>
+---
+ drivers/drm/meson_hdmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/drm/meson_hdmi.c b/drivers/drm/meson_hdmi.c
+index f6ea07020..7898fed15 100644
+--- a/drivers/drm/meson_hdmi.c
++++ b/drivers/drm/meson_hdmi.c
+@@ -210,7 +210,7 @@ static void build_hdmitx_attr_str(char *attr_str, u32 format, u32 bit_depth)
+ 	};
+ 
+ 	sprintf(attr_str, "%s,%dbit", colorspace, bit_depth);
+-	DRM_INFO("%s:%s = %u+%u\n", __func__, attr_str, format, bit_depth);
++	DRM_DEBUG("%s:%s = %u+%u\n", __func__, attr_str, format, bit_depth);
+ }
+ 
+ static struct hdmitx_color_attr *meson_hdmitx_get_candidate_attr_list
+-- 
+2.25.1
+

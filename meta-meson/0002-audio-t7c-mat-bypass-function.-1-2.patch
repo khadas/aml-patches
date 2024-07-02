@@ -1,0 +1,39 @@
+From be468d6ea766ff31e59cbe8da2b789bc0edd49d3 Mon Sep 17 00:00:00 2001
+From: "dongyang.zhang" <dongyang.zhang@amlogic.com>
+Date: Mon, 27 May 2024 16:36:21 +0800
+Subject: [PATCH 2/9] audio: t7c mat bypass function. [1/2]
+
+PD#SWPL-170436
+
+Problem:
+In order to configure tx src.
+
+Solution:
+add HDMITX_HBR_Src_Select.
+add HDMITX_HBR_PCM_INDEX.
+
+Verify:
+t7c-trunk
+
+Change-Id: I6aa5332b90c3be9944a6789f85cf4c2c36061eb1
+Signed-off-by: dongyang.zhang <dongyang.zhang@amlogic.com>
+---
+ recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json b/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
+index 5f4a5cf8..a4cbf29c 100644
+--- a/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
++++ b/recipes-multimedia/aml-audio-hal/files/aml_audio_config.tv.json
+@@ -6,6 +6,8 @@
+ 	"Dtv_Audio_Skipamadec": 0,
+ 	"Dtv_Audio_Syncenable": 1,
+ 	"HDMITX_Src_Select": 4,
++	"HDMITX_HBR_Src_Select": 4,
++	"HDMITX_HBR_PCM_INDEX": 2,
+ 	"Codec_Support_List":[
+ 		{"Name": "PCM", "Format": "AUDIO_FORMAT_PCM", "Support": true, "Description": "pcm", "License":false},
+ 		{"Name": "MP3", "Format": "AUDIO_FORMAT_MP3", "Support": true, "Description": "MPEG-1/2 Layer1/Layer2/Layer3", "License":false},
+-- 
+2.25.1
+

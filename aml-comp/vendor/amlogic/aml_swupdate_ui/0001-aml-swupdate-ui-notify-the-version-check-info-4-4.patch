@@ -1,0 +1,86 @@
+From e844a669f2b2c1c46adabac44e45cbc9041d9fe9 Mon Sep 17 00:00:00 2001
+From: "haotian.qu" <haotian.qu@amlogic.com>
+Date: Fri, 19 Jan 2024 17:13:03 +0800
+Subject: [PATCH] aml-swupdate-ui: notify the version check info [4/4]
+
+PD#SWPL-169950
+
+Problem:
+When a same version software.swu, the UI should show
+a notify.
+
+Solution:
+Add handle when a same version has been installed.
+
+Verify:
+local
+
+Signed-off-by: haotian.qu <haotian.qu@amlogic.com>
+Change-Id: If7ea1e3b19f9cf50cf3269fb453155060c98119d
+---
+ common/event_ui.c               | 10 +++++++++-
+ directfb_ui/aml_directfb_ui.cpp |  3 +++
+ lvgl_ui/aml_lvgl_ui.c           |  3 +++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/common/event_ui.c b/common/event_ui.c
+index 0ea4d0f..bc6227e 100644
+--- a/common/event_ui.c
++++ b/common/event_ui.c
+@@ -26,9 +26,11 @@ extern "C" {
+ #include <string.h>
+ 
+ static int cur_img_percent = 0;
+-const char *status_success = "SWUpdate successful!";
++const char *status_success = "SWUpdate successful!Do not power off，rebooting...";
+ const char *status_fail    = "SWUpdate failure!";
+ const char *status_run     = "Installing image ";
++const char *status_older    = "A higher version image has installed, skipping...";
++const char *status_same    = "A same version image has installed, skipping...";
+ char info[PRINFOSIZE] = {0};
+ 
+ static void status_check(lv_refresh_event_t *pdata)
+@@ -68,6 +70,12 @@ static void status_check(lv_refresh_event_t *pdata)
+         case DONE:
+         case SUBPROCESS:
+             break;
++        case VER_OLDER:
++            pdata->p_show_status(pdata->screen, status_older);
++            break;
++        case VER_SAME:
++            pdata->p_show_status(pdata->screen, status_same);
++            break;
+         default:
+             break;
+     }
+diff --git a/directfb_ui/aml_directfb_ui.cpp b/directfb_ui/aml_directfb_ui.cpp
+index 1c0c66f..13af07b 100644
+--- a/directfb_ui/aml_directfb_ui.cpp
++++ b/directfb_ui/aml_directfb_ui.cpp
+@@ -213,6 +213,9 @@ private:
+           if ((SUCCESS == m_ref_ent.ui_status) || (FAILURE == m_ref_ent.ui_status)) {
+               surface.Clear();
+               return true;
++          } else if ((VER_OLDER == ref_ent.ui_status) || (VER_SAME == ref_ent.ui_status)) {
++              printf("A higher or same version image has installed, skipping...\n");
++              return true;
+           }
+ 
+           return false;
+diff --git a/lvgl_ui/aml_lvgl_ui.c b/lvgl_ui/aml_lvgl_ui.c
+index a8c3fb2..92ed74a 100644
+--- a/lvgl_ui/aml_lvgl_ui.c
++++ b/lvgl_ui/aml_lvgl_ui.c
+@@ -280,6 +280,9 @@ int swupdateui_run(int argc, char *argv[])
+             /* Refresh the screen and waiting the animation finish before exit. */
+             sem_wait(&sem_ui_finish);
+             break;
++        } else if ((VER_OLDER == ref_ent.ui_status) || (VER_SAME == ref_ent.ui_status)) {
++            printf("A higher or same version image has installed, skipping...\n");
++            break;
+         }
+     }
+ 
+-- 
+2.25.1
+
