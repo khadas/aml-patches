@@ -1,0 +1,71 @@
+From 99fbe3c8ae3c51434ebf7208efbb8cdfa167236e Mon Sep 17 00:00:00 2001
+From: "le.han" <le.han@amlogic.com>
+Date: Fri, 14 Jun 2024 02:03:07 +0000
+Subject: [PATCH 11/11] meta-meson: CB1 remove alignment caps in tsdemux [1/1]
+
+PD#SWPL-163568
+
+Problem:
+gst1.20 delete alignment caps in tsdemux
+
+Solution:
+remove alignment caps in tsdemux
+
+Verify:
+AH212
+
+Signed-off-by: le.han <le.han@amlogic.com>
+Change-Id: I6284455254b49373eec0920bf40c3dbc7d468db4
+---
+ ...568-remove-alignment-caps-in-tsdemux.patch | 26 +++++++++++++++++++
+ .../gstreamer1.0-plugins-bad_%.bbappend       |  1 +
+ 2 files changed, 27 insertions(+)
+ create mode 100644 recipes-multimedia/gstreamer/gst1-plugins-bad/0050-SWPL-163568-remove-alignment-caps-in-tsdemux.patch
+
+diff --git a/recipes-multimedia/gstreamer/gst1-plugins-bad/0050-SWPL-163568-remove-alignment-caps-in-tsdemux.patch b/recipes-multimedia/gstreamer/gst1-plugins-bad/0050-SWPL-163568-remove-alignment-caps-in-tsdemux.patch
+new file mode 100644
+index 00000000..cc9e7f34
+--- /dev/null
++++ b/recipes-multimedia/gstreamer/gst1-plugins-bad/0050-SWPL-163568-remove-alignment-caps-in-tsdemux.patch
+@@ -0,0 +1,26 @@
++diff --git a/gst/mpegtsdemux/tsdemux.c b/gst/mpegtsdemux/tsdemux.c
++index cc1b24d..54df774 100644
++--- a/gst/mpegtsdemux/tsdemux.c
+++++ b/gst/mpegtsdemux/tsdemux.c
++@@ -1865,18 +1865,15 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
++           stream->is_video = TRUE;
++           caps = gst_caps_new_simple ("application/x-hdcp",
++             "original-media-type", G_TYPE_STRING, "video/x-h264",
++-            "stream-format", G_TYPE_STRING, "byte-stream",
++-            "alignment", G_TYPE_STRING, "nal", NULL);
+++            "stream-format", G_TYPE_STRING, "byte-stream", NULL);
++         } else {
++             caps = gst_caps_new_simple("video/x-h264",
++-              "stream-format", G_TYPE_STRING, "byte-stream",
++-              "alignment", G_TYPE_STRING, "nal", NULL);
+++              "stream-format", G_TYPE_STRING, "byte-stream", NULL);
++         }
++       }
++       else {
++         caps = gst_caps_new_simple ("video/x-h265",
++-            "stream-format", G_TYPE_STRING, "byte-stream",
++-            "alignment", G_TYPE_STRING, "nal", NULL);
+++            "stream-format", G_TYPE_STRING, "byte-stream", NULL);
++       }
++ 
++       desc = mpegts_get_descriptor_from_stream (bstream, 0xb0);
+diff --git a/recipes-multimedia/gstreamer/gstreamer1.0-plugins-bad_%.bbappend b/recipes-multimedia/gstreamer/gstreamer1.0-plugins-bad_%.bbappend
+index a62bf1ef..0c19575c 100644
+--- a/recipes-multimedia/gstreamer/gstreamer1.0-plugins-bad_%.bbappend
++++ b/recipes-multimedia/gstreamer/gstreamer1.0-plugins-bad_%.bbappend
+@@ -47,6 +47,7 @@ SRC_URI:append = "file://0046-SWPL-100464-add-parse-sequence-extention.patch "
+ SRC_URI:append = "file://0047-SWPL-85490-recalculate-frame-rate.patch "
+ SRC_URI:append = "file://0048-OTT-44638-modify-hls-ts-demux-videoparser-to-parse-sampleAES.patch "
+ SRC_URI:append = "file://0049-gsthlsdemux-CF1-support-HLS-AES128-decryption.patch "
++SRC_URI:append = "file://0050-SWPL-163568-remove-alignment-caps-in-tsdemux.patch "
+ 
+ DEPENDS += "gst-aml-drmbufferpool-plugins"
+ 
+-- 
+2.25.1
+
